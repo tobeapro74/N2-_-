@@ -1,0 +1,33 @@
+{
+  "name": "n2-golf-management",
+  "version": "1.0.0",
+  "description": "N2골프 동호회 자금/예약 관리 시스템",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js",
+    "init-db": "node scripts/init-db.js"
+  },
+  "keywords": [
+    "golf",
+    "club",
+    "management",
+    "reservation",
+    "finance"
+  ],
+  "author": "N2골프",
+  "license": "MIT",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "csurf": "^1.11.0",
+    "dotenv": "^17.2.3",
+    "ejs": "^3.1.9",
+    "express": "^4.18.2",
+    "express-session": "^1.17.3",
+    "helmet": "^8.1.0",
+    "moment": "^2.29.4"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
+}

@@ -1,0 +1,345 @@
+<%- include('../partials/header') %>
+
+<!-- 페이지 헤더 -->
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <div class="d-flex align-items-center">
+    <a href="/" class="back-link" aria-label="대시보드로 이동">
+      <i class="bi bi-chevron-left" aria-hidden="true"></i>홈
+    </a>
+    <h5 class="mb-0 fw-bold"><i class="bi bi-calendar-check text-success me-2" aria-hidden="true"></i>예약 신청</h5>
+  </div>
+</div>
+
+<%
+  // 골프장과 스크린골프 분리
+  const golfSchedules = schedules.filter(s => !s.is_screen);
+  const screenSchedules = schedules.filter(s => s.is_screen);
+%>
+
+<% if (user && user.is_admin) { %>
+<div class="alert alert-warning py-2">
+  <i class="bi bi-exclamation-triangle me-1"></i>
+  <strong>관리자 계정</strong>은 예약 신청이 불가능합니다. 일정 현황만 확인할 수 있습니다.
+</div>
+<% } %>
+
+<% if (schedules.length === 0) { %>
+<div class="card border-0 shadow-sm">
+  <div class="card-body text-center py-5">
+    <i class="bi bi-calendar-x text-muted" style="font-size: 3rem;"></i>
+    <h5 class="mt-3 text-muted">예약 가능한 일정이 없습니다.</h5>
+  </div>
+</div>
+<% } else { %>
+
+<!-- 골프장 일정 -->
+<% if (golfSchedules.length > 0) { %>
+<div class="card border-0 shadow-sm mb-3">
+  <div class="card-header bg-white py-2 d-flex justify-content-between align-items-center">
+    <h6 class="mb-0 fw-bold" style="font-size: 0.9rem;"><i class="bi bi-flag-fill text-success me-2"></i>골프장</h6>
+    <small class="text-muted"><%= golfSchedules.length %>건</small>
+  </div>
+  <div class="card-body p-0">
+    <!-- 데스크탑 테이블 -->
+    <div class="table-responsive d-none d-md-block">
+      <table class="table table-hover align-middle mb-0 sortable-table">
+        <thead class="table-light">
+          <tr>
+            <th style="width: 18%;" data-sort="string">골프장</th>
+            <th style="width: 15%;" data-sort="date">날짜</th>
+            <th style="width: 20%;" data-sort="string">위치</th>
+            <th style="width: 12%;">티타임</th>
+            <th style="width: 15%;" data-sort="number">현황</th>
+            <th style="width: 20%;" class="text-center">예약</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% golfSchedules.forEach(schedule => { %>
+          <tr class="<%= schedule.my_reservation_id ? 'table-success' : '' %>">
+            <td>
+              <strong><%= schedule.course_name %></strong>
+            </td>
+            <td data-value="<%= schedule.play_date %>">
+              <span class="fw-medium"><%= moment(schedule.play_date).format('MM/DD') %></span>
+              <span class="badge bg-secondary ms-1"><%= moment(schedule.play_date).format('ddd') %></span>
+            </td>
+            <td class="text-muted"><small><%= schedule.location %></small></td>
+            <td><%= schedule.tee_times || '6시대' %></td>
+            <td data-value="<%= schedule.reserved_count %>">
+              <div class="d-flex align-items-center">
+                <div class="progress flex-grow-1 me-2" style="height: 8px; min-width: 60px;">
+                  <div class="progress-bar <%= schedule.reserved_count >= schedule.max_members ? 'bg-danger' : 'bg-success' %>"
+                       style="width: <%= (schedule.reserved_count / schedule.max_members) * 100 %>%"></div>
+                </div>
+                <small class="text-nowrap <%= schedule.reserved_count >= schedule.max_members ? 'text-danger fw-bold' : '' %>">
+                  <%= schedule.reserved_count %>/<%= schedule.max_members %>
+                </small>
+              </div>
+            </td>
+            <td class="text-center">
+              <% if (user && user.is_admin) { %>
+              <span class="badge bg-light text-muted">-</span>
+              <% } else if (schedule.my_reservation_id) { %>
+              <div class="d-flex align-items-center justify-content-center gap-2">
+                <span class="badge bg-success"><i class="bi bi-check-circle"></i> 예약완료</span>
+                <button type="button" class="btn btn-outline-danger btn-sm py-0 px-2"
+                        onclick="cancelReservation(<%= schedule.my_reservation_id %>)">
+                  <i class="bi bi-x"></i>
+                </button>
+              </div>
+              <% } else { %>
+              <button type="button" class="btn <%= schedule.reserved_count >= schedule.max_members ? 'btn-outline-warning' : 'btn-success' %> btn-sm"
+                      onclick="applyReservation(<%= schedule.id %>)">
+                <i class="bi bi-check-circle"></i>
+                <%= schedule.reserved_count >= schedule.max_members ? '대기신청' : '예약신청' %>
+              </button>
+              <% } %>
+            </td>
+          </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 모바일 리스트 -->
+    <div class="d-md-none">
+      <% golfSchedules.forEach((schedule, index) => { %>
+      <div class="p-3 <%= index < golfSchedules.length - 1 ? 'border-bottom' : '' %> <%= schedule.my_reservation_id ? 'bg-success-subtle' : '' %>">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <div>
+            <strong><%= schedule.course_name %></strong>
+            <div class="text-muted" style="font-size: 0.8rem;">
+              <i class="bi bi-geo-alt"></i> <%= schedule.location %>
+            </div>
+          </div>
+          <div class="text-end">
+            <div class="fw-medium"><%= moment(schedule.play_date).format('MM/DD') %> <span class="badge bg-secondary"><%= moment(schedule.play_date).format('ddd') %></span></div>
+            <small class="text-muted"><%= schedule.tee_times || '6시대' %></small>
+          </div>
+        </div>
+        <div class="d-flex justify-content-between align-items-center">
+          <div class="d-flex align-items-center" style="flex: 1; max-width: 120px;">
+            <div class="progress flex-grow-1 me-2" style="height: 6px;">
+              <div class="progress-bar <%= schedule.reserved_count >= schedule.max_members ? 'bg-danger' : 'bg-success' %>"
+                   style="width: <%= (schedule.reserved_count / schedule.max_members) * 100 %>%"></div>
+            </div>
+            <small class="<%= schedule.reserved_count >= schedule.max_members ? 'text-danger fw-bold' : '' %>">
+              <%= schedule.reserved_count %>/<%= schedule.max_members %>
+            </small>
+          </div>
+          <% if (user && user.is_admin) { %>
+          <span class="badge bg-light text-muted">-</span>
+          <% } else if (schedule.my_reservation_id) { %>
+          <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-success"><i class="bi bi-check-circle"></i> 예약완료</span>
+            <button type="button" class="btn btn-outline-danger btn-sm py-0 px-2"
+                    onclick="cancelReservation(<%= schedule.my_reservation_id %>)">
+              <i class="bi bi-x"></i>
+            </button>
+          </div>
+          <% } else { %>
+          <button type="button" class="btn <%= schedule.reserved_count >= schedule.max_members ? 'btn-outline-warning' : 'btn-success' %> btn-sm"
+                  onclick="applyReservation(<%= schedule.id %>)">
+            <%= schedule.reserved_count >= schedule.max_members ? '대기신청' : '예약신청' %>
+          </button>
+          <% } %>
+        </div>
+      </div>
+      <% }) %>
+    </div>
+  </div>
+</div>
+<% } %>
+
+<!-- 스크린골프 일정 -->
+<% if (screenSchedules.length > 0) { %>
+<div class="card border-0 shadow-sm mb-3">
+  <div class="card-header bg-white py-2 d-flex justify-content-between align-items-center">
+    <h6 class="mb-0 fw-bold" style="font-size: 0.9rem;"><i class="bi bi-display text-secondary me-2"></i>스크린골프</h6>
+    <small class="text-muted"><%= screenSchedules.length %>건</small>
+  </div>
+  <div class="card-body p-0">
+    <!-- 데스크탑 테이블 -->
+    <div class="table-responsive d-none d-md-block">
+      <table class="table table-hover align-middle mb-0 sortable-table">
+        <thead class="table-light">
+          <tr>
+            <th style="width: 22%;" data-sort="string">스크린명</th>
+            <th style="width: 15%;" data-sort="date">날짜</th>
+            <th style="width: 25%;" data-sort="string">위치</th>
+            <th style="width: 18%;" data-sort="number">현황</th>
+            <th style="width: 20%;" class="text-center">예약</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% screenSchedules.forEach(schedule => { %>
+          <tr class="<%= schedule.my_reservation_id ? 'table-success' : '' %>">
+            <td>
+              <strong><%= schedule.course_name %></strong>
+            </td>
+            <td data-value="<%= schedule.play_date %>">
+              <span class="fw-medium"><%= moment(schedule.play_date).format('MM/DD') %></span>
+              <span class="badge bg-secondary ms-1"><%= moment(schedule.play_date).format('ddd') %></span>
+            </td>
+            <td class="text-muted"><small><%= schedule.location %></small></td>
+            <td data-value="<%= schedule.reserved_count %>">
+              <div class="d-flex align-items-center">
+                <div class="progress flex-grow-1 me-2" style="height: 8px; min-width: 60px;">
+                  <div class="progress-bar <%= schedule.reserved_count >= schedule.max_members ? 'bg-danger' : 'bg-info' %>"
+                       style="width: <%= (schedule.reserved_count / schedule.max_members) * 100 %>%"></div>
+                </div>
+                <small class="text-nowrap <%= schedule.reserved_count >= schedule.max_members ? 'text-danger fw-bold' : '' %>">
+                  <%= schedule.reserved_count %>/<%= schedule.max_members %>
+                </small>
+              </div>
+            </td>
+            <td class="text-center">
+              <% if (user && user.is_admin) { %>
+              <span class="badge bg-light text-muted">-</span>
+              <% } else if (schedule.my_reservation_id) { %>
+              <div class="d-flex align-items-center justify-content-center gap-2">
+                <span class="badge bg-success"><i class="bi bi-check-circle"></i> 예약완료</span>
+                <button type="button" class="btn btn-outline-danger btn-sm py-0 px-2"
+                        onclick="cancelReservation(<%= schedule.my_reservation_id %>)">
+                  <i class="bi bi-x"></i>
+                </button>
+              </div>
+              <% } else { %>
+              <button type="button" class="btn <%= schedule.reserved_count >= schedule.max_members ? 'btn-outline-warning' : 'btn-secondary' %> btn-sm"
+                      onclick="applyReservation(<%= schedule.id %>)">
+                <i class="bi bi-check-circle"></i>
+                <%= schedule.reserved_count >= schedule.max_members ? '대기신청' : '예약신청' %>
+              </button>
+              <% } %>
+            </td>
+          </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 모바일 리스트 -->
+    <div class="d-md-none">
+      <% screenSchedules.forEach((schedule, index) => { %>
+      <div class="p-3 <%= index < screenSchedules.length - 1 ? 'border-bottom' : '' %> <%= schedule.my_reservation_id ? 'bg-success-subtle' : '' %>">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <div>
+            <strong><%= schedule.course_name %></strong>
+            <div class="text-muted" style="font-size: 0.8rem;">
+              <i class="bi bi-geo-alt"></i> <%= schedule.location %>
+            </div>
+          </div>
+          <div class="text-end">
+            <div class="fw-medium"><%= moment(schedule.play_date).format('MM/DD') %> <span class="badge bg-secondary"><%= moment(schedule.play_date).format('ddd') %></span></div>
+          </div>
+        </div>
+        <div class="d-flex justify-content-between align-items-center">
+          <div class="d-flex align-items-center" style="flex: 1; max-width: 120px;">
+            <div class="progress flex-grow-1 me-2" style="height: 6px;">
+              <div class="progress-bar <%= schedule.reserved_count >= schedule.max_members ? 'bg-danger' : 'bg-info' %>"
+                   style="width: <%= (schedule.reserved_count / schedule.max_members) * 100 %>%"></div>
+            </div>
+            <small class="<%= schedule.reserved_count >= schedule.max_members ? 'text-danger fw-bold' : '' %>">
+              <%= schedule.reserved_count %>/<%= schedule.max_members %>
+            </small>
+          </div>
+          <% if (user && user.is_admin) { %>
+          <span class="badge bg-light text-muted">-</span>
+          <% } else if (schedule.my_reservation_id) { %>
+          <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-success"><i class="bi bi-check-circle"></i> 예약완료</span>
+            <button type="button" class="btn btn-outline-danger btn-sm py-0 px-2"
+                    onclick="cancelReservation(<%= schedule.my_reservation_id %>)">
+              <i class="bi bi-x"></i>
+            </button>
+          </div>
+          <% } else { %>
+          <button type="button" class="btn <%= schedule.reserved_count >= schedule.max_members ? 'btn-outline-warning' : 'btn-secondary' %> btn-sm"
+                  onclick="applyReservation(<%= schedule.id %>)">
+            <%= schedule.reserved_count >= schedule.max_members ? '대기신청' : '예약신청' %>
+          </button>
+          <% } %>
+        </div>
+      </div>
+      <% }) %>
+    </div>
+  </div>
+</div>
+<% } %>
+
+<% } %>
+
+<!-- 안내 문구 -->
+<div class="alert alert-light border mt-3 py-2" style="font-size: 0.85rem;">
+  <i class="bi bi-info-circle text-primary me-1"></i>
+  <strong>예약 안내:</strong> 선착순 예약이며, 정원 초과 시 대기자로 등록됩니다. 연속 참가자는 후순위로 적용됩니다.
+</div>
+
+<script>
+// CSRF 토큰 가져오기
+function getCsrfToken() {
+  return document.querySelector('meta[name="csrf-token"]')?.content || '';
+}
+
+function applyReservation(scheduleId) {
+  fetch('/reservations/apply', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRF-Token': getCsrfToken()
+    },
+    body: JSON.stringify({ schedule_id: scheduleId })
+  })
+  .then(res => {
+    if (!res.ok) {
+      return res.json().then(data => { throw new Error(data.error || '요청 처리 중 오류가 발생했습니다.'); });
+    }
+    return res.json();
+  })
+  .then(data => {
+    if (data.success) {
+      alert(data.message + (data.isWaitlist ? ' (대기자 명단)' : ''));
+      location.reload();
+    } else {
+      alert(data.error || '오류가 발생했습니다.');
+    }
+  })
+  .catch(err => {
+    console.error('예약 신청 오류:', err);
+    alert(err.message || '예약 신청 중 오류가 발생했습니다.');
+  });
+}
+
+function cancelReservation(reservationId) {
+  if (!confirm('예약을 취소하시겠습니까?')) return;
+
+  fetch('/reservations/cancel', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRF-Token': getCsrfToken()
+    },
+    body: JSON.stringify({ reservation_id: reservationId })
+  })
+  .then(res => {
+    if (!res.ok) {
+      return res.json().then(data => { throw new Error(data.error || '요청 처리 중 오류가 발생했습니다.'); });
+    }
+    return res.json();
+  })
+  .then(data => {
+    if (data.success) {
+      alert(data.message);
+      location.reload();
+    } else {
+      alert(data.error || '오류가 발생했습니다.');
+    }
+  })
+  .catch(err => {
+    console.error('예약 취소 오류:', err);
+    alert(err.message || '예약 취소 중 오류가 발생했습니다.');
+  });
+}
+</script>
+
+<%- include('../partials/footer') %>

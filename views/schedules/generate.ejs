@@ -1,0 +1,77 @@
+<%- include('../partials/header') %>
+
+<div class="row justify-content-center">
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header">
+        <div class="d-flex align-items-center gap-2">
+          <a href="/schedules" class="back-link" aria-label="일정 목록으로 이동">
+            <i class="bi bi-chevron-left" aria-hidden="true"></i>일정
+          </a>
+          <h4 class="mb-0"><i class="bi bi-calendar-plus"></i> 연간 일정 자동 생성</h4>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="alert alert-info">
+          <i class="bi bi-info-circle"></i>
+          각 골프장의 정기 일정(N째주 토요일)에 따라 1년치 일정을 자동으로 생성합니다.
+        </div>
+
+        <form method="POST" action="/schedules/generate">
+          <%- include('../partials/csrf') %>
+          <div class="mb-3">
+            <label class="form-label">연도 <span class="text-danger">*</span></label>
+            <select name="year" class="form-select" required>
+              <% for (let y = new Date().getFullYear(); y <= new Date().getFullYear() + 2; y++) { %>
+              <option value="<%= y %>" <%= year == y ? 'selected' : '' %>><%= y %>년</option>
+              <% } %>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">골프장 선택 <span class="text-danger">*</span></label>
+            <% golfCourses.forEach(gc => { %>
+            <div class="form-check">
+              <input type="checkbox" name="courses" value="<%= gc.id %>" class="form-check-input" id="course_<%= gc.id %>" checked>
+              <label class="form-check-label" for="course_<%= gc.id %>">
+                <strong><%= gc.name %></strong>
+                <small class="text-muted">
+                  - 매월 <%= gc.schedule_week %>째주 <%= gc.schedule_day %>, <%= gc.tee_time_start %>
+                </small>
+              </label>
+            </div>
+            <% }) %>
+          </div>
+          <div class="d-flex justify-content-between">
+            <a href="/schedules" class="btn btn-outline-secondary">취소</a>
+            <button type="submit" class="btn btn-success">
+              <i class="bi bi-calendar-check"></i> 일정 생성
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- 골프장 일정 안내 -->
+    <div class="card mt-4">
+      <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-info-circle"></i> 골프장별 정기 일정</h5>
+      </div>
+      <div class="card-body">
+        <% golfCourses.forEach(gc => { %>
+        <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+          <div>
+            <strong><%= gc.name %></strong>
+            <small class="text-muted d-block"><%= gc.location %></small>
+          </div>
+          <div class="text-end">
+            <span class="badge bg-success"><%= gc.schedule_week %>째주 <%= gc.schedule_day %></span>
+            <span class="badge bg-info"><%= gc.tee_time_start %></span>
+          </div>
+        </div>
+        <% }) %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

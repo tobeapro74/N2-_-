@@ -1,0 +1,88 @@
+<%- include('../partials/header') %>
+
+<div class="row justify-content-center">
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header">
+        <div class="d-flex align-items-center gap-2">
+          <a href="/finance/income" class="back-link" aria-label="입금 내역으로 이동">
+            <i class="bi bi-chevron-left" aria-hidden="true"></i>입금
+          </a>
+          <h4 class="mb-0"><i class="bi bi-arrow-down-circle text-primary"></i> <%= title %></h4>
+        </div>
+      </div>
+      <div class="card-body">
+        <% if (error) { %>
+        <div class="alert alert-danger"><%= error %></div>
+        <% } %>
+
+        <form method="POST" action="<%= income ? `/finance/income/${income.id}/edit` : '/finance/income/new' %>">
+          <%- include('../partials/csrf') %>
+          <div class="mb-3">
+            <label class="form-label">카테고리 <span class="text-danger">*</span></label>
+            <select name="category_id" class="form-select" required>
+              <option value="">선택하세요</option>
+              <% categories.forEach(cat => { %>
+              <option value="<%= cat.id %>" <%= income && income.category_id == cat.id ? 'selected' : '' %>>
+                <%= cat.name %>
+              </option>
+              <% }) %>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">회원 (회비인 경우)</label>
+            <select name="member_id" class="form-select">
+              <option value="">해당 없음</option>
+              <% members.forEach(m => { %>
+              <option value="<%= m.id %>" <%= income && income.member_id == m.id ? 'selected' : '' %>>
+                <%= m.name %><% if (m.internal_phone) { %> (<%= m.internal_phone %>)<% } %>
+              </option>
+              <% }) %>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">금액 <span class="text-danger">*</span></label>
+            <div class="input-group">
+              <input type="text" id="amountDisplay" class="form-control" required
+                     value="<%= income ? income.amount.toLocaleString() : '' %>"
+                     oninput="formatAmount(this)" inputmode="numeric">
+              <input type="hidden" name="amount" id="amountValue"
+                     value="<%= income ? income.amount : '' %>">
+              <span class="input-group-text">원</span>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">일자 <span class="text-danger">*</span></label>
+            <input type="date" name="income_date" class="form-control" required
+                   value="<%= income ? income.income_date : new Date().toISOString().split('T')[0] %>">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">내용</label>
+            <textarea name="description" class="form-control" rows="2"><%= income ? income.description || '' : '' %></textarea>
+          </div>
+          <div class="d-flex justify-content-between">
+            <a href="/finance/income" class="btn btn-outline-secondary">취소</a>
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-check-lg"></i> <%= income ? '수정' : '등록' %>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function formatAmount(input) {
+  let value = input.value.replace(/[^\d]/g, '');
+  if (value) {
+    document.getElementById('amountValue').value = value;
+    input.value = parseInt(value).toLocaleString();
+  } else {
+    document.getElementById('amountValue').value = '';
+    input.value = '';
+  }
+}
+</script>
+
+<%- include('../partials/footer') %>

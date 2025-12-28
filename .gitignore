@@ -1,0 +1,37 @@
+# 환경 변수 파일 (민감한 정보 포함)
+.env
+.env.local
+.env.production
+
+# 노드 모듈
+node_modules/
+
+# 데이터베이스 백업 및 임시 파일
+data/*.backup.json
+data/*.tmp
+
+# 로그 파일
+logs/
+*.log
+npm-debug.log*
+
+# OS 생성 파일
+.DS_Store
+Thumbs.db
+
+# IDE 설정
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# 테스트 커버리지
+coverage/
+
+# Claude Code 설정
+.claude/
+
+# 임시 파일
+*.tmp
+*.temp
+cookies.txt

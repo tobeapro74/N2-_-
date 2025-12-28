@@ -1,0 +1,235 @@
+<%- include('../partials/header') %>
+
+<div class="d-flex align-items-center mb-4 page-header">
+  <a href="/schedules" class="back-link" aria-label="일정 목록으로 이동">
+    <i class="bi bi-chevron-left" aria-hidden="true"></i>일정
+  </a>
+  <nav aria-label="현재 위치" class="mb-0">
+    <ol class="breadcrumb mb-0">
+      <li class="breadcrumb-item"><a href="/schedules">일정 관리</a></li>
+      <li class="breadcrumb-item active" aria-current="page"><%= schedule.course_name %></li>
+    </ol>
+  </nav>
+</div>
+
+<div class="row">
+  <!-- 일정 정보 -->
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-calendar-event"></i> 일정 정보</h5>
+        <% if (user && user.is_admin) { %>
+        <a href="/schedules/<%= schedule.id %>/edit" class="btn btn-sm btn-outline-primary">
+          <i class="bi bi-pencil"></i>
+        </a>
+        <% } %>
+      </div>
+      <div class="card-body">
+        <div class="text-center mb-3">
+          <h2 class="text-success mb-0"><%= schedule.course_name %></h2>
+          <p class="text-muted"><i class="bi bi-geo-alt"></i> <%= schedule.location %></p>
+        </div>
+        <table class="table table-borderless">
+          <tr>
+            <th width="30%">날짜</th>
+            <td>
+              <strong><%= moment(schedule.play_date).format('YYYY년 MM월 DD일') %></strong>
+              <span class="badge bg-secondary"><%= moment(schedule.play_date).format('dddd') %></span>
+            </td>
+          </tr>
+          <tr>
+            <th>티타임</th>
+            <td><%= schedule.tee_times || '미정' %></td>
+          </tr>
+          <tr>
+            <th>정원</th>
+            <td><%= schedule.max_members %>명</td>
+          </tr>
+          <tr>
+            <th>상태</th>
+            <td>
+              <% if (schedule.status === 'open') { %>
+              <span class="badge bg-success">예약가능</span>
+              <% } else if (schedule.status === 'closed') { %>
+              <span class="badge bg-warning">마감</span>
+              <% } else if (schedule.status === 'completed') { %>
+              <span class="badge bg-secondary">완료</span>
+              <% } else { %>
+              <span class="badge bg-danger">취소</span>
+              <% } %>
+            </td>
+          </tr>
+          <% if (schedule.notes) { %>
+          <tr>
+            <th>메모</th>
+            <td><%= schedule.notes %></td>
+          </tr>
+          <% } %>
+        </table>
+
+        <!-- 예약 버튼 -->
+        <% if (schedule.status === 'open') { %>
+        <hr>
+        <% if (myReservation) { %>
+          <% if (myReservation.status !== 'cancelled') { %>
+          <div class="alert alert-success mb-2 text-center">
+            <i class="bi bi-check-circle"></i> 예약 신청 완료
+            <% if (myReservation.status === 'waitlist') { %>
+            <span class="badge bg-warning">대기자</span>
+            <% } %>
+          </div>
+          <button type="button" class="btn btn-outline-danger w-100" onclick="cancelReservation(<%= myReservation.id %>)">
+            <i class="bi bi-x-circle"></i> 예약 취소
+          </button>
+          <% } else { %>
+          <button type="button" class="btn btn-success w-100" onclick="applyReservation(<%= schedule.id %>)">
+            <i class="bi bi-check-circle"></i> 다시 신청
+          </button>
+          <% } %>
+        <% } else if (user) { %>
+        <button type="button" class="btn btn-success w-100" onclick="applyReservation(<%= schedule.id %>)">
+          <i class="bi bi-check-circle"></i> 예약 신청
+        </button>
+        <% } else { %>
+        <a href="/auth/login" class="btn btn-outline-success w-100">
+          로그인 후 예약
+        </a>
+        <% } %>
+        <% } %>
+
+        <% if (user && user.is_admin && reservations.length > 0) { %>
+        <hr>
+        <button type="button" class="btn btn-primary w-100" onclick="assignTeams(<%= schedule.id %>)">
+          <i class="bi bi-people"></i> 팀 배정
+        </button>
+        <% } %>
+      </div>
+    </div>
+  </div>
+
+  <!-- 예약자 목록 -->
+  <div class="col-md-8">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">
+          <i class="bi bi-people"></i> 예약 현황
+          <span class="badge bg-success"><%= reservations.filter(r => r.status !== 'cancelled').length %>/<%= schedule.max_members %></span>
+        </h5>
+      </div>
+      <div class="card-body">
+        <% if (reservations.length === 0) { %>
+        <p class="text-muted text-center py-4">예약자가 없습니다.</p>
+        <% } else { %>
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>이름</th>
+                <th>부서</th>
+                <th>신청시간</th>
+                <th>상태</th>
+                <th>팀</th>
+                <th>티타임</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% let seq = 0; %>
+              <% reservations.forEach((r, index) => { %>
+              <% if (r.status !== 'cancelled') seq++; %>
+              <% const isOverCapacity = seq > schedule.max_members && r.status !== 'cancelled'; %>
+              <tr class="<%= r.status === 'cancelled' ? 'table-secondary text-decoration-line-through' : '' %>
+                         <%= isOverCapacity ? 'table-warning' : '' %>">
+                <td><%= r.status !== 'cancelled' ? seq : '-' %></td>
+                <td>
+                  <strong><%= r.member_name %></strong>
+                  <% if (r.priority > 0) { %>
+                  <span class="badge bg-info" title="연속 참가자 (후순위)">연속</span>
+                  <% } %>
+                </td>
+                <td><small><%= r.department || '-' %></small></td>
+                <td><small><%= moment(r.applied_at).format('MM/DD HH:mm') %></small></td>
+                <td>
+                  <% if (r.status === 'cancelled') { %>
+                  <span class="badge bg-secondary">취소</span>
+                  <% } else if (r.status === 'confirmed') { %>
+                  <span class="badge bg-success">확정</span>
+                  <% } else if (isOverCapacity) { %>
+                  <span class="badge bg-danger">대기자</span>
+                  <% } else { %>
+                  <span class="badge bg-warning">신청</span>
+                  <% } %>
+                </td>
+                <td><%= r.team_number ? r.team_number + '팀' : '-' %></td>
+                <td><%= r.tee_time || '-' %></td>
+              </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+        <% } %>
+      </div>
+      <div class="card-footer">
+        <small class="text-muted">
+          <i class="bi bi-info-circle"></i>
+          선착순 12명 예약 가능 (연속 참가자는 후순위 적용)
+        </small>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function applyReservation(scheduleId) {
+  fetch('/reservations/apply', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ schedule_id: scheduleId })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      alert(data.message + (data.isWaitlist ? ' (대기자 명단)' : ''));
+      location.reload();
+    } else {
+      alert(data.error || '오류가 발생했습니다.');
+    }
+  });
+}
+
+function cancelReservation(reservationId) {
+  if (!confirm('예약을 취소하시겠습니까?')) return;
+
+  fetch('/reservations/cancel', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ reservation_id: reservationId })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      alert(data.message);
+      location.reload();
+    } else {
+      alert(data.error || '오류가 발생했습니다.');
+    }
+  });
+}
+
+function assignTeams(scheduleId) {
+  if (!confirm('팀 배정을 진행하시겠습니까?')) return;
+
+  fetch(`/schedules/${scheduleId}/assign-teams`, { method: 'POST' })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        alert(data.message);
+        location.reload();
+      } else {
+        alert(data.error || '오류가 발생했습니다.');
+      }
+    });
+}
+</script>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,129 @@
+<%- include('../partials/header') %>
+
+<!-- 페이지 헤더 -->
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <div class="d-flex align-items-center">
+    <a href="/" class="back-link" aria-label="대시보드로 이동">
+      <i class="bi bi-chevron-left" aria-hidden="true"></i>홈
+    </a>
+    <h5 class="mb-0 fw-bold"><i class="bi bi-calendar3 text-success me-2" aria-hidden="true"></i>일정 관리</h5>
+  </div>
+  <% if (user && user.is_admin) { %>
+  <div class="d-flex gap-1">
+    <a href="/schedules/generate" class="btn btn-outline-success btn-sm py-0 px-2 d-flex align-items-center gap-1" style="font-size: 0.75rem;">
+      <i class="bi bi-calendar-range"></i> 연간생성
+    </a>
+    <a href="/schedules/new" class="btn btn-success btn-sm py-0 px-2 d-flex align-items-center gap-1" style="font-size: 0.75rem;">
+      <i class="bi bi-plus-lg"></i> 일정추가
+    </a>
+  </div>
+  <% } %>
+</div>
+
+<!-- 필터 -->
+<div class="card border-0 shadow-sm mb-3">
+  <div class="card-body py-2 px-2">
+    <form method="GET" class="row g-1 align-items-end">
+      <div class="col-3 col-md-2">
+        <label class="form-label mb-0" style="font-size: 0.7rem; color: #6c757d;">연도</label>
+        <select name="year" class="form-select form-select-sm py-1" style="font-size: 0.8rem;">
+          <option value="">전체</option>
+          <% years.forEach(y => { %>
+          <option value="<%= y %>" <%= filters.year == y ? 'selected' : '' %>><%= y %></option>
+          <% }) %>
+        </select>
+      </div>
+      <div class="col-3 col-md-2">
+        <label class="form-label mb-0" style="font-size: 0.7rem; color: #6c757d;">월</label>
+        <select name="month" class="form-select form-select-sm py-1" style="font-size: 0.8rem;">
+          <option value="">전체</option>
+          <% for (let m = 1; m <= 12; m++) { %>
+          <option value="<%= m %>" <%= filters.month == m ? 'selected' : '' %>><%= m %>월</option>
+          <% } %>
+        </select>
+      </div>
+      <div class="col-6 col-md-3">
+        <label class="form-label mb-0" style="font-size: 0.7rem; color: #6c757d;">골프장</label>
+        <select name="course" class="form-select form-select-sm py-1" style="font-size: 0.8rem;">
+          <option value="">전체</option>
+          <% golfCourses.forEach(gc => { %>
+          <option value="<%= gc.id %>" <%= filters.course == gc.id ? 'selected' : '' %>><%= gc.name %></option>
+          <% }) %>
+        </select>
+      </div>
+      <div class="col-6 col-md-2">
+        <button type="submit" class="btn btn-primary btn-sm w-100 py-1" style="font-size: 0.75rem;">
+          <i class="bi bi-search"></i> 조회
+        </button>
+      </div>
+      <div class="col-6 col-md-2">
+        <a href="/schedules" class="btn btn-outline-secondary btn-sm w-100 py-1" style="font-size: 0.75rem;">초기화</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- 일정 목록 -->
+<div class="card border-0 shadow-sm">
+  <div class="card-header bg-white py-2 d-flex justify-content-between align-items-center">
+    <h6 class="mb-0 fw-bold" style="font-size: 0.9rem;"><i class="bi bi-list-ul text-primary me-2"></i>일정 목록</h6>
+    <small class="text-muted">총 <%= schedules.length %>건</small>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0 sortable-table" style="font-size: 0.85rem;">
+        <thead class="table-light">
+          <tr>
+            <th class="py-2 ps-3" data-sort="date">날짜</th>
+            <th class="py-2" data-sort="string">골프장</th>
+            <th class="py-2 hide-mobile" data-sort="string">위치</th>
+            <th class="py-2 hide-mobile">티타임</th>
+            <th class="py-2 text-center" data-sort="number">예약</th>
+            <th class="py-2 text-center" data-sort="string">상태</th>
+            <th class="py-2 pe-3"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (schedules.length === 0) { %>
+          <tr>
+            <td colspan="7" class="text-center text-muted py-4">일정이 없습니다.</td>
+          </tr>
+          <% } else { %>
+          <% schedules.forEach(schedule => { %>
+          <tr class="<%= new Date(schedule.play_date) < new Date() ? 'text-muted' : '' %>" style="cursor: pointer;" onclick="location.href='/schedules/<%= schedule.id %>'">
+            <td class="py-2 ps-3" data-value="<%= schedule.play_date %>">
+              <span class="fw-bold"><%= moment(schedule.play_date).format('MM/DD') %></span>
+              <span class="badge bg-light text-dark" style="font-size: 0.7rem;"><%= moment(schedule.play_date).format('ddd') %></span>
+            </td>
+            <td class="py-2"><%= schedule.course_name %></td>
+            <td class="py-2 hide-mobile"><small class="text-muted"><%= schedule.location %></small></td>
+            <td class="py-2 hide-mobile"><small><%= schedule.tee_times || '-' %></small></td>
+            <td class="py-2 text-center" data-value="<%= schedule.reserved_count %>">
+              <span class="badge <%= schedule.reserved_count >= schedule.max_members ? 'bg-danger' : 'bg-success' %> bg-opacity-75" style="font-size: 0.7rem;">
+                <%= schedule.reserved_count %>/<%= schedule.max_members %>
+              </span>
+            </td>
+            <td class="py-2 text-center">
+              <% if (schedule.status === 'open') { %>
+              <span class="badge bg-success bg-opacity-75" style="font-size: 0.7rem;">예약가능</span>
+              <% } else if (schedule.status === 'closed') { %>
+              <span class="badge bg-warning text-dark" style="font-size: 0.7rem;">마감</span>
+              <% } else if (schedule.status === 'completed') { %>
+              <span class="badge bg-secondary" style="font-size: 0.7rem;">완료</span>
+              <% } else { %>
+              <span class="badge bg-danger" style="font-size: 0.7rem;">취소</span>
+              <% } %>
+            </td>
+            <td class="py-2 pe-3 text-end">
+              <i class="bi bi-chevron-right text-muted"></i>
+            </td>
+          </tr>
+          <% }) %>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

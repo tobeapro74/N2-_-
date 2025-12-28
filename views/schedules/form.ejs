@@ -1,0 +1,75 @@
+<%- include('../partials/header') %>
+
+<div class="row justify-content-center">
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header">
+        <div class="d-flex align-items-center gap-2">
+          <a href="/schedules" class="back-link" aria-label="일정 목록으로 이동">
+            <i class="bi bi-chevron-left" aria-hidden="true"></i>일정
+          </a>
+          <h4 class="mb-0"><i class="bi bi-calendar-plus"></i> <%= title %></h4>
+        </div>
+      </div>
+      <div class="card-body">
+        <% if (error) { %>
+        <div class="alert alert-danger"><%= error %></div>
+        <% } %>
+
+        <form method="POST" action="<%= schedule ? `/schedules/${schedule.id}/edit` : '/schedules/new' %>">
+          <%- include('../partials/csrf') %>
+          <div class="mb-3">
+            <label class="form-label">골프장 <span class="text-danger">*</span></label>
+            <select name="golf_course_id" class="form-select" required>
+              <option value="">선택하세요</option>
+              <% golfCourses.forEach(gc => { %>
+              <option value="<%= gc.id %>" <%= schedule && schedule.golf_course_id == gc.id ? 'selected' : '' %>>
+                <%= gc.name %> (<%= gc.location %>)
+              </option>
+              <% }) %>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">날짜 <span class="text-danger">*</span></label>
+            <input type="date" name="play_date" class="form-control" required
+                   value="<%= schedule ? schedule.play_date : '' %>">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">티타임</label>
+            <input type="text" name="tee_times" class="form-control" placeholder="06:00,06:08,06:16"
+                   value="<%= schedule ? schedule.tee_times || '' : '' %>">
+            <small class="text-muted">쉼표로 구분하여 입력 (예: 06:00,06:08,06:16)</small>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">최대 인원</label>
+            <input type="number" name="max_members" class="form-control" min="1"
+                   value="<%= schedule ? schedule.max_members : 12 %>">
+          </div>
+          <% if (schedule) { %>
+          <div class="mb-3">
+            <label class="form-label">상태</label>
+            <select name="status" class="form-select">
+              <option value="open" <%= schedule.status === 'open' ? 'selected' : '' %>>예약가능</option>
+              <option value="closed" <%= schedule.status === 'closed' ? 'selected' : '' %>>마감</option>
+              <option value="completed" <%= schedule.status === 'completed' ? 'selected' : '' %>>완료</option>
+              <option value="cancelled" <%= schedule.status === 'cancelled' ? 'selected' : '' %>>취소</option>
+            </select>
+          </div>
+          <% } %>
+          <div class="mb-3">
+            <label class="form-label">메모</label>
+            <textarea name="notes" class="form-control" rows="2"><%= schedule ? schedule.notes || '' : '' %></textarea>
+          </div>
+          <div class="d-flex justify-content-between">
+            <a href="/schedules" class="btn btn-outline-secondary">취소</a>
+            <button type="submit" class="btn btn-success">
+              <i class="bi bi-check-lg"></i> <%= schedule ? '수정' : '등록' %>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

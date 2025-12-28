@@ -1,0 +1,67 @@
+<%- include('../partials/header') %>
+
+<div class="row justify-content-center">
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header">
+        <div class="d-flex align-items-center gap-2">
+          <a href="/members" class="back-link" aria-label="회원 목록으로 이동">
+            <i class="bi bi-chevron-left" aria-hidden="true"></i>회원
+          </a>
+          <h4 class="mb-0"><i class="bi bi-person-plus"></i> <%= title %></h4>
+        </div>
+      </div>
+      <div class="card-body">
+        <% if (error) { %>
+        <div class="alert alert-danger"><%= error %></div>
+        <% } %>
+
+        <form method="POST" action="<%= member ? `/members/${member.id}/edit` : '/members/new' %>">
+          <%- include('../partials/csrf') %>
+          <div class="mb-3">
+            <label class="form-label">이름 <span class="text-danger">*</span></label>
+            <input type="text" name="name" class="form-control" required value="<%= member ? member.name : '' %>">
+            <% if (!member) { %>
+            <small class="text-muted">초기 비밀번호는 1234 입니다.</small>
+            <% } %>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">구내번호</label>
+            <input type="text" name="internal_phone" class="form-control" placeholder="예: 1234" value="<%= member ? member.internal_phone || '' : '' %>">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">부서</label>
+            <input type="text" name="department" class="form-control" value="<%= member ? member.department || '' : '' %>">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">이메일</label>
+            <input type="email" name="email" class="form-control" value="<%= member ? member.email || '' : '' %>">
+          </div>
+          <% if (member) { %>
+          <div class="mb-3">
+            <label class="form-label">상태</label>
+            <select name="status" class="form-select">
+              <option value="active" <%= member.status === 'active' ? 'selected' : '' %>>활동</option>
+              <option value="inactive" <%= member.status === 'inactive' ? 'selected' : '' %>>비활동</option>
+              <option value="pending" <%= member.status === 'pending' ? 'selected' : '' %>>대기</option>
+            </select>
+          </div>
+          <% } else { %>
+          <div class="mb-3">
+            <label class="form-label">가입일</label>
+            <input type="date" name="join_date" class="form-control" value="<%= new Date().toISOString().split('T')[0] %>">
+          </div>
+          <% } %>
+          <div class="d-flex justify-content-between">
+            <a href="/members" class="btn btn-outline-secondary">취소</a>
+            <button type="submit" class="btn btn-success">
+              <i class="bi bi-check-lg"></i> <%= member ? '수정' : '등록' %>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

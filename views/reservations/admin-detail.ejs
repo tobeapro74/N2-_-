@@ -1,0 +1,278 @@
+<%- include('../partials/header') %>
+
+<div class="d-flex align-items-center mb-4 page-header">
+  <a href="/reservations/admin" class="back-link" aria-label="예약 관리 목록으로 이동">
+    <i class="bi bi-chevron-left" aria-hidden="true"></i>예약
+  </a>
+  <nav aria-label="현재 위치" class="mb-0">
+    <ol class="breadcrumb mb-0">
+      <li class="breadcrumb-item"><a href="/reservations/admin">예약 관리</a></li>
+      <li class="breadcrumb-item active" aria-current="page"><%= schedule.course_name %> - <%= moment(schedule.play_date).format('MM/DD') %></li>
+    </ol>
+  </nav>
+</div>
+
+<div class="row">
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-calendar-event"></i> 일정 정보</h5>
+      </div>
+      <div class="card-body">
+        <h4><%= schedule.course_name %></h4>
+        <p class="text-muted"><i class="bi bi-geo-alt"></i> <%= schedule.location %></p>
+        <table class="table table-sm">
+          <tr>
+            <th>날짜</th>
+            <td><%= moment(schedule.play_date).format('YYYY-MM-DD (ddd)') %></td>
+          </tr>
+          <tr>
+            <th>티타임</th>
+            <td><%= schedule.tee_times || '-' %></td>
+          </tr>
+          <tr>
+            <th>정원</th>
+            <td><%= schedule.max_members %>명</td>
+          </tr>
+          <tr>
+            <th>예약</th>
+            <td><%= reservations.filter(r => r.status !== 'cancelled').length %>명</td>
+          </tr>
+        </table>
+
+        <hr>
+        <button type="button" class="btn btn-primary w-100 mb-2" id="btnAssignTeams">
+          <i class="bi bi-people"></i> 팀 자동 배정
+        </button>
+        <a href="/schedules/<%= schedule.id %>/edit" class="btn btn-outline-secondary w-100">
+          <i class="bi bi-pencil"></i> 일정 수정
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-8">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-people"></i> 예약자 목록</h5>
+        <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#addMemberModal">
+          <i class="bi bi-person-plus"></i> 대리 예약
+        </button>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>이름</th>
+                <th>사번</th>
+                <th>부서</th>
+                <th>연락처</th>
+                <th>상태</th>
+                <th>팀</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <% let seq = 0; %>
+              <% reservations.forEach(r => { %>
+              <% if (r.status !== 'cancelled') seq++; %>
+              <tr class="<%= r.status === 'cancelled' ? 'table-secondary' : '' %>">
+                <td><%= r.status !== 'cancelled' ? seq : '-' %></td>
+                <td>
+                  <strong><%= r.member_name %></strong>
+                  <% if (r.priority > 0) { %>
+                  <span class="badge bg-info">연속</span>
+                  <% } %>
+                </td>
+                <td><%= r.employee_id %></td>
+                <td><%= r.department || '-' %></td>
+                <td><%= r.phone || '-' %></td>
+                <td>
+                  <select class="form-select form-select-sm status-select" style="width: 100px;"
+                          data-reservation-id="<%= r.id %>">
+                    <option value="pending" <%= r.status === 'pending' ? 'selected' : '' %>>대기</option>
+                    <option value="confirmed" <%= r.status === 'confirmed' ? 'selected' : '' %>>확정</option>
+                    <option value="waitlist" <%= r.status === 'waitlist' ? 'selected' : '' %>>대기자</option>
+                    <option value="cancelled" <%= r.status === 'cancelled' ? 'selected' : '' %>>취소</option>
+                  </select>
+                </td>
+                <td><%= r.team_number || '-' %></td>
+                <td>
+                  <button type="button" class="btn btn-sm btn-outline-danger btn-cancel"
+                          data-reservation-id="<%= r.id %>">
+                    <i class="bi bi-x"></i>
+                  </button>
+                </td>
+              </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 대리 예약 모달 -->
+<div class="modal fade" id="addMemberModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">대리 예약</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label class="form-label">회원 선택</label>
+          <select id="memberSelect" class="form-select">
+            <option value="">회원을 선택하세요</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+        <button type="button" class="btn btn-success" id="btnAddMember">예약 추가</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // CSRF 토큰 가져오기
+  const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+  const scheduleId = <%= schedule.id %>;
+
+  // 회원 목록 로드
+  document.getElementById('addMemberModal').addEventListener('show.bs.modal', function() {
+    const select = document.getElementById('memberSelect');
+    select.innerHTML = '<option value="">로딩중...</option>';
+
+    fetch('/members/api/active')
+      .then(res => res.json())
+      .then(members => {
+        select.innerHTML = '<option value="">회원을 선택하세요</option>';
+        members.forEach(m => {
+          const option = document.createElement('option');
+          option.value = m.id;
+          option.textContent = `${m.name} (${m.department || '-'})`;
+          select.appendChild(option);
+        });
+      })
+      .catch(err => {
+        select.innerHTML = '<option value="">회원 목록을 불러올 수 없습니다</option>';
+        console.error('회원 목록 로드 실패:', err);
+      });
+  });
+
+  // 상태 변경 함수
+  function updateStatus(reservationId, status) {
+    const headers = { 'Content-Type': 'application/json' };
+    if (csrfToken) headers['X-CSRF-Token'] = csrfToken;
+
+    fetch('/reservations/admin/update-status', {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify({ reservation_id: reservationId, status: status })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        location.reload();
+      } else {
+        alert(data.error || '오류가 발생했습니다.');
+      }
+    })
+    .catch(err => {
+      console.error('상태 변경 실패:', err);
+      alert('상태 변경 중 오류가 발생했습니다.');
+    });
+  }
+
+  // 상태 선택 이벤트 리스너
+  document.querySelectorAll('.status-select').forEach(select => {
+    select.addEventListener('change', function() {
+      const reservationId = this.dataset.reservationId;
+      updateStatus(reservationId, this.value);
+    });
+  });
+
+  // 취소 버튼 이벤트 리스너
+  document.querySelectorAll('.btn-cancel').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const reservationId = this.dataset.reservationId;
+      updateStatus(reservationId, 'cancelled');
+    });
+  });
+
+  // 팀 자동 배정 버튼
+  document.getElementById('btnAssignTeams').addEventListener('click', function() {
+    if (!confirm('팀을 자동 배정하시겠습니까?')) return;
+
+    const headers = {};
+    if (csrfToken) headers['X-CSRF-Token'] = csrfToken;
+
+    fetch('/schedules/' + scheduleId + '/assign-teams', {
+      method: 'POST',
+      headers: headers
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          alert(data.message);
+          location.reload();
+        } else {
+          alert(data.error || '오류가 발생했습니다.');
+        }
+      })
+      .catch(err => {
+        console.error('팀 배정 실패:', err);
+        alert('팀 배정 중 오류가 발생했습니다.');
+      });
+  });
+
+  // 대리 예약 버튼
+  document.getElementById('btnAddMember').addEventListener('click', function() {
+    const memberId = document.getElementById('memberSelect').value;
+    if (!memberId) {
+      alert('회원을 선택하세요.');
+      return;
+    }
+
+    const headers = { 'Content-Type': 'application/json' };
+    if (csrfToken) headers['X-CSRF-Token'] = csrfToken;
+
+    console.log('대리예약 요청:', { schedule_id: scheduleId, member_id: memberId });
+
+    fetch('/reservations/admin/book-for', {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify({
+        schedule_id: scheduleId,
+        member_id: memberId
+      })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        // 모달 닫기
+        const modal = bootstrap.Modal.getInstance(document.getElementById('addMemberModal'));
+        if (modal) modal.hide();
+        alert('예약이 등록되었습니다.');
+        location.reload();
+      } else {
+        // 중복 예약 등 서버에서 보낸 에러 메시지 표시
+        alert(data.error || '오류가 발생했습니다.');
+      }
+    })
+    .catch(err => {
+      console.error('대리예약 실패:', err);
+      alert('예약 처리 중 오류가 발생했습니다.');
+    });
+  });
+});
+</script>
+
+<%- include('../partials/footer') %>

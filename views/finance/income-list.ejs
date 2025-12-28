@@ -1,0 +1,176 @@
+<%- include('../partials/header') %>
+
+<!-- 페이지 헤더 -->
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <div class="d-flex align-items-center">
+    <a href="/finance" class="back-link" aria-label="자금 현황으로 이동">
+      <i class="bi bi-chevron-left" aria-hidden="true"></i>자금
+    </a>
+    <h5 class="mb-0 fw-bold"><i class="bi bi-arrow-down-circle text-primary me-2" aria-hidden="true"></i>입금 내역</h5>
+  </div>
+  <% if (user && user.is_admin) { %>
+  <a href="/finance/income/new" class="btn btn-primary btn-sm py-1 px-3 d-flex align-items-center gap-1" style="font-size: 0.8rem;">
+    <i class="bi bi-plus-lg"></i> 입금등록
+  </a>
+  <% } %>
+</div>
+
+<!-- 필터 -->
+<div class="card border-0 shadow-sm mb-3">
+  <div class="card-body py-2 px-3">
+    <form method="GET" class="row g-2 align-items-end">
+      <div class="col-4 col-md-2">
+        <label class="form-label mb-1" style="font-size: 0.75rem; color: #6c757d;">연도</label>
+        <select name="year" class="form-select form-select-sm" style="font-size: 0.85rem;">
+          <option value="">전체</option>
+          <% years.forEach(y => { %>
+          <option value="<%= y %>" <%= filters.year == y ? 'selected' : '' %>><%= y %>년</option>
+          <% }) %>
+        </select>
+      </div>
+      <div class="col-4 col-md-2">
+        <label class="form-label mb-1" style="font-size: 0.75rem; color: #6c757d;">월</label>
+        <select name="month" class="form-select form-select-sm" style="font-size: 0.85rem;">
+          <option value="">전체</option>
+          <% for (let m = 1; m <= 12; m++) { %>
+          <option value="<%= m %>" <%= filters.month == m ? 'selected' : '' %>><%= m %>월</option>
+          <% } %>
+        </select>
+      </div>
+      <div class="col-4 col-md-2">
+        <label class="form-label mb-1" style="font-size: 0.75rem; color: #6c757d;">카테고리</label>
+        <select name="category" class="form-select form-select-sm" style="font-size: 0.85rem;">
+          <option value="">전체</option>
+          <% categories.forEach(cat => { %>
+          <option value="<%= cat.id %>" <%= filters.category == cat.id ? 'selected' : '' %>><%= cat.name %></option>
+          <% }) %>
+        </select>
+      </div>
+      <div class="col-6 col-md-2">
+        <button type="submit" class="btn btn-primary btn-sm w-100" style="font-size: 0.8rem;">
+          <i class="bi bi-search"></i> 조회
+        </button>
+      </div>
+      <div class="col-6 col-md-2">
+        <a href="/finance/income" class="btn btn-outline-secondary btn-sm w-100" style="font-size: 0.8rem;">초기화</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- 목록 -->
+<div class="card border-0 shadow-sm">
+  <div class="card-header bg-white py-2 d-flex justify-content-between align-items-center">
+    <h6 class="mb-0 fw-bold" style="font-size: 0.9rem;"><i class="bi bi-list-ul text-primary me-2"></i>입금 목록</h6>
+    <small class="text-muted"><%= incomes.length %>건</small>
+  </div>
+  <div class="card-body p-0">
+    <!-- 데스크톱 테이블 -->
+    <div class="table-responsive desktop-table">
+      <table class="table table-hover mb-0 sortable-table" style="font-size: 0.85rem;" aria-label="입금 목록">
+        <thead class="table-light">
+          <tr>
+            <th scope="col" class="py-2 ps-3" data-sort="date">일자</th>
+            <th scope="col" class="py-2" data-sort="string">카테고리</th>
+            <th scope="col" class="py-2" data-sort="string">회원</th>
+            <th scope="col" class="py-2" data-sort="string">내용</th>
+            <th scope="col" class="py-2 text-end" data-sort="number">금액</th>
+            <% if (user && user.is_admin) { %>
+            <th scope="col" class="py-2 pe-3"><span class="visually-hidden">액션</span></th>
+            <% } %>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (incomes.length === 0) { %>
+          <tr>
+            <td colspan="6" class="text-center text-muted py-4">입금 내역이 없습니다.</td>
+          </tr>
+          <% } else { %>
+          <% incomes.forEach(income => { %>
+          <tr>
+            <td class="py-2 ps-3" data-value="<%= income.income_date %>"><%= moment(income.income_date).format('MM/DD') %></td>
+            <td class="py-2"><span class="badge bg-primary bg-opacity-75" style="font-size: 0.75rem;"><%= income.category_name %></span></td>
+            <td class="py-2"><%= income.member_name || '-' %></td>
+            <td class="py-2"><small class="text-muted"><%= income.description || '-' %></small></td>
+            <td class="py-2 text-end text-primary fw-bold" data-value="<%= income.amount %>">+<%= income.amount.toLocaleString() %></td>
+            <% if (user && user.is_admin) { %>
+            <td class="py-2 pe-3 text-end">
+              <a href="/finance/income/<%= income.id %>/edit" class="btn btn-outline-primary btn-sm py-0 px-1" style="font-size: 0.75rem;">
+                <i class="bi bi-pencil"></i>
+              </a>
+              <form method="POST" action="/finance/income/<%= income.id %>/delete" class="d-inline"
+                    onsubmit="return confirm('삭제하시겠습니까?')">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <button type="submit" class="btn btn-outline-danger btn-sm py-0 px-1" style="font-size: 0.75rem;">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </form>
+            </td>
+            <% } %>
+          </tr>
+          <% }) %>
+          <% } %>
+        </tbody>
+        <tfoot>
+          <tr class="table-primary">
+            <td colspan="<%= user && user.is_admin ? 4 : 4 %>" class="py-2 ps-3 text-end"><strong>합계</strong></td>
+            <td class="py-2 text-end"><strong class="text-primary"><%= total.toLocaleString() %>원</strong></td>
+            <% if (user && user.is_admin) { %><td class="py-2"></td><% } %>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <!-- 모바일 카드 리스트 -->
+    <div class="mobile-card-list" aria-label="입금 목록">
+      <% if (incomes.length === 0) { %>
+      <div class="text-center text-muted py-4">입금 내역이 없습니다.</div>
+      <% } else { %>
+      <% incomes.forEach(income => { %>
+      <div class="mobile-card-item">
+        <div class="item-header">
+          <h3 class="item-title text-primary">+<%= income.amount.toLocaleString() %>원</h3>
+          <span class="badge bg-primary"><%= income.category_name %></span>
+        </div>
+        <div class="item-meta">
+          <span><i class="bi bi-calendar3" aria-hidden="true"></i> <%= moment(income.income_date).format('YYYY.MM.DD') %></span>
+          <% if (income.member_name) { %>
+          <span class="ms-2"><i class="bi bi-person" aria-hidden="true"></i> <%= income.member_name %></span>
+          <% } %>
+        </div>
+        <% if (income.description) { %>
+        <div class="item-meta mt-1">
+          <small><%= income.description %></small>
+        </div>
+        <% } %>
+        <% if (user && user.is_admin) { %>
+        <div class="item-footer">
+          <div>
+            <a href="/finance/income/<%= income.id %>/edit" class="btn btn-outline-primary btn-sm py-1 px-2" style="font-size: 0.75rem;">
+              <i class="bi bi-pencil"></i> 수정
+            </a>
+            <form method="POST" action="/finance/income/<%= income.id %>/delete" class="d-inline"
+                  onsubmit="return confirm('삭제하시겠습니까?')">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <button type="submit" class="btn btn-outline-danger btn-sm py-1 px-2" style="font-size: 0.75rem;">
+                <i class="bi bi-trash"></i> 삭제
+              </button>
+            </form>
+          </div>
+        </div>
+        <% } %>
+      </div>
+      <% }) %>
+      <!-- 모바일 합계 -->
+      <div class="mobile-card-item bg-primary bg-opacity-10">
+        <div class="d-flex justify-content-between align-items-center">
+          <strong>합계</strong>
+          <strong class="text-primary"><%= total.toLocaleString() %>원</strong>
+        </div>
+      </div>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

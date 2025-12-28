@@ -1,0 +1,222 @@
+<%- include('../partials/header') %>
+
+<!-- 페이지 헤더 -->
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <div class="d-flex align-items-center">
+    <a href="/finance" class="back-link" aria-label="자금 현황으로 이동">
+      <i class="bi bi-chevron-left" aria-hidden="true"></i>자금
+    </a>
+    <h5 class="mb-0 fw-bold"><i class="bi bi-wallet2 text-success me-2" aria-hidden="true"></i>회비 관리</h5>
+  </div>
+</div>
+
+<!-- 연도 선택 -->
+<div class="card border-0 shadow-sm mb-3">
+  <div class="card-body py-2 px-3">
+    <form method="GET" class="row g-2 align-items-end">
+      <div class="col-6 col-md-2">
+        <label class="form-label mb-1" style="font-size: 0.75rem; color: #6c757d;">연도</label>
+        <select name="year" class="form-select form-select-sm" style="font-size: 0.85rem;" onchange="this.form.submit()">
+          <% years.forEach(y => { %>
+          <option value="<%= y %>" <%= year == y ? 'selected' : '' %>><%= y %>년</option>
+          <% }) %>
+        </select>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- 데스크탑: 회비 현황 테이블 -->
+<div class="card border-0 shadow-sm d-none d-lg-block">
+  <div class="card-header bg-white py-2 d-flex justify-content-between align-items-center">
+    <h6 class="mb-0 fw-bold" style="font-size: 0.9rem;"><i class="bi bi-list-check text-success me-2"></i><%= year %>년 회비 납부 현황</h6>
+    <small class="text-muted"><%= members.length %>명</small>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-bordered table-sm mb-0" style="font-size: 0.8rem;">
+        <thead class="table-light">
+          <tr>
+            <th class="py-2 ps-2">회원</th>
+            <th class="py-2">부서</th>
+            <% for (let m = 1; m <= 12; m++) { %>
+            <th class="py-2 text-center" style="width: 50px;"><%= m %>월</th>
+            <% } %>
+            <th class="py-2 text-center pe-2" style="width: 80px;">납부율</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (members.length === 0) { %>
+          <tr>
+            <td colspan="15" class="text-center text-muted py-4">등록된 회원이 없습니다.</td>
+          </tr>
+          <% } else { %>
+          <% members.forEach(member => { %>
+          <tr>
+            <td class="py-1 ps-2"><strong><%= member.name %></strong></td>
+            <td class="py-1"><small class="text-muted"><%= member.department || '-' %></small></td>
+            <%
+              let paidCount = 0;
+              for (let m = 1; m <= 12; m++) {
+                const fee = feeMap[member.id] && feeMap[member.id][m];
+                const isPaid = fee && fee.status === 'paid';
+                if (isPaid) paidCount++;
+            %>
+            <td class="py-1 text-center">
+              <% if (isPaid) { %>
+              <span class="badge bg-success bg-opacity-75" style="font-size: 0.65rem;" title="<%= fee.amount ? fee.amount.toLocaleString() + '원' : '' %>">
+                <i class="bi bi-check"></i>
+              </span>
+              <% } else if (user && user.is_admin) { %>
+              <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-1" style="font-size: 0.65rem;"
+                      onclick="payFee(<%= member.id %>, <%= year %>, <%= m %>, '<%= member.name %>')">
+                <i class="bi bi-plus"></i>
+              </button>
+              <% } else { %>
+              <span class="badge bg-light text-muted" style="font-size: 0.65rem;">-</span>
+              <% } %>
+            </td>
+            <% } %>
+            <td class="py-1 text-center pe-2">
+              <div class="progress" style="height: 16px;">
+                <div class="progress-bar bg-success" style="width: <%= (paidCount / 12) * 100 %>%; font-size: 0.7rem;">
+                  <%= Math.round((paidCount / 12) * 100) %>%
+                </div>
+              </div>
+            </td>
+          </tr>
+          <% }) %>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- 모바일/태블릿: 카드형 회비 현황 -->
+<div class="d-lg-none">
+  <div class="card border-0 shadow-sm">
+    <div class="card-header bg-white py-2 d-flex justify-content-between align-items-center">
+      <h6 class="mb-0 fw-bold" style="font-size: 0.9rem;"><i class="bi bi-list-check text-success me-2"></i><%= year %>년 회비 납부 현황</h6>
+      <small class="text-muted"><%= members.length %>명</small>
+    </div>
+    <div class="card-body p-2">
+      <% if (members.length === 0) { %>
+      <p class="text-muted text-center py-4">등록된 회원이 없습니다.</p>
+      <% } else { %>
+      <% members.forEach((member, index) => {
+        let paidCount = 0;
+        for (let m = 1; m <= 12; m++) {
+          const fee = feeMap[member.id] && feeMap[member.id][m];
+          if (fee && fee.status === 'paid') paidCount++;
+        }
+      %>
+      <div class="border rounded p-2 mb-2">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <div>
+            <strong><%= member.name %></strong>
+            <small class="text-muted ms-2"><%= member.department || '' %></small>
+          </div>
+          <span class="badge bg-<%= paidCount === 12 ? 'success' : paidCount > 0 ? 'warning' : 'secondary' %>">
+            <%= paidCount %>/12
+          </span>
+        </div>
+        <div class="d-flex flex-wrap gap-1">
+          <% for (let m = 1; m <= 12; m++) {
+            const fee = feeMap[member.id] && feeMap[member.id][m];
+            const isPaid = fee && fee.status === 'paid';
+          %>
+          <% if (isPaid) { %>
+          <span class="badge bg-success" style="width: 32px;"><%= m %></span>
+          <% } else if (user && user.is_admin) { %>
+          <button type="button" class="btn btn-outline-secondary btn-sm" style="width: 32px; padding: 2px;"
+                  onclick="payFee(<%= member.id %>, <%= year %>, <%= m %>, '<%= member.name %>')">
+            <%= m %>
+          </button>
+          <% } else { %>
+          <span class="badge bg-light text-dark" style="width: 32px;"><%= m %></span>
+          <% } %>
+          <% } %>
+        </div>
+      </div>
+      <% }) %>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<!-- 회비 납부 모달 -->
+<div class="modal fade" id="feeModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">회비 납부 등록</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p id="feeInfo"></p>
+        <div class="mb-3">
+          <label class="form-label">납부 금액</label>
+          <div class="input-group">
+            <input type="text" id="feeAmountDisplay" class="form-control" value="50,000"
+                   oninput="formatFeeAmount(this)" inputmode="numeric">
+            <input type="hidden" id="feeAmount" value="50000">
+            <span class="input-group-text">원</span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+        <button type="button" class="btn btn-success" onclick="submitFee()">납부 확인</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let currentFee = {};
+
+function formatFeeAmount(input) {
+  let value = input.value.replace(/[^\d]/g, '');
+  if (value) {
+    document.getElementById('feeAmount').value = value;
+    input.value = parseInt(value).toLocaleString();
+  } else {
+    document.getElementById('feeAmount').value = '';
+    input.value = '';
+  }
+}
+
+function payFee(memberId, year, month, memberName) {
+  currentFee = { memberId, year, month };
+  document.getElementById('feeInfo').textContent = `${memberName}님의 ${year}년 ${month}월 회비를 납부 처리합니다.`;
+  document.getElementById('feeAmountDisplay').value = '50,000';
+  document.getElementById('feeAmount').value = '50000';
+  new bootstrap.Modal(document.getElementById('feeModal')).show();
+}
+
+function submitFee() {
+  const amount = document.getElementById('feeAmount').value;
+
+  fetch('/finance/fees/pay', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      member_id: currentFee.memberId,
+      year: currentFee.year,
+      month: currentFee.month,
+      amount: amount
+    })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      location.reload();
+    } else {
+      alert(data.error || '오류가 발생했습니다.');
+    }
+  });
+}
+</script>
+
+<%- include('../partials/footer') %>

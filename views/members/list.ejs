@@ -1,0 +1,153 @@
+<%- include('../partials/header') %>
+
+<!-- 페이지 헤더 -->
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <div class="d-flex align-items-center">
+    <a href="/" class="back-link" aria-label="대시보드로 이동">
+      <i class="bi bi-chevron-left" aria-hidden="true"></i>홈
+    </a>
+    <h5 class="mb-0 fw-bold"><i class="bi bi-people text-primary me-2" aria-hidden="true"></i>회원 관리</h5>
+  </div>
+  <% if (user && user.is_admin) { %>
+  <a href="/members/new" class="btn btn-success btn-sm py-1 px-3 d-flex align-items-center gap-1" style="font-size: 0.8rem;">
+    <i class="bi bi-person-plus-fill" aria-hidden="true"></i> 회원등록
+  </a>
+  <% } %>
+</div>
+
+<!-- 필터 -->
+<div class="card border-0 shadow-sm mb-3">
+  <div class="card-body py-2 px-3">
+    <form method="GET" class="row g-2 align-items-end" role="search" aria-label="회원 검색">
+      <div class="col-4 col-md-2">
+        <label for="status-filter" class="form-label mb-1" style="font-size: 0.75rem; color: #6c757d;">상태</label>
+        <select name="status" id="status-filter" class="form-select form-select-sm" style="font-size: 0.85rem;">
+          <option value="">전체</option>
+          <option value="active" <%= filters.status === 'active' ? 'selected' : '' %>>활동</option>
+          <option value="inactive" <%= filters.status === 'inactive' ? 'selected' : '' %>>비활동</option>
+          <option value="pending" <%= filters.status === 'pending' ? 'selected' : '' %>>대기</option>
+        </select>
+      </div>
+      <div class="col-8 col-md-4">
+        <label for="search-input" class="form-label mb-1" style="font-size: 0.75rem; color: #6c757d;">검색</label>
+        <input type="text" name="search" id="search-input" class="form-control form-control-sm" style="font-size: 0.85rem;" placeholder="이름, 구내번호, 부서" value="<%= filters.search || '' %>">
+      </div>
+      <div class="col-6 col-md-2">
+        <button type="submit" class="btn btn-primary btn-sm w-100" style="font-size: 0.8rem;">
+          <i class="bi bi-search" aria-hidden="true"></i> 검색
+        </button>
+      </div>
+      <div class="col-6 col-md-2">
+        <a href="/members" class="btn btn-outline-secondary btn-sm w-100" style="font-size: 0.8rem;" aria-label="검색 조건 초기화">
+          초기화
+        </a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- 회원 목록 -->
+<div class="card border-0 shadow-sm">
+  <div class="card-header bg-white py-2 d-flex justify-content-between align-items-center">
+    <h6 class="mb-0 fw-bold" style="font-size: 0.9rem;"><i class="bi bi-list-ul text-primary me-2"></i>회원 목록</h6>
+    <small class="text-muted"><%= members.length %>명</small>
+  </div>
+  <div class="card-body p-0">
+    <!-- 데스크톱 테이블 -->
+    <div class="table-responsive desktop-table">
+      <table class="table table-hover mb-0 sortable-table" style="font-size: 0.85rem;" aria-label="회원 목록">
+        <thead class="table-light">
+          <tr>
+            <th scope="col" class="py-2 ps-3" data-sort="string">이름</th>
+            <th scope="col" class="py-2" data-sort="string">구내번호</th>
+            <th scope="col" class="py-2" data-sort="string">부서</th>
+            <th scope="col" class="py-2 text-center" data-sort="number">라운딩수</th>
+            <th scope="col" class="py-2 text-center" data-sort="number">평균타수</th>
+            <th scope="col" class="py-2 text-center" data-sort="string">활동여부</th>
+            <th scope="col" class="py-2 pe-3"><span class="visually-hidden">액션</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (members.length === 0) { %>
+          <tr>
+            <td colspan="7" class="text-center text-muted py-4">등록된 회원이 없습니다.</td>
+          </tr>
+          <% } else { %>
+          <% members.forEach((member, index) => { %>
+          <tr data-href="/members/<%= member.id %>" tabindex="0" role="button" aria-label="<%= member.name %> 회원 상세 보기">
+            <td class="py-2 ps-3"><strong><%= member.name %></strong></td>
+            <td class="py-2"><%= member.internal_phone || '-' %></td>
+            <td class="py-2"><small class="text-muted"><%= member.department || '-' %></small></td>
+            <td class="py-2 text-center" data-value="<%= member.total_rounds || 0 %>">
+              <span class="badge bg-success bg-opacity-75" style="font-size: 0.75rem;"><%= member.total_rounds || 0 %></span>
+            </td>
+            <td class="py-2 text-center" data-value="<%= member.avg_score || 0 %>">
+              <% if (member.avg_score) { %>
+              <span class="badge bg-primary bg-opacity-75" style="font-size: 0.75rem;"><%= member.avg_score %></span>
+              <% } else { %>
+              <span class="text-muted">-</span>
+              <% } %>
+            </td>
+            <td class="py-2 text-center">
+              <% if (member.status === 'active') { %>
+              <span class="badge bg-success" style="font-size: 0.75rem;">활동</span>
+              <% } else if (member.status === 'inactive') { %>
+              <span class="badge bg-secondary" style="font-size: 0.75rem;">비활동</span>
+              <% } else { %>
+              <span class="badge bg-warning text-dark" style="font-size: 0.75rem;">대기</span>
+              <% } %>
+            </td>
+            <td class="py-2 pe-3 text-end">
+              <a href="/members/<%= member.id %>" class="text-muted" aria-label="<%= member.name %> 상세 보기">
+                <i class="bi bi-chevron-right" aria-hidden="true"></i>
+              </a>
+            </td>
+          </tr>
+          <% }) %>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 모바일 카드 리스트 -->
+    <div class="mobile-card-list" aria-label="회원 목록">
+      <% if (members.length === 0) { %>
+      <div class="text-center text-muted py-4">등록된 회원이 없습니다.</div>
+      <% } else { %>
+      <% members.forEach((member, index) => { %>
+      <a href="/members/<%= member.id %>" class="mobile-card-item text-decoration-none text-dark" aria-label="<%= member.name %> 회원 상세 보기">
+        <div class="item-header">
+          <h3 class="item-title"><%= member.name %></h3>
+          <% if (member.status === 'active') { %>
+          <span class="badge bg-success">활동</span>
+          <% } else if (member.status === 'inactive') { %>
+          <span class="badge bg-secondary">비활동</span>
+          <% } else { %>
+          <span class="badge bg-warning">대기</span>
+          <% } %>
+        </div>
+        <div class="item-meta">
+          <% if (member.internal_phone) { %>
+          <span><i class="bi bi-telephone" aria-hidden="true"></i> <%= member.internal_phone %></span>
+          <% } %>
+          <% if (member.department) { %>
+          <span class="ms-2"><i class="bi bi-building" aria-hidden="true"></i> <%= member.department %></span>
+          <% } %>
+        </div>
+        <div class="item-footer">
+          <div>
+            <span class="badge bg-success me-1"><%= member.total_rounds || 0 %>R</span>
+            <% if (member.avg_score) { %>
+            <span class="badge bg-primary">평균 <%= member.avg_score %></span>
+            <% } %>
+          </div>
+          <i class="bi bi-chevron-right text-muted" aria-hidden="true"></i>
+        </div>
+      </a>
+      <% }) %>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,104 @@
+  </main>
+  <footer class="bg-light py-3 mt-5">
+    <div class="container text-center text-muted">
+      <small>&copy; 2024-2026 N2골프 (NH투자증권 골프동호회). All rights reserved.</small>
+    </div>
+  </footer>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="/js/main.js"></script>
+  <script src="/js/table-sort.js"></script>
+  <!-- CSRF 토큰을 fetch 요청에 자동 포함 -->
+  <script>
+    (function() {
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+      if (csrfToken) {
+        const originalFetch = window.fetch;
+        window.fetch = function(url, options = {}) {
+          if (['POST', 'PUT', 'DELETE'].includes((options.method || 'GET').toUpperCase())) {
+            options.headers = options.headers || {};
+            if (options.headers instanceof Headers) {
+              options.headers.set('X-CSRF-Token', csrfToken);
+            } else {
+              options.headers['X-CSRF-Token'] = csrfToken;
+            }
+          }
+          return originalFetch(url, options);
+        };
+      }
+    })();
+  </script>
+  <!-- Service Worker 등록 -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .then(reg => console.log('Service Worker 등록 완료'))
+          .catch(err => console.log('Service Worker 등록 실패:', err));
+      });
+    }
+  </script>
+  <!-- 개인 통계 롤링 카드 -->
+  <script>
+    (function() {
+      const carousel = document.getElementById('statsCarousel');
+      const indicators = document.querySelectorAll('.stats-indicator');
+      if (!carousel || indicators.length === 0) return;
+
+      let currentIndex = 0;
+      const totalSlides = 4;
+      const intervalTime = 4000;
+
+      function goToSlide(index) {
+        currentIndex = index;
+        carousel.style.transform = `translateX(-${index * 25}%)`;
+        indicators.forEach((ind, i) => {
+          ind.classList.toggle('active', i === index);
+        });
+      }
+
+      function nextSlide() {
+        goToSlide((currentIndex + 1) % totalSlides);
+      }
+
+      // 자동 롤링
+      let autoSlide = setInterval(nextSlide, intervalTime);
+
+      // 인디케이터 클릭
+      indicators.forEach((ind, i) => {
+        ind.addEventListener('click', () => {
+          clearInterval(autoSlide);
+          goToSlide(i);
+          autoSlide = setInterval(nextSlide, intervalTime);
+        });
+      });
+
+      // 터치 스와이프 지원
+      let touchStartX = 0;
+      let touchEndX = 0;
+
+      carousel.addEventListener('touchstart', (e) => {
+        touchStartX = e.changedTouches[0].screenX;
+      }, { passive: true });
+
+      carousel.addEventListener('touchend', (e) => {
+        touchEndX = e.changedTouches[0].screenX;
+        handleSwipe();
+      }, { passive: true });
+
+      function handleSwipe() {
+        const diff = touchStartX - touchEndX;
+        if (Math.abs(diff) > 50) {
+          clearInterval(autoSlide);
+          if (diff > 0) {
+            goToSlide((currentIndex + 1) % totalSlides);
+          } else {
+            goToSlide((currentIndex - 1 + totalSlides) % totalSlides);
+          }
+          autoSlide = setInterval(nextSlide, intervalTime);
+        }
+      }
+    })();
+  </script>
+</body>
+</html>

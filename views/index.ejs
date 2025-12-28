@@ -1,0 +1,1508 @@
+<%- include('partials/header') %>
+
+<% if (user) { %>
+<!-- 개인 통계 롤링 카드 (로그인 시) -->
+<div class="row mb-3">
+  <div class="col-12">
+    <div class="stats-carousel-container">
+      <div class="stats-carousel" id="statsCarousel">
+        <!-- 최근 스코어 카드 -->
+        <div class="stats-card">
+          <div class="stats-card-inner stats-card-green">
+            <div class="stats-icon">
+              <i class="bi bi-flag-fill"></i>
+            </div>
+            <div class="stats-content">
+              <span class="stats-label">최근 스코어</span>
+              <span class="stats-value"><%= typeof userStats !== 'undefined' && userStats.recentScore ? userStats.recentScore : '-' %></span>
+            </div>
+          </div>
+        </div>
+        <!-- 평균 스코어 카드 -->
+        <div class="stats-card">
+          <div class="stats-card-inner stats-card-blue">
+            <div class="stats-icon">
+              <i class="bi bi-graph-up"></i>
+            </div>
+            <div class="stats-content">
+              <span class="stats-label">평균 스코어</span>
+              <span class="stats-value"><%= typeof userStats !== 'undefined' && userStats.avgScore ? userStats.avgScore : '-' %></span>
+            </div>
+          </div>
+        </div>
+        <!-- 최근 방문 골프장 카드 -->
+        <div class="stats-card">
+          <div class="stats-card-inner stats-card-orange">
+            <div class="stats-icon">
+              <i class="bi bi-geo-alt-fill"></i>
+            </div>
+            <div class="stats-content">
+              <span class="stats-label">최근 방문</span>
+              <span class="stats-value stats-value-text"><%= typeof userStats !== 'undefined' && userStats.recentCourse ? userStats.recentCourse : '-' %></span>
+            </div>
+          </div>
+        </div>
+        <!-- 총 라운딩 수 카드 -->
+        <div class="stats-card">
+          <div class="stats-card-inner stats-card-purple">
+            <div class="stats-icon">
+              <i class="bi bi-trophy-fill"></i>
+            </div>
+            <div class="stats-content">
+              <span class="stats-label">총 라운딩</span>
+              <span class="stats-value"><%= typeof userStats !== 'undefined' && userStats.totalRounds ? userStats.totalRounds : 0 %>회</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- 인디케이터 -->
+      <div class="stats-indicators" id="statsIndicators">
+        <span class="stats-indicator active"></span>
+        <span class="stats-indicator"></span>
+        <span class="stats-indicator"></span>
+        <span class="stats-indicator"></span>
+      </div>
+    </div>
+  </div>
+</div>
+<% } else { %>
+<!-- 메인 배너 (비로그인 시) -->
+<div class="row mb-3">
+  <div class="col-12">
+    <div class="bg-success bg-gradient text-white rounded-2 py-2 px-3">
+      <div class="d-flex align-items-center justify-content-center">
+        <i class="bi bi-trophy me-2 home-banner-icon"></i>
+        <span class="home-banner-text">우리 모두가 주인공인 즐거운 라운드, N2골프</span>
+      </div>
+    </div>
+  </div>
+</div>
+<% } %>
+
+<!-- 요약 카드 -->
+<div class="row g-2 mb-4">
+  <div class="col-6 col-md-3">
+    <a href="/finance" class="text-decoration-none">
+      <div class="card h-100 border-0 shadow-sm summary-card">
+        <div class="card-body py-2 px-2 py-md-3 px-md-3">
+          <div class="d-flex align-items-center">
+            <div class="rounded-circle bg-success bg-opacity-10 p-2 me-2 me-md-3 d-flex align-items-center justify-content-center summary-icon">
+              <i class="bi bi-wallet2 text-success"></i>
+            </div>
+            <div class="overflow-hidden">
+              <small class="text-muted d-block summary-label">총 잔액</small>
+              <% if (user) { %>
+              <span class="fw-bold text-dark summary-value"><%= balance.toLocaleString() %><small class="fw-normal">원</small></span>
+              <% } else { %>
+              <span class="fw-bold text-dark summary-value blur-content">0,000,000<small class="fw-normal">원</small></span>
+              <% } %>
+            </div>
+          </div>
+        </div>
+      </div>
+    </a>
+  </div>
+  <div class="col-6 col-md-3">
+    <a href="/finance/income" class="text-decoration-none">
+      <div class="card h-100 border-0 shadow-sm summary-card">
+        <div class="card-body py-2 px-2 py-md-3 px-md-3">
+          <div class="d-flex align-items-center">
+            <div class="rounded-circle bg-primary bg-opacity-10 p-2 me-2 me-md-3 d-flex align-items-center justify-content-center summary-icon">
+              <i class="bi bi-graph-up-arrow text-primary"></i>
+            </div>
+            <div class="overflow-hidden">
+              <small class="text-muted d-block summary-label">이번 달 수입</small>
+              <% if (user) { %>
+              <span class="fw-bold text-primary summary-value">+<%= monthlyIncome.toLocaleString() %><small class="fw-normal">원</small></span>
+              <% } else { %>
+              <span class="fw-bold text-primary summary-value blur-content">+000,000<small class="fw-normal">원</small></span>
+              <% } %>
+            </div>
+          </div>
+        </div>
+      </div>
+    </a>
+  </div>
+  <div class="col-6 col-md-3">
+    <a href="/finance/expense" class="text-decoration-none">
+      <div class="card h-100 border-0 shadow-sm summary-card">
+        <div class="card-body py-2 px-2 py-md-3 px-md-3">
+          <div class="d-flex align-items-center">
+            <div class="rounded-circle bg-danger bg-opacity-10 p-2 me-2 me-md-3 d-flex align-items-center justify-content-center summary-icon">
+              <i class="bi bi-graph-down-arrow text-danger"></i>
+            </div>
+            <div class="overflow-hidden">
+              <small class="text-muted d-block summary-label">이번 달 지출</small>
+              <% if (user) { %>
+              <span class="fw-bold text-danger summary-value">-<%= monthlyExpense.toLocaleString() %><small class="fw-normal">원</small></span>
+              <% } else { %>
+              <span class="fw-bold text-danger summary-value blur-content">-000,000<small class="fw-normal">원</small></span>
+              <% } %>
+            </div>
+          </div>
+        </div>
+      </div>
+    </a>
+  </div>
+  <div class="col-6 col-md-3">
+    <a href="/members" class="text-decoration-none">
+      <div class="card h-100 border-0 shadow-sm summary-card">
+        <div class="card-body py-2 px-2 py-md-3 px-md-3">
+          <div class="d-flex align-items-center">
+            <div class="rounded-circle bg-info bg-opacity-10 p-2 me-2 me-md-3 d-flex align-items-center justify-content-center summary-icon">
+              <i class="bi bi-people-fill text-info"></i>
+            </div>
+            <div class="overflow-hidden">
+              <small class="text-muted d-block summary-label">활동 회원</small>
+              <span class="fw-bold text-dark summary-value"><%= memberStats.active || 0 %><small class="fw-normal">명</small></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </a>
+  </div>
+</div>
+
+<div class="row g-3">
+  <!-- 다가오는 일정 -->
+  <div class="col-md-6">
+    <div class="card h-100">
+      <div class="card-header bg-white py-2">
+        <h6 class="home-section-title-bold">다가오는 일정</h6>
+      </div>
+      <div class="card-body p-2">
+        <% if (upcomingSchedules.length === 0) { %>
+        <p class="text-muted text-center py-2 mb-0 home-card-text">예정된 일정이 없습니다.</p>
+        <% } else { %>
+        <!-- 데스크탑: 리스트 형태 -->
+        <div class="list-group list-group-flush d-none d-md-block">
+          <% upcomingSchedules.forEach(schedule => { %>
+          <a href="/schedules/<%= schedule.id %>" class="list-group-item list-group-item-action py-2">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <span class="home-card-title d-block"><%= schedule.course_name %></span>
+                <span class="home-card-subtitle d-block"><%= schedule.location %></span>
+              </div>
+              <div class="text-end">
+                <span class="badge bg-success home-card-badge"><%= moment(schedule.play_date).format('MM/DD (ddd)') %></span>
+                <span class="home-card-meta text-muted d-block"><%= schedule.reserved_count %>/<%= schedule.max_members %>명</span>
+              </div>
+            </div>
+          </a>
+          <% }) %>
+        </div>
+        <!-- 모바일: 컴팩트 가로 스크롤 카드 -->
+        <div class="d-md-none">
+          <div class="d-flex gap-2 overflow-auto pb-1" style="scrollbar-width: thin;">
+            <% upcomingSchedules.forEach(schedule => { %>
+            <a href="/schedules/<%= schedule.id %>" class="text-decoration-none flex-shrink-0" style="width: 140px;">
+              <div class="border rounded p-2 bg-light h-100">
+                <div class="d-flex justify-content-between align-items-start mb-1">
+                  <span class="badge bg-success home-card-badge"><%= moment(schedule.play_date).format('MM/DD') %></span>
+                  <span class="home-card-meta text-muted"><%= schedule.reserved_count %>/<%= schedule.max_members %></span>
+                </div>
+                <div class="home-card-title text-dark text-truncate"><%= schedule.course_name %></div>
+              </div>
+            </a>
+            <% }) %>
+          </div>
+        </div>
+        <% } %>
+      </div>
+      <div class="card-footer bg-white py-2 d-flex justify-content-center">
+        <a href="/schedules" class="btn btn-outline-success btn-sm w-100 home-card-btn d-flex justify-content-center align-items-center">전체 일정 보기</a>
+      </div>
+    </div>
+  </div>
+
+  <%# 최근 입출금 - 임시 숨김 처리 (나중에 사용하려면 false를 true로 변경) %>
+  <% if (false) { %>
+  <div class="col-md-6">
+    <div class="card h-100">
+      <div class="card-header bg-white py-2">
+        <h6 class="mb-0"><i class="bi bi-cash-stack text-primary"></i> 최근 입출금</h6>
+      </div>
+      <div class="card-body p-2">
+        <% if (!user) { %>
+        <!-- 비로그인 시 블러 처리된 샘플 데이터 -->
+        <div class="blur-content">
+          <table class="table table-sm mb-0" style="font-size: 0.8rem;">
+            <tbody>
+              <tr>
+                <td class="py-1"><span class="badge bg-primary" style="font-size: 0.65rem;">입금</span></td>
+                <td class="py-1">월회비</td>
+                <td class="text-end py-1 text-primary">+50,000</td>
+                <td class="text-muted text-end py-1"><small>12/25</small></td>
+              </tr>
+              <tr>
+                <td class="py-1"><span class="badge bg-danger" style="font-size: 0.65rem;">출금</span></td>
+                <td class="py-1">그린피</td>
+                <td class="text-end py-1 text-danger">-120,000</td>
+                <td class="text-muted text-end py-1"><small>12/24</small></td>
+              </tr>
+              <tr>
+                <td class="py-1"><span class="badge bg-primary" style="font-size: 0.65rem;">입금</span></td>
+                <td class="py-1">월회비</td>
+                <td class="text-end py-1 text-primary">+50,000</td>
+                <td class="text-muted text-end py-1"><small>12/23</small></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <% } else if (recentTransactions.length === 0) { %>
+        <p class="text-muted text-center py-2 mb-0 small">입출금 내역이 없습니다.</p>
+        <% } else { %>
+        <div class="table-responsive">
+          <table class="table table-sm mb-0" style="font-size: 0.8rem;">
+            <tbody>
+              <% recentTransactions.slice(0, 5).forEach(t => { %>
+              <tr>
+                <td class="py-1">
+                  <span class="badge <%= t.type === 'income' ? 'bg-primary' : 'bg-danger' %>" style="font-size: 0.65rem;">
+                    <%= t.type === 'income' ? '입금' : '출금' %>
+                  </span>
+                </td>
+                <td class="py-1" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80px;"><%= t.category %></td>
+                <td class="text-end py-1 <%= t.type === 'income' ? 'text-primary' : 'text-danger' %>" style="white-space: nowrap;">
+                  <%= t.type === 'income' ? '+' : '-' %><%= t.amount.toLocaleString() %>
+                </td>
+                <td class="text-muted text-end py-1"><small><%= moment(t.date).format('MM/DD') %></small></td>
+              </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+        <% } %>
+      </div>
+      <div class="card-footer bg-white py-2 d-flex justify-content-center">
+        <a href="/finance" class="btn btn-outline-primary btn-sm w-100 py-1 d-flex justify-content-center align-items-center" style="font-size: 0.8rem;">자금 현황 보기</a>
+      </div>
+    </div>
+  </div>
+  <% } %>
+</div>
+
+<!-- 골프장 정보 -->
+<div class="row mt-4">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header bg-white py-2">
+        <h6 class="home-section-title-bold">2026년 연회원 골프장</h6>
+      </div>
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-6 col-md-6">
+            <div class="d-flex align-items-start course-item" style="cursor: pointer;" onclick="showCourseGuide('yangji')">
+              <div class="bg-success bg-opacity-10 text-success rounded-circle p-2 me-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                <i class="bi bi-pin-map-fill"></i>
+              </div>
+              <div>
+                <p class="course-title mb-0">양지파인CC <i class="bi bi-info-circle text-muted home-card-meta"></i></p>
+                <p class="course-location mb-1"><i class="bi bi-geo-alt"></i> 경기도 용인시</p>
+                <p class="mb-0">
+                  <span class="badge bg-info course-badge">매월 3째주 토</span>
+                  <a href="javascript:void(0)" class="badge bg-success text-white course-badge" onclick="event.stopPropagation(); showDirections('yangji');">
+                    <i class="bi bi-signpost-2"></i> 가는길
+                  </a>
+                </p>
+              </div>
+            </div>
+          </div>
+          <div class="col-6 col-md-6">
+            <div class="d-flex align-items-start course-item" style="cursor: pointer;" onclick="showCourseGuide('daeyoungHills')">
+              <div class="bg-primary bg-opacity-10 text-primary rounded-circle p-2 me-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                <i class="bi bi-pin-map-fill"></i>
+              </div>
+              <div>
+                <p class="course-title mb-0">대영힐스CC <i class="bi bi-info-circle text-muted home-card-meta"></i></p>
+                <p class="course-location mb-1"><i class="bi bi-geo-alt"></i> 충북 충주시</p>
+                <p class="mb-0">
+                  <span class="badge bg-info course-badge">홀수달 1째주 토</span>
+                  <a href="javascript:void(0)" class="badge bg-success text-white course-badge" onclick="event.stopPropagation(); showDirections('daeyoungHills');">
+                    <i class="bi bi-signpost-2"></i> 가는길
+                  </a>
+                </p>
+              </div>
+            </div>
+          </div>
+          <div class="col-6 col-md-6">
+            <div class="d-flex align-items-start course-item" style="cursor: pointer;" onclick="showCourseGuide('daeyoungBase')">
+              <div class="bg-warning bg-opacity-25 text-warning rounded-circle p-2 me-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                <i class="bi bi-pin-map-fill"></i>
+              </div>
+              <div>
+                <p class="course-title mb-0">대영베이스CC <i class="bi bi-info-circle text-muted home-card-meta"></i></p>
+                <p class="course-location mb-1"><i class="bi bi-geo-alt"></i> 충북 충주시</p>
+                <p class="mb-0">
+                  <span class="badge bg-info course-badge">짝수달 1째주 토</span>
+                  <a href="javascript:void(0)" class="badge bg-success text-white course-badge" onclick="event.stopPropagation(); showDirections('daeyoungBase');">
+                    <i class="bi bi-signpost-2"></i> 가는길
+                  </a>
+                </p>
+              </div>
+            </div>
+          </div>
+          <div class="col-6 col-md-6">
+            <div class="d-flex align-items-start course-item">
+              <div class="bg-secondary bg-opacity-10 text-secondary rounded-circle p-2 me-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                <i class="bi bi-pc-display-horizontal"></i>
+              </div>
+              <div>
+                <p class="course-title mb-0">문래 SK스크린골프</p>
+                <p class="course-location mb-1"><i class="bi bi-geo-alt"></i> 서울시 영등포구</p>
+                <p class="mb-0">
+                  <span class="badge bg-secondary course-badge">비정기 모임</span>
+                  <a href="javascript:void(0)" class="badge bg-success text-white course-badge" onclick="showDirections('screenGolf');">
+                    <i class="bi bi-signpost-2"></i> 가는길
+                  </a>
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 실시간 교통 상황 -->
+<% if (user) { %>
+<div class="row mt-3">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header bg-white py-2 d-flex justify-content-between align-items-center">
+        <h6 class="home-section-title-bold">실시간 교통 현황</h6>
+        <div class="d-flex align-items-center">
+          <span class="badge bg-light text-dark me-2 home-card-meta" id="trafficUpdateTime"></span>
+          <button class="btn btn-outline-primary btn-sm py-0 px-2 home-card-meta" onclick="refreshTrafficInfo()">
+            <i class="bi bi-arrow-clockwise"></i> 새로고침
+          </button>
+        </div>
+      </div>
+      <div class="card-body p-2" id="trafficWidget">
+        <div class="row g-2" id="trafficCards">
+          <div class="col-12 text-center py-2">
+            <div class="spinner-border spinner-border-sm text-primary" role="status">
+              <span class="visually-hidden">로딩중...</span>
+            </div>
+            <p class="text-muted mt-1 mb-0 home-card-text">교통 정보를 불러오는 중...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<% } %>
+
+<!-- 골프장 날씨 현황 -->
+<% if (user) { %>
+<div class="row mt-3">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header bg-white py-2 d-flex justify-content-between align-items-center">
+        <h6 class="home-section-title-bold">골프장 날씨</h6>
+        <span class="home-card-subtitle" id="weatherDate"></span>
+      </div>
+      <div class="card-body p-2" id="weatherWidget">
+        <div class="row g-2" id="weatherCards">
+          <div class="col-12 text-center py-2">
+            <div class="spinner-border spinner-border-sm text-success" role="status">
+              <span class="visually-hidden">로딩중...</span>
+            </div>
+            <p class="text-muted mt-1 mb-0 home-card-text">날씨 정보를 불러오는 중...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<% } %>
+
+<!-- 골프장 코스 가이드 모달 -->
+<div class="modal fade" id="courseGuideModal" tabindex="-1">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="courseGuideTitle"></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="courseGuideContent"></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 골프장 가는길 안내 모달 -->
+<div class="modal fade" id="directionsModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-success text-white py-2">
+        <h5 class="modal-title" id="directionsTitle"><i class="bi bi-signpost-2"></i> 가는길 안내</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="directionsContent"></div>
+      <div class="modal-footer py-2">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">닫기</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// 로그인 상태 확인
+const isLoggedIn = <%= user ? 'true' : 'false' %>;
+
+// 로그인 필요 알림 및 리다이렉트
+function requireLogin(message) {
+  alert(message || '이 기능을 사용하려면 로그인이 필요합니다.');
+  window.location.href = '/auth/login';
+  return false;
+}
+
+// 골프장 가는길 데이터 (토요일 05:40 도착 기준)
+const courseDirections = {
+  yangji: {
+    name: '양지파인CC',
+    address: '경기도 용인시 처인구 양지면 대대로 171',
+    arrivalTime: '05:40',
+    routes: [
+      {
+        departure: '여의도역',
+        duration: 50,
+        departureTime: '04:50',
+        route: '올림픽대로 → 경부고속도로 → 용인IC → 42번 국도',
+        distance: '약 45km',
+        tips: '경부고속도로 이용, 토요일 새벽은 비교적 한산함'
+      },
+      {
+        departure: '잠실역',
+        duration: 40,
+        departureTime: '05:00',
+        route: '송파IC → 경부고속도로 → 용인IC → 42번 국도',
+        distance: '약 38km',
+        tips: '잠실에서 경부고속도로 진입이 빠름'
+      }
+    ]
+  },
+  daeyoungHills: {
+    name: '대영힐스CC',
+    address: '충북 충주시 앙성면 둔터길 260',
+    arrivalTime: '05:40',
+    routes: [
+      {
+        departure: '여의도역',
+        duration: 90,
+        departureTime: '04:10',
+        route: '올림픽대로 → 중부고속도로 → 충주IC → 19번 국도',
+        distance: '약 110km',
+        tips: '중부고속도로 이용, 충주IC에서 약 15분 소요'
+      },
+      {
+        departure: '잠실역',
+        duration: 80,
+        departureTime: '04:20',
+        route: '강동IC → 중부고속도로 → 충주IC → 19번 국도',
+        distance: '약 100km',
+        tips: '잠실에서 중부고속도로 진입, 충주IC 이후 국도 주의'
+      }
+    ]
+  },
+  daeyoungBase: {
+    name: '대영베이스CC',
+    address: '충북 충주시 앙성면 산막이길 200',
+    arrivalTime: '05:40',
+    routes: [
+      {
+        departure: '여의도역',
+        duration: 90,
+        departureTime: '04:10',
+        route: '올림픽대로 → 중부고속도로 → 충주IC → 19번 국도',
+        distance: '약 108km',
+        tips: '대영힐스와 인접, 중부고속도로 이용'
+      },
+      {
+        departure: '잠실역',
+        duration: 80,
+        departureTime: '04:20',
+        route: '강동IC → 중부고속도로 → 충주IC → 19번 국도',
+        distance: '약 98km',
+        tips: '충주IC에서 대영힐스와 같은 방향'
+      }
+    ]
+  },
+  screenGolf: {
+    name: '문래 SK스크린골프',
+    address: '서울시 영등포구 문래동3가 54-1 SK V1센터 B1',
+    type: 'screen',
+    nearestStation: '문래역 7번 출구',
+    walkTime: 5,
+    busRoutes: [
+      {
+        departure: '더현대서울',
+        busNumber: '662',
+        busType: '버스',
+        color: '#3D5BAB',
+        stops: 6,
+        duration: 15,
+        boarding: '더현대서울 정류장',
+        alighting: '문래동 정류장',
+        tips: '간선버스, 문래동 하차 후 도보 5분'
+      },
+      {
+        departure: '더현대서울',
+        busNumber: '88',
+        busType: '버스',
+        color: '#3D5BAB',
+        stops: 5,
+        duration: 12,
+        boarding: '더현대서울 정류장',
+        alighting: '문래동 정류장',
+        tips: '간선버스, 문래동 하차 후 도보 5분'
+      },
+      {
+        departure: '더현대서울',
+        busNumber: '5호선 → 2호선',
+        busType: '지하철',
+        color: '#8B50A4',
+        stops: 3,
+        duration: 12,
+        boarding: '여의도역 (5호선)',
+        alighting: '문래역 (2호선)',
+        tips: '영등포구청역에서 2호선 환승, 문래역 7번 출구'
+      }
+    ]
+  }
+};
+
+// 가는길 안내 모달 표시
+function showDirections(courseId) {
+  // 로그인 체크
+  if (!isLoggedIn) {
+    return requireLogin('가는길 정보를 보려면 로그인이 필요합니다.');
+  }
+
+  const course = courseDirections[courseId];
+  if (!course) return;
+
+  document.getElementById('directionsTitle').innerHTML =
+    '<i class="bi bi-signpost-2"></i> ' + course.name + ' 가는길';
+
+  let html = '';
+  html += '<div class="mb-3">';
+  html += '<div class="d-flex align-items-center mb-2">';
+  html += '<i class="bi bi-geo-alt-fill text-danger me-2"></i>';
+  html += '<strong>' + course.address + '</strong>';
+  html += '</div>';
+
+  // 스크린골프인 경우 다른 안내 표시
+  if (course.type === 'screen') {
+    html += '<div class="alert alert-info py-2 mb-3">';
+    html += '<i class="bi bi-train-front"></i> <strong>가까운 역: ' + course.nearestStation + '</strong>';
+    html += '<small class="d-block mt-1">도보 약 ' + course.walkTime + '분</small>';
+    html += '</div>';
+    html += '</div>';
+
+    // 출발지별 그룹화
+    const departures = {};
+    course.busRoutes.forEach(route => {
+      if (!departures[route.departure]) {
+        departures[route.departure] = [];
+      }
+      departures[route.departure].push(route);
+    });
+
+    Object.keys(departures).forEach((departure, dIdx) => {
+      const routes = departures[departure];
+      const headerColor = dIdx === 0 ? 'bg-primary' : 'bg-info';
+
+      html += '<div class="card mb-3 border-0 shadow-sm">';
+      html += '<div class="card-header ' + headerColor + ' text-white py-2">';
+      html += '<span><i class="bi bi-geo-fill"></i> ' + departure + ' 출발</span>';
+      html += '</div>';
+      html += '<div class="card-body py-2">';
+
+      routes.forEach((route, idx) => {
+        if (idx > 0) html += '<hr class="my-2">';
+
+        const icon = route.busType === '지하철' ? 'bi-train-front' : 'bi-bus-front';
+
+        html += '<div class="d-flex align-items-center mb-2">';
+        html += '<span class="badge me-2" style="background-color: ' + route.color + '; font-size: 0.85rem;">';
+        html += '<i class="bi ' + icon + ' me-1"></i>' + route.busNumber;
+        html += '</span>';
+        html += '<small class="text-muted">' + route.busType + '</small>';
+        html += '<span class="badge bg-secondary ms-auto">약 ' + route.duration + '분</span>';
+        html += '</div>';
+
+        html += '<div class="row g-2 mb-2">';
+        html += '<div class="col-6">';
+        html += '<div class="border rounded p-2 text-center bg-light">';
+        html += '<small class="text-muted d-block">정거장 수</small>';
+        html += '<strong class="text-primary fs-5">' + route.stops + '</strong><small>개</small>';
+        html += '</div>';
+        html += '</div>';
+        html += '<div class="col-6">';
+        html += '<div class="border rounded p-2 text-center bg-light">';
+        html += '<small class="text-muted d-block">소요시간</small>';
+        html += '<strong>' + route.duration + '분</strong>';
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
+
+        html += '<div class="mb-1">';
+        html += '<small class="text-muted"><i class="bi bi-arrow-right-circle"></i> 경로</small>';
+        html += '<div style="font-size: 0.85rem;">' + route.boarding + ' → ' + route.alighting + '</div>';
+        html += '</div>';
+
+        html += '<div>';
+        html += '<small class="text-muted"><i class="bi bi-lightbulb"></i> 팁</small>';
+        html += '<div style="font-size: 0.85rem;">' + route.tips + '</div>';
+        html += '</div>';
+      });
+
+      html += '</div>';
+      html += '</div>';
+    });
+
+    // 도보 경로 지도 섹션
+    html += '<div class="card mb-3 border-0 shadow-sm">';
+    html += '<div class="card-header bg-secondary text-white py-2">';
+    html += '<span><i class="bi bi-map"></i> 도보 경로 안내</span>';
+    html += '</div>';
+    html += '<div class="card-body py-2">';
+
+    // 문래동 정류장 → SK스크린골프
+    html += '<div class="mb-3">';
+    html += '<div class="d-flex align-items-center mb-2">';
+    html += '<span class="badge bg-primary me-2"><i class="bi bi-bus-front"></i> 버스</span>';
+    html += '<strong style="font-size: 0.9rem;">문래동 정류장 → SK스크린골프</strong>';
+    html += '<span class="badge bg-light text-dark ms-auto">도보 5분</span>';
+    html += '</div>';
+    html += '<div class="border rounded p-3 bg-light mb-2">';
+    html += '<div class="d-flex align-items-center">';
+    html += '<div class="text-center me-3">';
+    html += '<div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;"><i class="bi bi-bus-front"></i></div>';
+    html += '<small class="text-muted d-block mt-1">정류장</small>';
+    html += '</div>';
+    html += '<div class="flex-grow-1 position-relative" style="height: 2px; background: linear-gradient(90deg, #0d6efd, #198754);"><div class="position-absolute top-50 start-50 translate-middle"><i class="bi bi-chevron-right text-muted"></i></div></div>';
+    html += '<div class="text-center ms-3">';
+    html += '<div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;"><i class="bi bi-geo-alt-fill"></i></div>';
+    html += '<small class="text-muted d-block mt-1">도착</small>';
+    html += '</div>';
+    html += '</div>';
+    html += '<p class="text-muted small mb-0 mt-2 text-center">문래동 정류장 하차 → 직진 200m → SK V1센터 B1</p>';
+    html += '</div>';
+    html += '<a href="https://map.naver.com/p/directions/14106930,4513780,%EB%AC%B8%EB%9E%98%EB%8F%99%EC%A0%95%EB%A5%98%EC%9E%A5,,/14107090,4513848,SK%20V1%EC%84%BC%ED%84%B0,1975717087,PLACE_POI/-/walk?c=17.00,0,0,0,dh" target="_blank" class="btn btn-outline-primary btn-sm w-100">';
+    html += '<i class="bi bi-map"></i> 네이버 지도에서 길찾기';
+    html += '</a>';
+    html += '</div>';
+
+    // 문래역 7번 출구 → SK스크린골프
+    html += '<div>';
+    html += '<div class="d-flex align-items-center mb-2">';
+    html += '<span class="badge me-2" style="background-color: #8B50A4;"><i class="bi bi-train-front"></i> 지하철</span>';
+    html += '<strong style="font-size: 0.9rem;">문래역 7번 출구 → SK스크린골프</strong>';
+    html += '<span class="badge bg-light text-dark ms-auto">도보 5분</span>';
+    html += '</div>';
+    html += '<div class="border rounded p-3 bg-light mb-2">';
+    html += '<div class="d-flex align-items-center">';
+    html += '<div class="text-center me-3">';
+    html += '<div class="rounded-circle text-white d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; background-color: #8B50A4;"><i class="bi bi-train-front"></i></div>';
+    html += '<small class="text-muted d-block mt-1">7번출구</small>';
+    html += '</div>';
+    html += '<div class="flex-grow-1 position-relative" style="height: 2px; background: linear-gradient(90deg, #8B50A4, #198754);"><div class="position-absolute top-50 start-50 translate-middle"><i class="bi bi-chevron-right text-muted"></i></div></div>';
+    html += '<div class="text-center ms-3">';
+    html += '<div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;"><i class="bi bi-geo-alt-fill"></i></div>';
+    html += '<small class="text-muted d-block mt-1">도착</small>';
+    html += '</div>';
+    html += '</div>';
+    html += '<p class="text-muted small mb-0 mt-2 text-center">7번 출구 → 우회전 → 직진 300m → SK V1센터 B1</p>';
+    html += '</div>';
+    html += '<a href="https://map.naver.com/p/directions/14106844,4513913,%EB%AC%B8%EB%9E%98%EC%97%AD%207%EB%B2%88%EC%B6%9C%EA%B5%AC,,/14107090,4513848,SK%20V1%EC%84%BC%ED%84%B0,1975717087,PLACE_POI/-/walk?c=17.00,0,0,0,dh" target="_blank" class="btn btn-outline-secondary btn-sm w-100">';
+    html += '<i class="bi bi-map"></i> 네이버 지도에서 길찾기';
+    html += '</a>';
+    html += '</div>';
+
+    html += '</div>';
+    html += '</div>';
+
+    html += '<div class="alert alert-success py-2 mb-0">';
+    html += '<i class="bi bi-info-circle"></i> ';
+    html += '<small>문래역 7번 출구로 나와 SK V1센터 방향으로 도보 5분입니다.</small>';
+    html += '</div>';
+
+  } else {
+    // 골프장인 경우 기존 로직
+    html += '<div class="alert alert-success py-2 mb-3">';
+    html += '<i class="bi bi-clock"></i> <strong>도착 목표 시간: 토요일 ' + course.arrivalTime + '</strong>';
+    html += '</div>';
+    html += '</div>';
+
+    course.routes.forEach((route, idx) => {
+      const bgColor = idx === 0 ? 'bg-primary' : 'bg-info';
+      html += '<div class="card mb-3 border-0 shadow-sm">';
+      html += '<div class="card-header ' + bgColor + ' text-white py-2">';
+      html += '<div class="d-flex justify-content-between align-items-center">';
+      html += '<span><i class="bi bi-geo-fill"></i> ' + route.departure + ' 출발</span>';
+      html += '<span class="badge bg-white text-dark">약 ' + route.duration + '분</span>';
+      html += '</div>';
+      html += '</div>';
+      html += '<div class="card-body py-2">';
+
+      html += '<div class="row g-2">';
+      html += '<div class="col-6">';
+      html += '<div class="border rounded p-2 text-center bg-light">';
+      html += '<small class="text-muted d-block">출발 시간</small>';
+      html += '<strong class="text-danger fs-5">' + route.departureTime + '</strong>';
+      html += '</div>';
+      html += '</div>';
+      html += '<div class="col-6">';
+      html += '<div class="border rounded p-2 text-center bg-light">';
+      html += '<small class="text-muted d-block">거리</small>';
+      html += '<strong>' + route.distance + '</strong>';
+      html += '</div>';
+      html += '</div>';
+      html += '</div>';
+
+      html += '<div class="mt-2">';
+      html += '<small class="text-muted"><i class="bi bi-signpost-split"></i> 경로</small>';
+      html += '<div class="fw-semibold" style="font-size: 0.85rem;">' + route.route + '</div>';
+      html += '</div>';
+
+      html += '<div class="mt-2">';
+      html += '<small class="text-muted"><i class="bi bi-lightbulb"></i> 팁</small>';
+      html += '<div style="font-size: 0.85rem;">' + route.tips + '</div>';
+      html += '</div>';
+
+      html += '</div>';
+      html += '</div>';
+    });
+
+    html += '<div class="alert alert-warning py-2 mb-0">';
+    html += '<i class="bi bi-exclamation-triangle"></i> ';
+    html += '<small>소요 시간은 토요일 새벽 기준이며, 교통 상황에 따라 달라질 수 있습니다. 여유있게 출발하세요!</small>';
+    html += '</div>';
+  }
+
+  document.getElementById('directionsContent').innerHTML = html;
+  new bootstrap.Modal(document.getElementById('directionsModal')).show();
+}
+
+// 서버에서 전달받은 코스 가이드 데이터 (홀 이미지 URL 포함)
+const courseGuides = <%- JSON.stringify(courseHoles || {}) %>;
+
+function showCourseGuide(courseId) {
+  // 로그인 체크
+  if (!isLoggedIn) {
+    return requireLogin('골프장 코스 가이드를 보려면 로그인이 필요합니다.');
+  }
+
+  const course = courseGuides[courseId];
+  if (!course) return;
+
+  document.getElementById('courseGuideTitle').innerHTML =
+    '<i class="bi bi-flag-fill text-success"></i> ' + course.name + ' 코스 가이드';
+
+  let html = '<div class="mb-3 text-muted"><i class="bi bi-geo-alt"></i> ' + course.info + '</div>';
+
+  // 코스 탭
+  html += '<ul class="nav nav-tabs mb-3" id="courseTabs" role="tablist">';
+  course.courses.forEach((courseName, idx) => {
+    html += '<li class="nav-item" role="presentation">';
+    html += '<button class="nav-link ' + (idx === 0 ? 'active' : '') + '" id="' + courseName + '-tab" ';
+    html += 'data-bs-toggle="tab" data-bs-target="#' + courseName + '" type="button" role="tab">';
+    html += courseName + ' 코스</button></li>';
+  });
+  html += '</ul>';
+
+  // 탭 컨텐츠
+  html += '<div class="tab-content" id="courseTabsContent">';
+  course.courses.forEach((courseName, idx) => {
+    html += '<div class="tab-pane fade ' + (idx === 0 ? 'show active' : '') + '" id="' + courseName + '" role="tabpanel">';
+
+    // 홀 탭 (1-9홀)
+    html += '<ul class="nav nav-pills nav-fill mb-3 flex-wrap" id="holeTabs' + courseName + '" role="tablist">';
+    for (let h = 1; h <= 9; h++) {
+      const holeData = course.holes[courseName][h-1];
+      const parColor = holeData.par === 3 ? 'text-danger' : holeData.par === 5 ? 'text-primary' : '';
+      html += '<li class="nav-item" role="presentation">';
+      html += '<button class="nav-link ' + (h === 1 ? 'active' : '') + ' py-1 px-2" ';
+      html += 'id="hole' + courseName + h + '-tab" data-bs-toggle="pill" ';
+      html += 'data-bs-target="#hole' + courseName + h + '" type="button" role="tab">';
+      html += '<small class="d-block fw-bold">' + h + '번홀</small>';
+      html += '<small class="' + parColor + '">Par ' + holeData.par + '</small>';
+      html += '</button></li>';
+    }
+    html += '</ul>';
+
+    // 홀 컨텐츠
+    html += '<div class="tab-content" id="holeContent' + courseName + '">';
+    for (let h = 1; h <= 9; h++) {
+      const holeData = course.holes[courseName][h-1];
+      html += '<div class="tab-pane fade ' + (h === 1 ? 'show active' : '') + '" ';
+      html += 'id="hole' + courseName + h + '" role="tabpanel">';
+
+      html += '<div class="row">';
+      // 홀 레이아웃 (이미지 또는 플레이스홀더)
+      html += '<div class="col-md-5 mb-3">';
+      if (holeData.imageUrl) {
+        // 이미지가 있는 경우 - 고정 높이 컨테이너
+        html += '<div class="hole-layout-container" style="height: 400px; overflow: hidden; border: 1px solid #dee2e6; border-radius: 0.375rem; display: flex; align-items: center; justify-content: center; background: #f8f9fa;">';
+        html += '<img src="' + holeData.imageUrl + '" alt="' + courseName + ' ' + h + '번홀 레이아웃" ';
+        html += 'class="rounded" style="max-width: 100%; max-height: 100%; object-fit: contain;" ';
+        html += 'onerror="this.parentElement.innerHTML=';
+        html += "'<div class=&quot;bg-light border rounded p-4 text-center&quot; style=&quot;min-height: 300px;&quot;>";
+        html += '<i class=&quot;bi bi-image fs-1 text-muted mb-3 d-block&quot;></i>';
+        html += '<div class=&quot;text-muted&quot;>이미지를 불러올 수 없습니다</div>';
+        html += "</div>'\">";
+        html += '</div>';
+      } else {
+        // 개선된 플레이스홀더 표시 (SVG 기반 홀 레이아웃)
+        html += '<div class="hole-placeholder rounded" style="min-height: 300px; background: linear-gradient(135deg, #2d5016 0%, #4a7c23 50%, #2d5016 100%); position: relative; overflow: hidden;">';
+
+        // SVG 홀 레이아웃
+        html += '<svg viewBox="0 0 200 280" style="width: 100%; height: 300px;">';
+
+        // 배경 패턴 (잔디 텍스처)
+        html += '<defs>';
+        html += '<pattern id="grass-' + h + '" patternUnits="userSpaceOnUse" width="4" height="4">';
+        html += '<circle cx="1" cy="1" r="0.5" fill="rgba(255,255,255,0.05)"/>';
+        html += '</pattern>';
+        html += '</defs>';
+        html += '<rect width="200" height="280" fill="url(#grass-' + h + ')"/>';
+
+        // 티박스
+        html += '<rect x="85" y="240" width="30" height="20" rx="3" fill="#8B4513" stroke="#654321" stroke-width="1"/>';
+        html += '<text x="100" y="255" text-anchor="middle" fill="white" font-size="10" font-weight="bold">TEE</text>';
+
+        if (holeData.par === 3) {
+          // 파3: 직선으로 그린까지
+          html += '<path d="M100 235 L100 80" stroke="rgba(255,255,255,0.3)" stroke-width="40" stroke-linecap="round"/>';
+          // 벙커
+          html += '<ellipse cx="70" cy="90" rx="15" ry="10" fill="#F4D03F" opacity="0.8"/>';
+          html += '<ellipse cx="130" cy="100" rx="12" ry="8" fill="#F4D03F" opacity="0.8"/>';
+        } else if (holeData.par === 4) {
+          // 파4: 중간 페어웨이
+          html += '<path d="M100 235 L100 150 L100 80" stroke="rgba(255,255,255,0.3)" stroke-width="45" stroke-linecap="round"/>';
+          // 벙커
+          html += '<ellipse cx="65" cy="160" rx="12" ry="8" fill="#F4D03F" opacity="0.8"/>';
+          html += '<ellipse cx="135" cy="90" rx="15" ry="10" fill="#F4D03F" opacity="0.8"/>';
+          // 워터해저드 (일부 홀)
+          if (holeData.handicap <= 5) {
+            html += '<ellipse cx="60" cy="120" rx="20" ry="15" fill="#3498DB" opacity="0.6"/>';
+          }
+        } else {
+          // 파5: 긴 페어웨이 + 레이업
+          html += '<path d="M100 235 L100 180 L95 120 L100 80" stroke="rgba(255,255,255,0.3)" stroke-width="45" stroke-linecap="round"/>';
+          // 벙커들
+          html += '<ellipse cx="60" cy="190" rx="12" ry="8" fill="#F4D03F" opacity="0.8"/>';
+          html += '<ellipse cx="140" cy="140" rx="15" ry="10" fill="#F4D03F" opacity="0.8"/>';
+          html += '<ellipse cx="70" cy="90" rx="12" ry="8" fill="#F4D03F" opacity="0.8"/>';
+          // 워터해저드
+          html += '<ellipse cx="140" cy="110" rx="25" ry="18" fill="#3498DB" opacity="0.6"/>';
+        }
+
+        // 그린
+        html += '<ellipse cx="100" cy="55" rx="35" ry="25" fill="#00aa00" stroke="#008800" stroke-width="2"/>';
+        // 핀
+        html += '<line x1="105" y1="55" x2="105" y2="30" stroke="white" stroke-width="1.5"/>';
+        html += '<polygon points="105,30 105,40 120,35" fill="#e74c3c"/>';
+
+        // 거리 표시
+        html += '<text x="100" y="275" text-anchor="middle" fill="white" font-size="12" font-weight="bold">' + holeData.distance + 'm</text>';
+
+        html += '</svg>';
+
+        // 하단 정보 오버레이
+        html += '<div style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.5); padding: 8px; text-align: center;">';
+        html += '<div class="d-flex justify-content-center gap-2 flex-wrap">';
+        html += '<span class="badge bg-success"><i class="bi bi-flag"></i> Par ' + holeData.par + '</span>';
+        html += '<span class="badge bg-warning text-dark"><i class="bi bi-trophy"></i> H/C ' + holeData.handicap + '</span>';
+        html += '</div>';
+        html += '</div>';
+
+        html += '</div>';
+      }
+      html += '</div>';
+
+      // 홀 정보
+      html += '<div class="col-md-7">';
+      html += '<div class="card">';
+      html += '<div class="card-header bg-success text-white">';
+      html += '<div class="d-flex justify-content-between align-items-center">';
+      html += '<span class="fs-5 fw-bold">' + h + '번 홀</span>';
+      html += '<span class="badge bg-white text-success fs-6">Par ' + holeData.par + '</span>';
+      html += '</div></div>';
+      html += '<div class="card-body">';
+
+      html += '<div class="row mb-3">';
+      html += '<div class="col-6">';
+      html += '<div class="border rounded p-2 text-center">';
+      html += '<small class="text-muted d-block">거리</small>';
+      html += '<strong class="fs-5">' + holeData.distance + 'm</strong>';
+      html += '</div></div>';
+      html += '<div class="col-6">';
+      html += '<div class="border rounded p-2 text-center">';
+      html += '<small class="text-muted d-block">핸디캡</small>';
+      html += '<strong class="fs-5">' + holeData.handicap + '</strong>';
+      html += '</div></div></div>';
+
+      html += '<div class="mb-3">';
+      html += '<h6><i class="bi bi-lightbulb text-warning"></i> 공략 포인트</h6>';
+      html += '<p class="mb-0">' + holeData.tip + '</p>';
+      html += '</div>';
+
+      // 추천 클럽
+      html += '<div class="mb-0">';
+      html += '<h6><i class="bi bi-bag text-primary"></i> 추천 클럽</h6>';
+      html += '<div class="d-flex flex-wrap gap-2">';
+      if (holeData.par === 3) {
+        if (holeData.distance >= 180) html += '<span class="badge bg-secondary">우드/유틸</span>';
+        else if (holeData.distance >= 160) html += '<span class="badge bg-secondary">5~6번 아이언</span>';
+        else html += '<span class="badge bg-secondary">7~8번 아이언</span>';
+      } else if (holeData.par === 4) {
+        html += '<span class="badge bg-secondary">드라이버</span>';
+        if (holeData.distance >= 380) html += '<span class="badge bg-secondary">우드/유틸</span>';
+        else html += '<span class="badge bg-secondary">숏아이언</span>';
+      } else {
+        html += '<span class="badge bg-secondary">드라이버</span>';
+        html += '<span class="badge bg-secondary">우드/유틸</span>';
+        html += '<span class="badge bg-secondary">웨지</span>';
+      }
+      html += '</div></div>';
+
+      html += '</div></div></div></div>';
+      html += '</div>';
+    }
+    html += '</div></div>';
+  });
+  html += '</div>';
+
+  html += '<div class="alert alert-info mb-0 mt-3"><i class="bi bi-lightbulb"></i> 실제 코스 상황과 날씨에 따라 공략법이 달라질 수 있습니다.</div>';
+
+  document.getElementById('courseGuideContent').innerHTML = html;
+  new bootstrap.Modal(document.getElementById('courseGuideModal')).show();
+}
+
+// 날짜 포맷팅 함수
+function formatDate(dateStr) {
+  const date = new Date(dateStr);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const days = ['일', '월', '화', '수', '목', '금', '토'];
+  const dayOfWeek = days[date.getDay()];
+  return `${year}.${month}.${day} (${dayOfWeek})`;
+}
+
+// 날씨 위젯 로드
+async function loadWeatherWidget() {
+  const courses = ['양지파인CC', '대영힐스CC', '대영베이스CC'];
+  const weatherCards = document.getElementById('weatherCards');
+  const weatherDateEl = document.getElementById('weatherDate');
+  if (!weatherCards) return;
+
+  let html = '';
+  let mobileHtml = '';
+  let todayDate = '';
+
+  for (const course of courses) {
+    try {
+      const response = await fetch(`/api/weather/${encodeURIComponent(course)}/weekly`);
+      if (!response.ok) continue;
+
+      const data = await response.json();
+      const today = data.forecast[0];
+
+      // 첫 번째 골프장에서 날짜 가져오기
+      if (!todayDate && today.date) {
+        todayDate = today.date;
+        if (weatherDateEl) {
+          weatherDateEl.textContent = formatDate(todayDate);
+        }
+      }
+
+      // 색상 결정
+      let bgColor = 'success';
+      if (course.includes('힐스')) bgColor = 'primary';
+      else if (course.includes('베이스')) bgColor = 'warning';
+
+      // 데스크탑용 카드
+      html += `
+        <div class="col-md-4 d-none d-md-block">
+          <div class="card h-100">
+            <div class="card-header bg-${bgColor} ${bgColor === 'warning' ? 'text-dark' : 'text-white'} py-1 text-center">
+              <strong style="font-size: 0.85rem;">${course}</strong>
+              <small class="d-block" style="font-size: 0.7rem; opacity: 0.85;">${data.region}</small>
+            </div>
+            <div class="card-body py-2 px-2">
+              <div class="d-flex align-items-center mb-2">
+                <i class="bi ${today.icon} fs-3 text-${today.color} me-2"></i>
+                <div>
+                  <div class="fs-5 fw-bold">${today.temperature.current}°C</div>
+                  <small class="text-muted" style="font-size: 0.7rem;">${today.weather}</small>
+                </div>
+                <div class="ms-auto text-end">
+                  <small class="text-primary" style="font-size: 0.75rem;">${today.temperature.low}°</small> /
+                  <small class="text-danger" style="font-size: 0.75rem;">${today.temperature.high}°</small>
+                  <div class="text-muted" style="font-size: 0.7rem;">
+                    <i class="bi bi-droplet"></i> ${today.precipitation}%
+                  </div>
+                </div>
+              </div>
+              <div class="d-flex justify-content-between border-top pt-1">
+                ${data.forecast.slice(1, 5).map(day => `
+                  <div class="text-center" style="flex: 1;">
+                    <small class="text-muted d-block" style="font-size: 0.65rem;">${day.dayOfWeek}</small>
+                    <i class="bi ${day.icon} text-${day.color}" style="font-size: 0.8rem;"></i>
+                    <small class="d-block" style="font-size: 0.7rem;">${day.temperature.high}°</small>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+            <div class="card-footer bg-white py-1 px-2">
+              <a href="${isLoggedIn ? '/weather/view/' + encodeURIComponent(course) : '#'}"
+                 onclick="${isLoggedIn ? '' : "return requireLogin('날씨 상세 정보를 보려면 로그인이 필요합니다.');"}"
+                 class="btn btn-outline-secondary btn-sm w-100 py-0" style="font-size: 0.75rem;">
+                <i class="bi bi-calendar-week"></i> 상세
+              </a>
+            </div>
+          </div>
+        </div>
+      `;
+
+      // 모바일용 컴팩트 카드
+      mobileHtml += `
+        <a href="${isLoggedIn ? '/weather/view/' + encodeURIComponent(course) : '#'}"
+           onclick="${isLoggedIn ? '' : "return requireLogin('날씨 상세 정보를 보려면 로그인이 필요합니다.');"}"
+           class="text-decoration-none flex-shrink-0" style="width: 130px;">
+          <div class="border rounded overflow-hidden h-100">
+            <div class="bg-${bgColor} ${bgColor === 'warning' ? 'text-dark' : 'text-white'} px-2 py-1 text-center">
+              <div class="fw-bold" style="font-size: 0.7rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${course}</div>
+            </div>
+            <div class="p-2 text-center">
+              <div class="d-flex align-items-center justify-content-center gap-1">
+                <i class="bi ${today.icon} text-${today.color}" style="font-size: 1.2rem;"></i>
+                <span class="fw-bold text-dark">${today.temperature.current}°</span>
+              </div>
+              <div class="text-muted" style="font-size: 0.65rem;">${today.weather}</div>
+              <div style="font-size: 0.6rem;">
+                <span class="text-primary">${today.temperature.low}°</span>/<span class="text-danger">${today.temperature.high}°</span>
+                <span class="text-muted ms-1"><i class="bi bi-droplet"></i>${today.precipitation}%</span>
+              </div>
+            </div>
+          </div>
+        </a>
+      `;
+    } catch (error) {
+      console.error('날씨 정보 로드 실패:', course, error);
+    }
+  }
+
+  if (html || mobileHtml) {
+    // 데스크탑 + 모바일 레이아웃 결합
+    weatherCards.innerHTML = html + `
+      <div class="col-12 d-md-none">
+        <div class="d-flex gap-2 overflow-auto pb-1" style="scrollbar-width: thin;">
+          ${mobileHtml}
+        </div>
+      </div>
+    `;
+  } else {
+    weatherCards.innerHTML = '<div class="col-12 text-center text-muted py-2 small">날씨 정보를 불러올 수 없습니다.</div>';
+  }
+}
+
+// 실시간 교통 정보 데이터
+// 카카오맵 좌표 기반 길찾기 URL 형식: https://map.kakao.com/link/from/출발지명,lat,lng/to/도착지명,lat,lng
+const trafficRoutes = {
+  yangji: {
+    name: '양지파인CC',
+    color: 'success',
+    routes: [
+      {
+        departure: '여의도역',
+        destination: '양지파인CC',
+        distance: 45,
+        baseTime: 50,
+        mapUrl: 'https://map.kakao.com/link/from/여의도역,37.5216,126.9243/to/양지파인CC,37.2364,127.3047'
+      },
+      {
+        departure: '잠실역',
+        destination: '양지파인CC',
+        distance: 38,
+        baseTime: 40,
+        mapUrl: 'https://map.kakao.com/link/from/잠실역,37.5133,127.1001/to/양지파인CC,37.2364,127.3047'
+      }
+    ]
+  },
+  daeyoungHills: {
+    name: '대영힐스CC',
+    color: 'primary',
+    group: 'daeyoung',
+    routes: [
+      {
+        departure: '여의도역',
+        destination: '대영힐스CC',
+        distance: 110,
+        baseTime: 90,
+        mapUrl: 'https://map.kakao.com/link/from/여의도역,37.5216,126.9243/to/대영힐스CC,37.0089,127.8894'
+      },
+      {
+        departure: '잠실역',
+        destination: '대영힐스CC',
+        distance: 100,
+        baseTime: 80,
+        mapUrl: 'https://map.kakao.com/link/from/잠실역,37.5133,127.1001/to/대영힐스CC,37.0089,127.8894'
+      }
+    ]
+  },
+  daeyoungBase: {
+    name: '대영베이스CC',
+    color: 'warning',
+    group: 'daeyoung',
+    routes: [
+      {
+        departure: '여의도역',
+        destination: '대영베이스CC',
+        distance: 108,
+        baseTime: 90,
+        mapUrl: 'https://map.kakao.com/link/from/여의도역,37.5216,126.9243/to/대영베이스CC,37.0056,127.8912'
+      },
+      {
+        departure: '잠실역',
+        destination: '대영베이스CC',
+        distance: 98,
+        baseTime: 80,
+        mapUrl: 'https://map.kakao.com/link/from/잠실역,37.5133,127.1001/to/대영베이스CC,37.0056,127.8912'
+      }
+    ]
+  }
+};
+
+// 대영CC 선택 상태 (hills 또는 base)
+let selectedDaeyoung = 'daeyoungHills';
+
+// 교통 상황 계산 (시간대별 패턴 기반)
+function calculateTrafficStatus() {
+  const now = new Date();
+  const hour = now.getHours();
+  const dayOfWeek = now.getDay();
+  const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+
+  // 시간대별 교통 계수 (1.0 = 원활, 1.3 = 지체, 1.6+ = 정체)
+  let trafficMultiplier = 1.0;
+  let status = '원활';
+  let statusColor = 'success';
+  let statusIcon = 'bi-emoji-smile';
+
+  if (isWeekend) {
+    // 주말 패턴
+    if (hour >= 9 && hour <= 12) {
+      trafficMultiplier = 1.3;
+      status = '지체';
+      statusColor = 'warning';
+      statusIcon = 'bi-emoji-neutral';
+    } else if (hour >= 17 && hour <= 20) {
+      trafficMultiplier = 1.4;
+      status = '지체';
+      statusColor = 'warning';
+      statusIcon = 'bi-emoji-neutral';
+    } else if (hour >= 4 && hour <= 6) {
+      trafficMultiplier = 0.9;
+      status = '원활';
+      statusColor = 'success';
+      statusIcon = 'bi-emoji-smile';
+    }
+  } else {
+    // 평일 패턴
+    if (hour >= 7 && hour <= 9) {
+      trafficMultiplier = 1.6;
+      status = '정체';
+      statusColor = 'danger';
+      statusIcon = 'bi-emoji-frown';
+    } else if (hour >= 17 && hour <= 19) {
+      trafficMultiplier = 1.7;
+      status = '정체';
+      statusColor = 'danger';
+      statusIcon = 'bi-emoji-frown';
+    } else if (hour >= 12 && hour <= 14) {
+      trafficMultiplier = 1.2;
+      status = '지체';
+      statusColor = 'warning';
+      statusIcon = 'bi-emoji-neutral';
+    } else if (hour >= 22 || hour <= 5) {
+      trafficMultiplier = 0.85;
+      status = '원활';
+      statusColor = 'success';
+      statusIcon = 'bi-emoji-smile';
+    }
+  }
+
+  // 약간의 랜덤 변동 추가 (±5%)
+  const randomVariation = 0.95 + Math.random() * 0.1;
+  trafficMultiplier *= randomVariation;
+
+  return { multiplier: trafficMultiplier, status, statusColor, statusIcon };
+}
+
+// 실시간 교통 데이터 캐시
+let trafficDataCache = null;
+
+// 교통 정보 위젯 로드 (API 호출)
+async function loadTrafficWidget(forceRefresh = false) {
+  const trafficCards = document.getElementById('trafficCards');
+  const updateTimeEl = document.getElementById('trafficUpdateTime');
+  if (!trafficCards) return;
+
+  try {
+    // API에서 실시간 교통 정보 조회 (캐시 방지를 위해 타임스탬프 추가)
+    const url = forceRefresh
+      ? `/api/traffic/duration?_t=${Date.now()}`
+      : '/api/traffic/duration';
+    const response = await fetch(url);
+    const result = await response.json();
+
+    trafficDataCache = result.data;
+    const now = new Date();
+
+    // 업데이트 시간 표시 (실시간 데이터 여부 표시)
+    if (updateTimeEl) {
+      const timeStr = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+      if (result.success) {
+        updateTimeEl.innerHTML = `<i class="bi bi-broadcast text-success"></i> ${timeStr} 실시간`;
+      } else {
+        updateTimeEl.innerHTML = `<i class="bi bi-clock"></i> ${timeStr} 기준`;
+      }
+    }
+
+    renderTrafficCards(trafficDataCache);
+
+  } catch (error) {
+    console.error('교통 정보 로드 실패:', error);
+    // 실패 시 기본값 사용
+    renderTrafficCards(null);
+  }
+}
+
+// 교통 카드 렌더링
+function renderTrafficCards(trafficData) {
+  const trafficCards = document.getElementById('trafficCards');
+  if (!trafficCards) return;
+
+  let html = '';
+  let mobileHtml = '';
+
+  // 표시할 골프장 목록 (양지 + 선택된 대영CC)
+  const displayRoutes = ['yangji', selectedDaeyoung];
+
+  // 각 골프장별 경로
+  displayRoutes.forEach(key => {
+    const course = trafficRoutes[key];
+    const isDaeyoung = course.group === 'daeyoung';
+    const courseTraffic = trafficData ? trafficData[key] : null;
+
+    html += `<div class="col-md-6">`;
+    html += `<div class="card h-100 border-0 shadow-sm">`;
+
+    // 대영CC인 경우 클릭하면 힐스/베이스 토글
+    if (isDaeyoung) {
+      const nextCourse = selectedDaeyoung === 'daeyoungHills' ? 'daeyoungBase' : 'daeyoungHills';
+      html += `<div class="card-header bg-${course.color} ${course.color === 'warning' ? 'text-dark' : 'text-white'} py-2" style="cursor: pointer;" onclick="switchDaeyoung('${nextCourse}')">`;
+      html += `<strong style="font-size: 0.85rem;"><i class="bi bi-geo-alt-fill me-1"></i>${course.name} <i class="bi bi-chevron-down" style="font-size: 0.7rem;"></i></strong>`;
+      html += `</div>`;
+    } else {
+      html += `<div class="card-header bg-${course.color} ${course.color === 'warning' ? 'text-dark' : 'text-white'} py-2">`;
+      html += `<strong style="font-size: 0.85rem;"><i class="bi bi-geo-alt-fill me-1"></i>${course.name}</strong>`;
+      html += `</div>`;
+    }
+
+    html += `<div class="card-body py-2">`;
+
+    course.routes.forEach((route, idx) => {
+      // API에서 가져온 실시간 데이터 또는 기본값 사용
+      const fromKey = route.departure === '여의도역' ? 'yeouido' : 'jamsil';
+      const routeData = courseTraffic ? courseTraffic[fromKey] : null;
+
+      const duration = routeData ? routeData.duration : route.baseTime;
+      const distance = routeData ? routeData.distance : route.distance;
+      const trafficState = routeData ? routeData.trafficState : '보통';
+
+      // 교통 상태에 따른 색상
+      let statusColor = 'warning';
+      if (trafficState === '원활') statusColor = 'success';
+      else if (trafficState === '정체') statusColor = 'danger';
+
+      if (idx > 0) html += '<hr class="my-2">';
+
+      html += `
+        <div class="d-flex justify-content-between align-items-center mb-1">
+          <div class="d-flex align-items-center">
+            <span class="badge ${idx === 0 ? 'bg-primary' : 'bg-info'} me-2" style="font-size: 0.7rem;">
+              <i class="bi bi-geo"></i> ${route.departure}
+            </span>
+            <i class="bi bi-arrow-right text-muted me-2"></i>
+            <small class="text-muted">${distance}km</small>
+          </div>
+          <div class="text-end d-flex align-items-center gap-1">
+            <span class="badge bg-${statusColor} ${statusColor === 'warning' ? 'text-dark' : ''}" style="font-size: 0.7rem;">
+              ${trafficState}
+            </span>
+            <span class="badge bg-light text-dark border" style="font-size: 0.8rem;">
+              약 ${duration}분
+            </span>
+          </div>
+        </div>
+        <div class="d-flex align-items-center justify-content-between">
+          <div class="progress flex-grow-1 me-2" style="height: 6px;">
+            <div class="progress-bar bg-${statusColor}" style="width: ${trafficState === '원활' ? '30' : trafficState === '보통' ? '60' : '90'}%"></div>
+          </div>
+          <a href="${route.mapUrl}" target="_blank" class="text-muted text-decoration-none" style="font-size: 0.7rem;">
+            <i class="bi bi-box-arrow-up-right"></i> 지도
+          </a>
+        </div>
+      `;
+    });
+
+    html += `</div></div></div>`;
+
+    // 모바일용 카드
+    if (isDaeyoung) {
+      const nextCourseMobile = selectedDaeyoung === 'daeyoungHills' ? 'daeyoungBase' : 'daeyoungHills';
+      mobileHtml += `
+        <div class="flex-shrink-0" style="width: 195px;">
+          <div class="border rounded overflow-hidden h-100">
+            <div class="bg-${course.color} ${course.color === 'warning' ? 'text-dark' : 'text-white'} px-2 py-1" style="cursor: pointer;" onclick="switchDaeyoung('${nextCourseMobile}')">
+              <div class="fw-bold" style="font-size: 0.75rem;">${course.name} <i class="bi bi-chevron-down" style="font-size: 0.6rem;"></i></div>
+            </div>
+            <div class="p-2">
+              ${course.routes.map((route, idx) => {
+                const fromKey = route.departure === '여의도역' ? 'yeouido' : 'jamsil';
+                const routeData = courseTraffic ? courseTraffic[fromKey] : null;
+                const duration = routeData ? routeData.duration : route.baseTime;
+                const trafficState = routeData ? routeData.trafficState : '보통';
+                let statusColor = 'warning';
+                if (trafficState === '원활') statusColor = 'success';
+                else if (trafficState === '정체') statusColor = 'danger';
+
+                return `
+                  <div class="${idx > 0 ? 'mt-2 pt-2 border-top' : ''}">
+                    <div class="d-flex justify-content-between align-items-center">
+                      <small class="text-muted">${route.departure}</small>
+                      <div class="d-flex align-items-center gap-1">
+                        <span class="badge bg-${statusColor} ${statusColor === 'warning' ? 'text-dark' : ''}" style="font-size: 0.6rem;">
+                          ${trafficState}
+                        </span>
+                        <span class="badge bg-light text-dark border" style="font-size: 0.65rem;">
+                          ${duration}분
+                        </span>
+                        <a href="${route.mapUrl}" target="_blank" class="text-muted" style="font-size: 0.65rem;">
+                          <i class="bi bi-box-arrow-up-right"></i>
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        </div>
+      `;
+    } else {
+      mobileHtml += `
+        <div class="flex-shrink-0" style="width: 195px;">
+          <div class="border rounded overflow-hidden h-100">
+            <div class="bg-${course.color} ${course.color === 'warning' ? 'text-dark' : 'text-white'} px-2 py-1">
+              <div class="fw-bold" style="font-size: 0.75rem;">${course.name}</div>
+            </div>
+            <div class="p-2">
+              ${course.routes.map((route, idx) => {
+                const fromKey = route.departure === '여의도역' ? 'yeouido' : 'jamsil';
+                const routeData = courseTraffic ? courseTraffic[fromKey] : null;
+                const duration = routeData ? routeData.duration : route.baseTime;
+                const trafficState = routeData ? routeData.trafficState : '보통';
+                let statusColor = 'warning';
+                if (trafficState === '원활') statusColor = 'success';
+                else if (trafficState === '정체') statusColor = 'danger';
+
+                return `
+                  <div class="${idx > 0 ? 'mt-2 pt-2 border-top' : ''}">
+                    <div class="d-flex justify-content-between align-items-center">
+                      <small class="text-muted">${route.departure}</small>
+                      <div class="d-flex align-items-center gap-1">
+                        <span class="badge bg-${statusColor} ${statusColor === 'warning' ? 'text-dark' : ''}" style="font-size: 0.6rem;">
+                          ${trafficState}
+                        </span>
+                        <span class="badge bg-light text-dark border" style="font-size: 0.65rem;">
+                          ${duration}분
+                        </span>
+                        <a href="${route.mapUrl}" target="_blank" class="text-muted" style="font-size: 0.65rem;">
+                          <i class="bi bi-box-arrow-up-right"></i>
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+  });
+
+  // 데스크탑 + 모바일 레이아웃
+  trafficCards.innerHTML = `
+    <div class="row g-2 d-none d-md-flex">${html}</div>
+    <div class="d-md-none">
+      <div class="d-flex gap-2 overflow-auto pb-1" style="scrollbar-width: thin;">
+        ${mobileHtml}
+      </div>
+    </div>
+  `;
+}
+
+// 대영CC 전환 함수 (캐시된 데이터 사용)
+function switchDaeyoung(courseKey) {
+  selectedDaeyoung = courseKey;
+  // 캐시된 데이터가 있으면 바로 렌더링, 없으면 API 호출
+  if (trafficDataCache) {
+    renderTrafficCards(trafficDataCache);
+  } else {
+    loadTrafficWidget();
+  }
+}
+
+// 교통 정보 새로고침
+function refreshTrafficInfo() {
+  const trafficCards = document.getElementById('trafficCards');
+  if (trafficCards) {
+    // 캐시 무효화
+    trafficDataCache = null;
+    trafficCards.innerHTML = `
+      <div class="col-12 text-center py-2">
+        <div class="spinner-border spinner-border-sm text-primary" role="status">
+          <span class="visually-hidden">로딩중...</span>
+        </div>
+        <p class="text-muted mt-1 mb-0 small">교통 정보를 불러오는 중...</p>
+      </div>
+    `;
+    // 캐시 방지를 위해 타임스탬프 추가하여 API 호출
+    loadTrafficWidget(true);
+  }
+}
+
+// 페이지 로드 시 날씨 위젯 로드
+document.addEventListener('DOMContentLoaded', function() {
+  if (document.getElementById('weatherCards')) {
+    loadWeatherWidget();
+  }
+  if (document.getElementById('trafficCards')) {
+    loadTrafficWidget();
+  }
+});
+</script>
+
+<%- include('partials/footer') %>

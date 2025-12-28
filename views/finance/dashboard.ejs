@@ -1,0 +1,190 @@
+<%- include('../partials/header') %>
+
+<!-- 페이지 헤더 -->
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <div class="d-flex align-items-center">
+    <a href="/" class="back-link" aria-label="대시보드로 이동">
+      <i class="bi bi-chevron-left" aria-hidden="true"></i>홈
+    </a>
+    <h5 class="mb-0 fw-bold"><i class="bi bi-cash-stack text-success me-2" aria-hidden="true"></i>자금 현황</h5>
+  </div>
+  <% if (user && user.is_admin) { %>
+  <div class="d-flex gap-2">
+    <a href="/finance/income/new" class="btn btn-primary btn-sm py-1 px-3 d-flex align-items-center gap-1" style="font-size: 0.8rem;">
+      <i class="bi bi-plus-lg"></i> 입금등록
+    </a>
+    <a href="/finance/expense/new" class="btn btn-danger btn-sm py-1 px-3 d-flex align-items-center gap-1" style="font-size: 0.8rem;">
+      <i class="bi bi-dash-lg"></i> 출금등록
+    </a>
+  </div>
+  <% } %>
+</div>
+
+<!-- 필터 -->
+<div class="card border-0 shadow-sm mb-3">
+  <div class="card-body py-2 px-3">
+    <form method="GET" class="row g-2 align-items-end">
+      <div class="col-4 col-md-2">
+        <label class="form-label mb-1" style="font-size: 0.75rem; color: #6c757d;">연도</label>
+        <select name="year" class="form-select form-select-sm" style="font-size: 0.85rem;">
+          <% years.forEach(y => { %>
+          <option value="<%= y %>" <%= selectedYear == y ? 'selected' : '' %>><%= y %>년</option>
+          <% }) %>
+        </select>
+      </div>
+      <div class="col-4 col-md-2">
+        <label class="form-label mb-1" style="font-size: 0.75rem; color: #6c757d;">월</label>
+        <select name="month" class="form-select form-select-sm" style="font-size: 0.85rem;">
+          <option value="">전체</option>
+          <% for (let m = 1; m <= 12; m++) { %>
+          <option value="<%= m %>" <%= selectedMonth == m ? 'selected' : '' %>><%= m %>월</option>
+          <% } %>
+        </select>
+      </div>
+      <div class="col-4 col-md-2">
+        <button type="submit" class="btn btn-primary btn-sm w-100" style="font-size: 0.8rem;">
+          <i class="bi bi-search"></i> 조회
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- 요약 -->
+<div class="row g-2 mb-3">
+  <div class="col-4">
+    <div class="card border-0 shadow-sm bg-success bg-opacity-10">
+      <div class="card-body text-center py-2 px-1">
+        <small class="text-muted" style="font-size: 0.7rem;">총 잔액</small>
+        <h6 class="mb-0 fw-bold text-success" style="font-size: 0.9rem;"><%= balance.toLocaleString() %></h6>
+      </div>
+    </div>
+  </div>
+  <div class="col-4">
+    <div class="card border-0 shadow-sm bg-primary bg-opacity-10">
+      <div class="card-body text-center py-2 px-1">
+        <small class="text-muted" style="font-size: 0.7rem;">총 수입</small>
+        <h6 class="mb-0 fw-bold text-primary" style="font-size: 0.9rem;"><%= totalIncome.toLocaleString() %></h6>
+      </div>
+    </div>
+  </div>
+  <div class="col-4">
+    <div class="card border-0 shadow-sm bg-danger bg-opacity-10">
+      <div class="card-body text-center py-2 px-1">
+        <small class="text-muted" style="font-size: 0.7rem;">총 지출</small>
+        <h6 class="mb-0 fw-bold text-danger" style="font-size: 0.9rem;"><%= totalExpense.toLocaleString() %></h6>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-2">
+  <!-- 월별 추이 차트 -->
+  <div class="col-md-8">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-white py-2">
+        <h6 class="mb-0 fw-bold" style="font-size: 0.9rem;"><i class="bi bi-graph-up text-primary me-2"></i><%= selectedYear %>년 월별 수입/지출</h6>
+      </div>
+      <div class="card-body py-2">
+        <canvas id="monthlyChart" height="180"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- 카테고리별 현황 -->
+  <div class="col-md-4">
+    <div class="card border-0 shadow-sm mb-2">
+      <div class="card-header bg-white py-2">
+        <h6 class="mb-0 fw-bold" style="font-size: 0.85rem;"><i class="bi bi-pie-chart text-primary me-2"></i>수입 카테고리</h6>
+      </div>
+      <div class="card-body py-2">
+        <% incomeByCategory.forEach(cat => { %>
+        <div class="d-flex justify-content-between mb-1" style="font-size: 0.8rem;">
+          <span><%= cat.name %></span>
+          <strong class="text-primary"><%= cat.total.toLocaleString() %></strong>
+        </div>
+        <% }) %>
+      </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-white py-2">
+        <h6 class="mb-0 fw-bold" style="font-size: 0.85rem;"><i class="bi bi-pie-chart-fill text-danger me-2"></i>지출 카테고리</h6>
+      </div>
+      <div class="card-body py-2">
+        <% expenseByCategory.forEach(cat => { %>
+        <div class="d-flex justify-content-between mb-1" style="font-size: 0.8rem;">
+          <span><%= cat.name %></span>
+          <strong class="text-danger"><%= cat.total.toLocaleString() %></strong>
+        </div>
+        <% }) %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 바로가기 -->
+<div class="card border-0 shadow-sm mt-3">
+  <div class="card-body py-2">
+    <div class="row g-2 text-center">
+      <div class="col-4">
+        <a href="/finance/income" class="btn btn-outline-primary btn-sm w-100 d-flex align-items-center justify-content-center gap-1" style="font-size: 0.8rem;">
+          <i class="bi bi-arrow-down-circle"></i> 입금내역
+        </a>
+      </div>
+      <div class="col-4">
+        <a href="/finance/expense" class="btn btn-outline-danger btn-sm w-100 d-flex align-items-center justify-content-center gap-1" style="font-size: 0.8rem;">
+          <i class="bi bi-arrow-up-circle"></i> 출금내역
+        </a>
+      </div>
+      <div class="col-4">
+        <a href="/finance/fees" class="btn btn-outline-success btn-sm w-100 d-flex align-items-center justify-content-center gap-1" style="font-size: 0.8rem;">
+          <i class="bi bi-wallet2"></i> 회비관리
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const ctx = document.getElementById('monthlyChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'],
+      datasets: [
+        {
+          label: '수입',
+          data: [<%= monthlyStats.map(s => s.income).join(',') %>],
+          backgroundColor: 'rgba(13, 110, 253, 0.7)',
+          borderColor: 'rgb(13, 110, 253)',
+          borderWidth: 1
+        },
+        {
+          label: '지출',
+          data: [<%= monthlyStats.map(s => s.expense).join(',') %>],
+          backgroundColor: 'rgba(220, 53, 69, 0.7)',
+          borderColor: 'rgb(220, 53, 69)',
+          borderWidth: 1
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            callback: function(value) {
+              return value.toLocaleString() + '원';
+            }
+          }
+        }
+      }
+    }
+  });
+});
+</script>
+
+<%- include('../partials/footer') %>

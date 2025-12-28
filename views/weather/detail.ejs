@@ -1,0 +1,280 @@
+<%- include('../partials/header') %>
+
+<!-- 헤더 -->
+<div class="d-flex align-items-center mb-3 gap-2">
+  <a href="/" class="back-link" aria-label="대시보드로 이동">
+    <i class="bi bi-chevron-left" aria-hidden="true"></i>홈
+  </a>
+  <h5 class="mb-0 d-none d-md-block"><i class="bi bi-cloud-sun"></i> <%= today.course %> 날씨</h5>
+  <h6 class="mb-0 d-md-none"><i class="bi bi-cloud-sun"></i> <%= today.course %></h6>
+</div>
+
+<!-- 오늘의 날씨 -->
+<div class="card mb-3">
+  <div class="card-header bg-success text-white py-2">
+    <div class="d-flex justify-content-between align-items-center">
+      <span class="d-none d-md-inline"><i class="bi bi-geo-alt"></i> <%= today.region %></span>
+      <span class="d-md-none" style="font-size: 0.85rem;"><i class="bi bi-geo-alt"></i> <%= today.region %></span>
+      <span style="font-size: 0.85rem;"><%= today.date %></span>
+    </div>
+  </div>
+  <div class="card-body p-2 p-md-3">
+    <!-- 데스크탑 레이아웃 -->
+    <div class="row d-none d-md-flex">
+      <div class="col-md-4 text-center mb-3 mb-md-0">
+        <i class="bi <%= today.icon %> display-1 text-<%= today.color %>"></i>
+        <h3 class="mt-2"><%= today.weather %></h3>
+        <h1 class="display-4 fw-bold"><%= today.temperature.current %>°C</h1>
+        <p class="text-muted mb-0">
+          체감 <%= today.temperature.feelsLike %>°C |
+          최저 <%= today.temperature.low %>° / 최고 <%= today.temperature.high %>°
+        </p>
+      </div>
+      <div class="col-md-4 mb-3 mb-md-0">
+        <div class="p-3 bg-light rounded h-100">
+          <h6 class="text-muted mb-3">상세 정보</h6>
+          <div class="d-flex justify-content-between mb-2">
+            <span><i class="bi bi-droplet"></i> 강수확률</span>
+            <strong><%= today.precipitation %>%</strong>
+          </div>
+          <div class="d-flex justify-content-between mb-2">
+            <span><i class="bi bi-wind"></i> 바람</span>
+            <strong><%= today.wind.direction %> <%= today.wind.speed %>m/s</strong>
+          </div>
+          <div class="d-flex justify-content-between">
+            <span><i class="bi bi-moisture"></i> 습도</span>
+            <strong><%= today.humidity %>%</strong>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="p-3 bg-light rounded h-100">
+          <h6 class="text-muted mb-3">플레이 적합도</h6>
+          <div class="text-center">
+            <div class="display-6 mb-2"><%= getRatingStars(today.golfAdvice.rating) %></div>
+            <span class="badge bg-<%= today.golfAdvice.rating >= 4 ? 'success' : today.golfAdvice.rating >= 3 ? 'warning' : 'danger' %> fs-6">
+              <%= today.golfAdvice.ratingText %>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 모바일 레이아웃 -->
+    <div class="d-md-none">
+      <!-- 메인 날씨 -->
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <div class="d-flex align-items-center">
+          <i class="bi <%= today.icon %> text-<%= today.color %>" style="font-size: 2.5rem;"></i>
+          <div class="ms-2">
+            <div class="fw-bold" style="font-size: 1.8rem; line-height: 1;"><%= today.temperature.current %>°</div>
+            <small class="text-muted"><%= today.weather %></small>
+          </div>
+        </div>
+        <div class="text-end">
+          <div class="mb-1">
+            <span class="badge bg-<%= today.golfAdvice.rating >= 4 ? 'success' : today.golfAdvice.rating >= 3 ? 'warning' : 'danger' %>">
+              <%= today.golfAdvice.ratingText %>
+            </span>
+          </div>
+          <small class="text-muted">
+            <span class="text-primary"><%= today.temperature.low %>°</span>/<span class="text-danger"><%= today.temperature.high %>°</span>
+          </small>
+        </div>
+      </div>
+
+      <!-- 상세 정보 (가로 스크롤) -->
+      <div class="d-flex gap-2 overflow-auto py-2" style="scrollbar-width: none;">
+        <div class="bg-light rounded p-2 text-center flex-shrink-0" style="min-width: 70px;">
+          <i class="bi bi-thermometer-half text-warning"></i>
+          <div class="small text-muted">체감</div>
+          <div class="fw-bold" style="font-size: 0.85rem;"><%= today.temperature.feelsLike %>°</div>
+        </div>
+        <div class="bg-light rounded p-2 text-center flex-shrink-0" style="min-width: 70px;">
+          <i class="bi bi-droplet text-primary"></i>
+          <div class="small text-muted">강수</div>
+          <div class="fw-bold" style="font-size: 0.85rem;"><%= today.precipitation %>%</div>
+        </div>
+        <div class="bg-light rounded p-2 text-center flex-shrink-0" style="min-width: 70px;">
+          <i class="bi bi-wind text-info"></i>
+          <div class="small text-muted">바람</div>
+          <div class="fw-bold" style="font-size: 0.85rem;"><%= today.wind.speed %>m/s</div>
+        </div>
+        <div class="bg-light rounded p-2 text-center flex-shrink-0" style="min-width: 70px;">
+          <i class="bi bi-moisture text-secondary"></i>
+          <div class="small text-muted">습도</div>
+          <div class="fw-bold" style="font-size: 0.85rem;"><%= today.humidity %>%</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 골프 플레이 조언 -->
+<% if (today.golfAdvice.clothing.length > 0 || today.golfAdvice.club.length > 0 || today.golfAdvice.preparation.length > 0) { %>
+<div class="card mb-3">
+  <div class="card-header py-2">
+    <h6 class="mb-0 d-none d-md-block"><i class="bi bi-lightbulb text-warning"></i> 라운딩 조언</h6>
+    <small class="mb-0 d-md-none fw-bold"><i class="bi bi-lightbulb text-warning"></i> 라운딩 조언</small>
+  </div>
+  <div class="card-body p-2 p-md-3">
+    <!-- 데스크탑 -->
+    <div class="row d-none d-md-flex">
+      <% if (today.golfAdvice.clothing.length > 0) { %>
+      <div class="col-md-4 mb-3 mb-md-0">
+        <h6><i class="bi bi-person-standing"></i> 복장</h6>
+        <ul class="list-unstyled mb-0">
+          <% today.golfAdvice.clothing.forEach(item => { %>
+          <li><i class="bi bi-check-circle text-success"></i> <%= item %></li>
+          <% }) %>
+        </ul>
+      </div>
+      <% } %>
+      <% if (today.golfAdvice.club.length > 0) { %>
+      <div class="col-md-4 mb-3 mb-md-0">
+        <h6><i class="bi bi-arrow-up-right"></i> 클럽 선택</h6>
+        <ul class="list-unstyled mb-0">
+          <% today.golfAdvice.club.forEach(item => { %>
+          <li><i class="bi bi-check-circle text-success"></i> <%= item %></li>
+          <% }) %>
+        </ul>
+      </div>
+      <% } %>
+      <% if (today.golfAdvice.preparation.length > 0) { %>
+      <div class="col-md-4">
+        <h6><i class="bi bi-bag"></i> 준비사항</h6>
+        <ul class="list-unstyled mb-0">
+          <% today.golfAdvice.preparation.forEach(item => { %>
+          <li><i class="bi bi-check-circle text-success"></i> <%= item %></li>
+          <% }) %>
+        </ul>
+      </div>
+      <% } %>
+    </div>
+
+    <!-- 모바일: 컴팩트 리스트 -->
+    <div class="d-md-none" style="font-size: 0.85rem;">
+      <% if (today.golfAdvice.clothing.length > 0) { %>
+      <div class="mb-2">
+        <span class="badge bg-secondary me-1"><i class="bi bi-person-standing"></i> 복장</span>
+        <% today.golfAdvice.clothing.forEach((item, i) => { %>
+        <span class="text-muted"><%= item %><%= i < today.golfAdvice.clothing.length - 1 ? ', ' : '' %></span>
+        <% }) %>
+      </div>
+      <% } %>
+      <% if (today.golfAdvice.club.length > 0) { %>
+      <div class="mb-2">
+        <span class="badge bg-secondary me-1"><i class="bi bi-arrow-up-right"></i> 클럽</span>
+        <% today.golfAdvice.club.forEach((item, i) => { %>
+        <span class="text-muted"><%= item %><%= i < today.golfAdvice.club.length - 1 ? ', ' : '' %></span>
+        <% }) %>
+      </div>
+      <% } %>
+      <% if (today.golfAdvice.preparation.length > 0) { %>
+      <div>
+        <span class="badge bg-secondary me-1"><i class="bi bi-bag"></i> 준비</span>
+        <% today.golfAdvice.preparation.forEach((item, i) => { %>
+        <span class="text-muted"><%= item %><%= i < today.golfAdvice.preparation.length - 1 ? ', ' : '' %></span>
+        <% }) %>
+      </div>
+      <% } %>
+    </div>
+  </div>
+</div>
+<% } else { %>
+<div class="alert alert-success py-2 mb-3 d-flex align-items-center" style="font-size: 0.9rem;">
+  <i class="bi bi-emoji-smile me-2"></i>
+  <span>날씨가 좋습니다! 즐거운 라운딩 되세요.</span>
+</div>
+<% } %>
+
+<!-- 1주일 예보 -->
+<div class="card mb-3">
+  <div class="card-header py-2">
+    <h6 class="mb-0 d-none d-md-block"><i class="bi bi-calendar-week"></i> 1주일 예보</h6>
+    <small class="mb-0 d-md-none fw-bold"><i class="bi bi-calendar-week"></i> 1주일 예보</small>
+  </div>
+  <div class="card-body p-0">
+    <!-- 데스크탑 테이블 -->
+    <div class="table-responsive d-none d-md-block">
+      <table class="table table-hover mb-0" style="font-size: 0.9rem;">
+        <thead class="table-light">
+          <tr class="text-center">
+            <th>날짜</th>
+            <th>날씨</th>
+            <th>기온</th>
+            <th>강수</th>
+            <th>바람</th>
+            <th>적합도</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% weekly.forecast.forEach((day, index) => { %>
+          <tr class="text-center <%= index === 0 ? 'table-success' : '' %>">
+            <td>
+              <strong><%= day.date.substring(5) %></strong>
+              <small class="text-muted">(<%= day.dayOfWeek %>)</small>
+            </td>
+            <td>
+              <i class="bi <%= day.icon %> text-<%= day.color %>"></i>
+              <%= day.weather %>
+            </td>
+            <td>
+              <span class="text-primary"><%= day.temperature.low %>°</span> /
+              <span class="text-danger"><%= day.temperature.high %>°</span>
+            </td>
+            <td>
+              <% if (day.precipitation >= 50) { %>
+              <span class="badge bg-primary"><%= day.precipitation %>%</span>
+              <% } else if (day.precipitation >= 30) { %>
+              <span class="badge bg-info"><%= day.precipitation %>%</span>
+              <% } else { %>
+              <span class="text-muted"><%= day.precipitation %>%</span>
+              <% } %>
+            </td>
+            <td><%= day.wind.direction %> <%= day.wind.speed %>m/s</td>
+            <td>
+              <span class="badge bg-<%= day.golfAdvice.rating >= 4 ? 'success' : day.golfAdvice.rating >= 3 ? 'warning' : 'danger' %>">
+                <%= day.golfAdvice.ratingText %>
+              </span>
+            </td>
+          </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 모바일: 컴팩트 가로 스크롤 -->
+    <div class="d-md-none p-2">
+      <div class="d-flex gap-2 overflow-auto pb-1" style="scrollbar-width: thin;">
+        <% weekly.forecast.forEach((day, index) => { %>
+        <div class="flex-shrink-0 border rounded text-center <%= index === 0 ? 'border-success border-2' : '' %>" style="width: 75px;">
+          <div class="<%= index === 0 ? 'bg-success text-white' : 'bg-light' %> py-1" style="font-size: 0.7rem;">
+            <strong><%= day.date.substring(5) %></strong>
+            <span>(<%= day.dayOfWeek %>)</span>
+          </div>
+          <div class="py-2">
+            <i class="bi <%= day.icon %> text-<%= day.color %>" style="font-size: 1.3rem;"></i>
+            <div style="font-size: 0.75rem;">
+              <span class="text-primary"><%= day.temperature.low %>°</span>/<span class="text-danger"><%= day.temperature.high %>°</span>
+            </div>
+            <div style="font-size: 0.65rem;" class="text-muted">
+              <i class="bi bi-droplet"></i><%= day.precipitation %>%
+            </div>
+            <span class="badge bg-<%= day.golfAdvice.rating >= 4 ? 'success' : day.golfAdvice.rating >= 3 ? 'warning' : 'danger' %>" style="font-size: 0.6rem;">
+              <%= day.golfAdvice.ratingText %>
+            </span>
+          </div>
+        </div>
+        <% }) %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="alert alert-info py-2 mb-3" style="font-size: 0.8rem;">
+  <i class="bi bi-info-circle"></i>
+  Open-Meteo API를 통해 실시간 날씨 정보를 제공합니다.
+</div>
+
+<%- include('../partials/footer') %>

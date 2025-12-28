@@ -1,0 +1,289 @@
+<%- include('../partials/header') %>
+
+<!-- 페이지 헤더 -->
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <div class="d-flex align-items-center">
+    <a href="/members" class="back-link" aria-label="회원 목록으로 이동">
+      <i class="bi bi-chevron-left" aria-hidden="true"></i>회원
+    </a>
+    <h5 class="mb-0 fw-bold"><i class="bi bi-person text-primary me-2" aria-hidden="true"></i><%= member.name %></h5>
+  </div>
+  <% if (user && user.is_admin) { %>
+  <a href="/members/<%= member.id %>/edit" class="btn btn-outline-primary btn-sm py-1 px-3 d-flex align-items-center gap-1" style="font-size: 0.8rem;">
+    <i class="bi bi-pencil-fill"></i> 정보수정
+  </a>
+  <% } %>
+</div>
+
+<div class="row g-3">
+  <!-- 회원 정보 -->
+  <div class="col-md-4">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-white py-2">
+        <h6 class="mb-0 fw-bold" style="font-size: 0.9rem;"><i class="bi bi-person-badge text-primary me-2"></i>회원 정보</h6>
+      </div>
+      <div class="card-body py-2">
+        <table class="table table-borderless table-sm mb-0" style="font-size: 0.85rem;">
+          <tr>
+            <th width="30%" class="py-1 text-muted">이름</th>
+            <td class="py-1"><strong><%= member.name %></strong></td>
+          </tr>
+          <tr>
+            <th class="py-1 text-muted">구내번호</th>
+            <td class="py-1"><%= member.internal_phone || '-' %></td>
+          </tr>
+          <tr>
+            <th class="py-1 text-muted">부서</th>
+            <td class="py-1"><%= member.department || '-' %></td>
+          </tr>
+          <tr>
+            <th class="py-1 text-muted">이메일</th>
+            <td class="py-1"><%= member.email || '-' %></td>
+          </tr>
+          <tr>
+            <th class="py-1 text-muted">가입일</th>
+            <td class="py-1"><%= member.join_date ? moment(member.join_date).format('YYYY-MM-DD') : '-' %></td>
+          </tr>
+          <tr>
+            <th class="py-1 text-muted">상태</th>
+            <td class="py-1">
+              <% if (member.status === 'active') { %>
+              <span class="badge bg-success bg-opacity-75" style="font-size: 0.7rem;">활동</span>
+              <% } else if (member.status === 'inactive') { %>
+              <span class="badge bg-secondary" style="font-size: 0.7rem;">비활동</span>
+              <% } else { %>
+              <span class="badge bg-warning text-dark" style="font-size: 0.7rem;">대기</span>
+              <% } %>
+            </td>
+          </tr>
+        </table>
+
+        <% if (user && user.is_admin) { %>
+        <hr class="my-2">
+        <div class="d-grid">
+          <button type="button" class="btn btn-outline-warning btn-sm py-1" style="font-size: 0.8rem;" onclick="resetPassword(<%= member.id %>)">
+            <i class="bi bi-key"></i> 비밀번호 초기화
+          </button>
+        </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+
+  <!-- 참가 이력 및 회비 -->
+  <div class="col-md-8">
+    <ul class="nav nav-tabs" role="tablist" style="font-size: 0.85rem;">
+      <li class="nav-item">
+        <button class="nav-link active py-2" data-bs-toggle="tab" data-bs-target="#participations">
+          <i class="bi bi-calendar-check"></i> 참가 이력
+        </button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link py-2" data-bs-toggle="tab" data-bs-target="#fees">
+          <i class="bi bi-cash"></i> 회비 납부
+        </button>
+      </li>
+    </ul>
+
+    <div class="tab-content">
+      <!-- 참가 이력 -->
+      <div class="tab-pane fade show active" id="participations">
+        <div class="card border-0 shadow-sm border-top-0 rounded-top-0">
+          <div class="card-header bg-white py-2 d-flex justify-content-between align-items-center">
+            <small class="text-muted">총 <%= participations.filter(p => p.status === 'confirmed').length %>회 참가</small>
+            <% if (avgScore) { %>
+            <span class="badge bg-primary" style="font-size: 0.75rem;">평균 <%= avgScore %>타</span>
+            <% } %>
+          </div>
+          <div class="card-body p-0">
+            <% if (participations.length === 0) { %>
+            <div class="text-center py-5">
+              <i class="bi bi-calendar-x text-muted" style="font-size: 2rem;"></i>
+              <p class="text-muted mt-2 mb-0">참가 이력이 없습니다.</p>
+            </div>
+            <% } else { %>
+            <div class="table-responsive">
+              <table class="table table-hover mb-0" style="font-size: 0.85rem;">
+                <thead class="table-light">
+                  <tr>
+                    <th class="py-2 ps-3">일자</th>
+                    <th class="py-2">골프장</th>
+                    <th class="py-2 text-center">상태</th>
+                    <th class="py-2 text-center">팀</th>
+                    <th class="py-2 text-center">타수</th>
+                    <% if (user && user.is_admin) { %>
+                    <th class="py-2 pe-3 text-center">관리</th>
+                    <% } %>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% participations.forEach(p => { %>
+                  <tr>
+                    <td class="py-2 ps-3"><%= moment(p.play_date).format('MM/DD') %> <span class="badge bg-light text-dark" style="font-size: 0.65rem;"><%= moment(p.play_date).format('ddd') %></span></td>
+                    <td class="py-2"><%= p.course_name %></td>
+                    <td class="py-2 text-center">
+                      <% if (p.status === 'confirmed') { %>
+                      <span class="badge bg-success bg-opacity-75" style="font-size: 0.7rem;">확정</span>
+                      <% } else if (p.status === 'pending') { %>
+                      <span class="badge bg-warning text-dark" style="font-size: 0.7rem;">대기</span>
+                      <% } else if (p.status === 'waitlist') { %>
+                      <span class="badge bg-info" style="font-size: 0.7rem;">대기자</span>
+                      <% } else { %>
+                      <span class="badge bg-secondary" style="font-size: 0.7rem;">취소</span>
+                      <% } %>
+                    </td>
+                    <td class="py-2 text-center"><small><%= p.team_number ? p.team_number + '팀' : '-' %></small></td>
+                    <td class="py-2 text-center">
+                      <% if (p.score) { %>
+                      <span class="badge bg-primary bg-opacity-75" style="font-size: 0.75rem;"><%= p.score %></span>
+                      <% } else { %>
+                      <span class="text-muted">-</span>
+                      <% } %>
+                    </td>
+                    <% if (user && user.is_admin) { %>
+                    <td class="py-2 pe-3 text-center">
+                      <button type="button" class="btn btn-outline-primary btn-sm py-0 px-1" style="font-size: 0.7rem;"
+                              onclick="editScore(<%= p.id %>, <%= p.score || 'null' %>)">
+                        <i class="bi bi-pencil"></i>
+                      </button>
+                    </td>
+                    <% } %>
+                  </tr>
+                  <% }) %>
+                </tbody>
+              </table>
+            </div>
+            <% } %>
+          </div>
+        </div>
+      </div>
+
+      <!-- 회비 납부 -->
+      <div class="tab-pane fade" id="fees">
+        <div class="card border-0 shadow-sm border-top-0 rounded-top-0">
+          <div class="card-body p-0">
+            <% if (fees.length === 0) { %>
+            <div class="text-center py-5">
+              <i class="bi bi-wallet2 text-muted" style="font-size: 2rem;"></i>
+              <p class="text-muted mt-2 mb-0">회비 납부 내역이 없습니다.</p>
+            </div>
+            <% } else { %>
+            <div class="table-responsive">
+              <table class="table table-hover mb-0" style="font-size: 0.85rem;">
+                <thead class="table-light">
+                  <tr>
+                    <th class="py-2 ps-3">연도</th>
+                    <th class="py-2">월</th>
+                    <th class="py-2 text-end">금액</th>
+                    <th class="py-2 text-center">상태</th>
+                    <th class="py-2 pe-3">납부일</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% fees.forEach(f => { %>
+                  <tr>
+                    <td class="py-2 ps-3"><%= f.year %>년</td>
+                    <td class="py-2"><%= f.month %>월</td>
+                    <td class="py-2 text-end"><%= f.amount ? f.amount.toLocaleString() : '-' %></td>
+                    <td class="py-2 text-center">
+                      <% if (f.status === 'paid') { %>
+                      <span class="badge bg-success bg-opacity-75" style="font-size: 0.7rem;">납부</span>
+                      <% } else if (f.status === 'partial') { %>
+                      <span class="badge bg-warning text-dark" style="font-size: 0.7rem;">일부</span>
+                      <% } else { %>
+                      <span class="badge bg-danger bg-opacity-75" style="font-size: 0.7rem;">미납</span>
+                      <% } %>
+                    </td>
+                    <td class="py-2 pe-3"><small><%= f.paid_date ? moment(f.paid_date).format('MM/DD') : '-' %></small></td>
+                  </tr>
+                  <% }) %>
+                </tbody>
+              </table>
+            </div>
+            <% } %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 타수 입력 모달 -->
+<div class="modal fade" id="scoreModal" tabindex="-1" aria-labelledby="scoreModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-sm">
+    <div class="modal-content">
+      <div class="modal-header py-2">
+        <h6 class="modal-title" id="scoreModalLabel"><i class="bi bi-pencil text-primary me-2"></i>타수 입력</h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="닫기"></button>
+      </div>
+      <div class="modal-body">
+        <input type="number" class="form-control" id="scoreInput" min="50" max="200" placeholder="타수 입력 (50~200)">
+        <small class="text-muted mt-1 d-block">타수를 입력하세요. 비워두면 삭제됩니다.</small>
+        <input type="hidden" id="scoreReservationId">
+      </div>
+      <div class="modal-footer py-2">
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">취소</button>
+        <button type="button" class="btn btn-primary btn-sm" onclick="saveScore()">저장</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let scoreModal;
+
+document.addEventListener('DOMContentLoaded', function() {
+  scoreModal = new bootstrap.Modal(document.getElementById('scoreModal'));
+});
+
+function resetPassword(memberId) {
+  if (confirm('비밀번호를 1234로 초기화하시겠습니까?')) {
+    fetch(`/members/${memberId}/reset-password`, { method: 'POST' })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          alert(data.message);
+        } else {
+          alert(data.error || '오류가 발생했습니다.');
+        }
+      });
+  }
+}
+
+function editScore(reservationId, currentScore) {
+  document.getElementById('scoreReservationId').value = reservationId;
+  document.getElementById('scoreInput').value = currentScore || '';
+  scoreModal.show();
+}
+
+function saveScore() {
+  const reservationId = document.getElementById('scoreReservationId').value;
+  const scoreValue = document.getElementById('scoreInput').value;
+
+  const scoreNum = scoreValue === '' ? null : parseInt(scoreValue);
+  if (scoreValue !== '' && (isNaN(scoreNum) || scoreNum < 50 || scoreNum > 200)) {
+    alert('타수는 50~200 사이의 숫자를 입력해주세요.');
+    return;
+  }
+
+  fetch(`/members/reservation/${reservationId}/score`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ score: scoreNum })
+  })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        scoreModal.hide();
+        location.reload();
+      } else {
+        alert(data.error || '오류가 발생했습니다.');
+      }
+    })
+    .catch(err => {
+      alert('오류가 발생했습니다.');
+    });
+}
+</script>
+
+<%- include('../partials/footer') %>

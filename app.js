@@ -113,7 +113,8 @@ const verifyCsrf = (req, res, next) => {
       }
       return res.status(403).render('error', {
         title: '접근 거부',
-        message: 'CSRF 토큰이 유효하지 않습니다. 페이지를 새로고침 후 다시 시도해주세요.'
+        message: 'CSRF 토큰이 유효하지 않습니다. 페이지를 새로고침 후 다시 시도해주세요.',
+        user: req.session.user || null
       });
     }
   }
@@ -165,7 +166,8 @@ app.use((req, res) => {
   logger.warn('404 Not Found', { url: req.originalUrl, method: req.method });
   res.status(404).render('error', {
     title: '페이지를 찾을 수 없습니다',
-    message: '요청하신 페이지가 존재하지 않습니다.'
+    message: '요청하신 페이지가 존재하지 않습니다.',
+    user: req.session.user || null
   });
 });
 
@@ -173,10 +175,11 @@ app.use((req, res) => {
 app.use(errorLogger);
 
 // 에러 처리
-app.use((err, req, res, next) => {
+app.use((err, req, res, _next) => {
   res.status(500).render('error', {
     title: '서버 오류',
-    message: config.isDevelopment ? err.message : '서버에서 오류가 발생했습니다.'
+    message: config.isDevelopment ? err.message : '서버에서 오류가 발생했습니다.',
+    user: req.session.user || null
   });
 });
 

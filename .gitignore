@@ -28,8 +28,9 @@ Thumbs.db
 # 테스트 커버리지
 coverage/
 
-# Claude Code 설정
-.claude/
+# Claude Code 설정 (agents 폴더는 추적)
+.claude/*
+!.claude/agents/
 
 # 임시 파일
 *.tmp

@@ -62,10 +62,13 @@ router.post('/login', requireGuest, (req, res) => {
 
 // 로그아웃
 router.get('/logout', (req, res) => {
-  if (req.session.user) {
+  if (req.session && req.session.user) {
     logger.audit('로그아웃', req.session.user, { ip: req.ip });
   }
-  req.session.destroy();
+  // cookie-session 호환: destroy() 대신 null 할당
+  if (req.session) {
+    req.session = null;
+  }
   res.redirect('/auth/login');
 });
 

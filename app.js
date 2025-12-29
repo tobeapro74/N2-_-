@@ -103,6 +103,10 @@ if (config.rateLimiting.enabled) {
 const generateCsrfToken = () => crypto.randomBytes(32).toString('hex');
 
 app.use((req, res, next) => {
+  // cookie-session 호환: 세션 객체 확인
+  if (!req.session) {
+    req.session = {};
+  }
   // 세션에 CSRF 토큰이 없으면 생성
   if (!req.session.csrfToken) {
     req.session.csrfToken = generateCsrfToken();
@@ -116,7 +120,8 @@ app.use((req, res, next) => {
 const verifyCsrf = (req, res, next) => {
   if (['POST', 'PUT', 'DELETE'].includes(req.method)) {
     const token = req.body._csrf || req.headers['x-csrf-token'];
-    if (!token || token !== req.session.csrfToken) {
+    const sessionToken = req.session?.csrfToken;
+    if (!token || !sessionToken || token !== sessionToken) {
       logger.security('CSRF 토큰 검증 실패', {
         ip: req.ip,
         url: req.originalUrl,
@@ -149,7 +154,7 @@ app.use((req, res, next) => {
 
 // 전역 변수 설정
 app.use((req, res, next) => {
-  res.locals.user = req.session.user || null;
+  res.locals.user = req.session?.user || null;
   res.locals.moment = moment;
   res.locals.config = {
     appName: config.app.name,
@@ -184,7 +189,7 @@ app.use((req, res) => {
   res.status(404).render('error', {
     title: '페이지를 찾을 수 없습니다',
     message: '요청하신 페이지가 존재하지 않습니다.',
-    user: req.session.user || null
+    user: req.session?.user || null
   });
 });
 
@@ -196,7 +201,7 @@ app.use((err, req, res, _next) => {
   res.status(500).render('error', {
     title: '서버 오류',
     message: config.isDevelopment ? err.message : '서버에서 오류가 발생했습니다.',
-    user: req.session.user || null
+    user: req.session?.user || null
   });
 });
 

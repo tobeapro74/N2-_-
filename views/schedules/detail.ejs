@@ -99,7 +99,7 @@
         <!-- 예약 버튼 -->
         <% if (schedule.status === 'open') { %>
         <hr>
-        <% if (myReservation) { %>
+        <% if (myReservation && !user.is_admin) { %>
           <% if (myReservation.status !== 'cancelled') { %>
           <div class="alert alert-success mb-2 text-center">
             <i class="bi bi-check-circle"></i> 예약 신청 완료

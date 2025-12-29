@@ -377,17 +377,24 @@ router.post('/admin/update-team', requireAuth, requireAdmin, async (req, res) =>
       return res.status(400).json({ error: '변경할 내용이 없습니다.' });
     }
 
-    await db.update('reservations', reservationId, updateData);
+    console.log('팀 변경 시도:', { reservationId, updateData });
+    const updateResult = await db.update('reservations', reservationId, updateData);
+    console.log('팀 변경 결과:', updateResult);
 
-    // 캐시 새로고침
+    // 캐시 새로고침 (강제)
     if (db.refreshCache) {
       await db.refreshCache('reservations');
     }
 
+    // 변경 확인
+    const updated = db.findById('reservations', reservationId);
+    console.log('변경 후 데이터:', { id: updated?.id, team_number: updated?.team_number, tee_time: updated?.tee_time });
+
     res.json({
       success: true,
       message: '팀 배정이 변경되었습니다.',
-      tee_time: autoAssignedTeeTime
+      tee_time: autoAssignedTeeTime,
+      updated_team: updated?.team_number
     });
   } catch (error) {
     console.error('팀 변경 오류:', error);

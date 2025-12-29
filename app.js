@@ -1,5 +1,6 @@
 const express = require('express');
 const session = require('express-session');
+const cookieSession = require('cookie-session');
 const path = require('path');
 const crypto = require('crypto');
 const helmet = require('helmet');
@@ -8,6 +9,9 @@ const moment = require('moment');
 // 환경 변수 및 설정 로드
 require('dotenv').config();
 const config = require('./config');
+
+// Vercel 환경 감지
+const isVercel = process.env.VERCEL === '1';
 
 // 로깅 시스템
 const { logger, requestLogger, errorLogger } = require('./utils/logger');
@@ -52,18 +56,31 @@ app.use(express.json());
 // HTTP 요청 로깅
 app.use(requestLogger);
 
-// 세션 설정 (환경 변수 사용)
-app.use(session({
-  secret: config.session.secret,
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
+// 세션 설정 (Vercel 환경에서는 cookie-session 사용)
+if (isVercel) {
+  // Vercel 서버리스 환경: 쿠키 기반 세션 (서버 메모리 불필요)
+  app.use(cookieSession({
+    name: 'session',
+    keys: [config.session.secret],
     maxAge: config.session.maxAge,
     httpOnly: true,
-    secure: config.security.cookieSecure,
+    secure: true,
     sameSite: 'lax'
-  }
-}));
+  }));
+} else {
+  // 로컬 환경: 메모리 기반 세션
+  app.use(session({
+    secret: config.session.secret,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      maxAge: config.session.maxAge,
+      httpOnly: true,
+      secure: config.security.cookieSecure,
+      sameSite: 'lax'
+    }
+  }));
+}
 
 // Rate Limiting 적용 (설정에 따라)
 if (config.rateLimiting.enabled) {

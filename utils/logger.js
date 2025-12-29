@@ -2,6 +2,9 @@
 const fs = require('fs');
 const path = require('path');
 
+// Vercel 환경 감지
+const isVercel = process.env.VERCEL === '1';
+
 // 로그 레벨 정의
 const LOG_LEVELS = {
   ERROR: 0,
@@ -13,10 +16,14 @@ const LOG_LEVELS = {
 // 현재 로그 레벨 (환경 변수로 설정 가능)
 const currentLevel = LOG_LEVELS[process.env.LOG_LEVEL?.toUpperCase()] ?? LOG_LEVELS.INFO;
 
-// 로그 디렉토리 생성
+// 로그 디렉토리 생성 (Vercel 환경이 아닐 때만)
 const logDir = path.join(__dirname, '..', 'logs');
-if (!fs.existsSync(logDir)) {
-  fs.mkdirSync(logDir, { recursive: true });
+if (!isVercel && !fs.existsSync(logDir)) {
+  try {
+    fs.mkdirSync(logDir, { recursive: true });
+  } catch (err) {
+    console.error('로그 디렉토리 생성 실패:', err.message);
+  }
 }
 
 // 날짜 포맷
@@ -30,8 +37,13 @@ function getLogFileName(type = 'app') {
   return path.join(logDir, `${type}-${date}.log`);
 }
 
-// 로그 파일에 쓰기
+// 로그 파일에 쓰기 (Vercel 환경에서는 건너뛰기)
 function writeToFile(type, message) {
+  // Vercel 환경에서는 파일 시스템이 읽기 전용이므로 건너뛰기
+  if (isVercel) {
+    return;
+  }
+
   const fileName = getLogFileName(type);
   const line = `${message}\n`;
 

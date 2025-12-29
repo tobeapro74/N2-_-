@@ -308,6 +308,11 @@ const scheduleId = <%= schedule.id %>;
 const teeTimes = '<%= schedule.tee_times || "" %>'.split(',').map(t => t.trim()).filter(t => t);
 
 function applyReservation(scheduleId) {
+  <% if (user && user.is_admin) { %>
+  alert('관리자는 예약 신청이 불가능합니다.');
+  return;
+  <% } %>
+
   const teeTimeSelect = document.getElementById('teeTimeSelect');
   const preferredTeeTime = teeTimeSelect ? teeTimeSelect.value : null;
 

@@ -183,11 +183,17 @@ app.use((err, req, res, _next) => {
   });
 });
 
-app.listen(PORT, () => {
-  logger.info(`${config.app.name} 시스템 시작`, {
-    port: PORT,
-    env: config.env,
-    rateLimiting: config.rateLimiting.enabled
+// Vercel 서버리스 환경이 아닌 경우에만 listen
+if (process.env.VERCEL !== '1') {
+  app.listen(PORT, () => {
+    logger.info(`${config.app.name} 시스템 시작`, {
+      port: PORT,
+      env: config.env,
+      rateLimiting: config.rateLimiting.enabled
+    });
+    console.log(`N2골프 관리 시스템이 http://localhost:${PORT} 에서 실행중입니다.`);
   });
-  console.log(`N2골프 관리 시스템이 http://localhost:${PORT} 에서 실행중입니다.`);
-});
+}
+
+// Vercel 서버리스 함수로 내보내기
+module.exports = app;

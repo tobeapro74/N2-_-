@@ -82,11 +82,33 @@
             <i class="bi bi-x-circle"></i> 예약 취소
           </button>
           <% } else { %>
+          <% const teeTimesReapply = schedule.tee_times ? schedule.tee_times.split(',').map(t => t.trim()) : []; %>
+          <% if (teeTimesReapply.length > 0) { %>
+          <div class="mb-2">
+            <label class="form-label small text-muted">희망 티타임 선택</label>
+            <select id="teeTimeSelect" class="form-select">
+              <% teeTimesReapply.forEach((time, idx) => { %>
+              <option value="<%= time %>"><%= time %> (<%= idx + 1 %>팀)</option>
+              <% }) %>
+            </select>
+          </div>
+          <% } %>
           <button type="button" class="btn btn-success w-100" onclick="applyReservation(<%= schedule.id %>)">
             <i class="bi bi-check-circle"></i> 다시 신청
           </button>
           <% } %>
         <% } else if (user) { %>
+        <% const teeTimes = schedule.tee_times ? schedule.tee_times.split(',').map(t => t.trim()) : []; %>
+        <% if (teeTimes.length > 0) { %>
+        <div class="mb-2">
+          <label class="form-label small text-muted">희망 티타임 선택</label>
+          <select id="teeTimeSelect" class="form-select">
+            <% teeTimes.forEach((time, idx) => { %>
+            <option value="<%= time %>"><%= time %> (<%= idx + 1 %>팀)</option>
+            <% }) %>
+          </select>
+        </div>
+        <% } %>
         <button type="button" class="btn btn-success w-100" onclick="applyReservation(<%= schedule.id %>)">
           <i class="bi bi-check-circle"></i> 예약 신청
         </button>
@@ -129,6 +151,7 @@
                 <th>부서</th>
                 <th>신청시간</th>
                 <th>상태</th>
+                <th>희망</th>
                 <th>팀</th>
                 <th>티타임</th>
                 <% if (user && user.is_admin) { %>
@@ -162,6 +185,9 @@
                   <% } else { %>
                   <span class="badge bg-warning">신청</span>
                   <% } %>
+                </td>
+                <td>
+                  <small><%= r.preferred_tee_time || '-' %></small>
                 </td>
                 <td>
                   <% if (user && user.is_admin && r.status !== 'cancelled') { %>
@@ -211,13 +237,20 @@
 const csrfToken = '<%= csrfToken %>';
 
 function applyReservation(scheduleId) {
+  const teeTimeSelect = document.getElementById('teeTimeSelect');
+  const preferredTeeTime = teeTimeSelect ? teeTimeSelect.value : null;
+
   fetch('/reservations/apply', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'X-CSRF-Token': csrfToken
     },
-    body: JSON.stringify({ schedule_id: scheduleId, _csrf: csrfToken })
+    body: JSON.stringify({
+      schedule_id: scheduleId,
+      preferred_tee_time: preferredTeeTime,
+      _csrf: csrfToken
+    })
   })
   .then(res => res.json())
   .then(data => {

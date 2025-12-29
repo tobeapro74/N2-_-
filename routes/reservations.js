@@ -66,7 +66,7 @@ router.get('/', requireAuth, async (req, res) => {
 // 예약 신청
 router.post('/apply', requireAuth, async (req, res) => {
   try {
-    const { schedule_id } = req.body;
+    const { schedule_id, preferred_tee_time } = req.body;
     const memberId = req.session.user.id;
     const scheduleId = parseInt(schedule_id);
 
@@ -135,6 +135,7 @@ router.post('/apply', requireAuth, async (req, res) => {
       priority,
       consecutive_count: consecutiveCount,
       status: reservationStatus,
+      preferred_tee_time: preferred_tee_time || null,
       applied_at: new Date().toISOString()
     });
 

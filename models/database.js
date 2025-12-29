@@ -1,10 +1,18 @@
+/**
+ * 데이터베이스 추상화 모듈
+ * MongoDB Atlas (Vercel 환경) 또는 JSON 파일 (로컬 환경) 지원
+ */
+
 const fs = require('fs');
 const path = require('path');
 
-// Vercel 환경 감지
+// 환경 감지
 const isVercel = process.env.VERCEL === '1';
+const useMongoDb = !!process.env.MONGODB_URI;
 
+// JSON 파일 경로 (로컬 폴백용)
 const dbPath = path.join(__dirname, '..', 'data', 'n2golf.json');
+const backupPath = path.join(__dirname, '..', 'data', 'n2golf.backup.json');
 
 // 초기 데이터베이스 구조
 const initialData = {
@@ -17,6 +25,7 @@ const initialData = {
   schedules: [],
   reservations: [],
   membership_fees: [],
+  course_holes: [],
   _meta: {
     lastId: {
       members: 0,
@@ -27,21 +36,55 @@ const initialData = {
       expenses: 0,
       schedules: 0,
       reservations: 0,
-      membership_fees: 0
+      membership_fees: 0,
+      course_holes: 0
     }
   }
 };
 
-// 백업 파일 경로
-const backupPath = path.join(__dirname, '..', 'data', 'n2golf.backup.json');
+// ============================================
+// MongoDB 클라이언트 (MONGODB_URI가 있을 때)
+// ============================================
+let mongoClient = null;
+let mongoDb = null;
+let mongoConnected = false;
 
-// 데이터베이스 로드
+async function connectMongo() {
+  if (mongoConnected && mongoClient && mongoDb) {
+    return mongoDb;
+  }
+
+  const { MongoClient } = require('mongodb');
+  const MONGODB_URI = process.env.MONGODB_URI;
+  const DB_NAME = process.env.MONGODB_DB_NAME || 'n2golf';
+
+  try {
+    mongoClient = new MongoClient(MONGODB_URI, {
+      maxPoolSize: 10,
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
+    });
+
+    await mongoClient.connect();
+    mongoDb = mongoClient.db(DB_NAME);
+    mongoConnected = true;
+    console.log('MongoDB Atlas 연결 성공');
+    return mongoDb;
+  } catch (error) {
+    console.error('MongoDB 연결 오류:', error);
+    mongoConnected = false;
+    throw error;
+  }
+}
+
+// ============================================
+// JSON 파일 기반 데이터베이스 (로컬용)
+// ============================================
 function loadDB() {
   try {
     if (fs.existsSync(dbPath)) {
       const data = fs.readFileSync(dbPath, 'utf8');
       const parsed = JSON.parse(data);
-      // Vercel 환경이 아닐 때만 백업 생성 (Vercel은 읽기 전용 파일 시스템)
       if (!isVercel) {
         try {
           fs.writeFileSync(backupPath, data);
@@ -53,14 +96,12 @@ function loadDB() {
     }
   } catch (error) {
     console.error('DB 로드 오류:', error);
-    // Vercel 환경이 아닐 때만 백업에서 복구 시도
     if (!isVercel) {
       try {
         if (fs.existsSync(backupPath)) {
           console.log('백업 파일에서 복구 시도...');
           const backupData = fs.readFileSync(backupPath, 'utf8');
           const parsed = JSON.parse(backupData);
-          // 복구된 데이터를 메인 파일에 저장
           fs.writeFileSync(dbPath, backupData);
           console.log('백업에서 복구 완료');
           return parsed;
@@ -73,35 +114,230 @@ function loadDB() {
   return { ...initialData };
 }
 
-// 데이터베이스 저장
 function saveDB(data) {
-  // Vercel 환경에서는 파일 시스템이 읽기 전용이므로 저장 건너뛰기
   if (isVercel) {
-    console.log('Vercel 환경: 파일 저장 건너뛰기 (읽기 전용 파일 시스템)');
+    console.log('Vercel 환경: JSON 파일 저장 건너뛰기');
     return;
   }
 
   try {
     const jsonData = JSON.stringify(data, null, 2);
-    // 임시 파일에 먼저 저장 (원자적 쓰기)
     const tempPath = dbPath + '.tmp';
     fs.writeFileSync(tempPath, jsonData);
-    // 임시 파일을 실제 파일로 이동 (rename은 원자적 연산)
     fs.renameSync(tempPath, dbPath);
   } catch (error) {
     console.error('DB 저장 오류:', error);
-    // 저장 실패 시 에러를 throw하여 호출자에게 알림
     throw new Error('데이터베이스 저장에 실패했습니다: ' + error.message);
   }
 }
 
-// 데이터베이스 래퍼 클래스
+// ============================================
+// 통합 데이터베이스 클래스
+// ============================================
 class Database {
   constructor() {
     this.data = loadDB();
+    this.mongoCache = {}; // MongoDB 데이터 캐시
+    this.cacheLoaded = false;
   }
 
-  // SQL 유사 prepare 인터페이스 제공
+  // MongoDB 컬렉션 가져오기
+  async getCollection(name) {
+    const db = await connectMongo();
+    return db.collection(name);
+  }
+
+  // MongoDB 캐시 초기화 (앱 시작 시 호출)
+  async initMongoCache() {
+    if (!useMongoDb || this.cacheLoaded) return;
+
+    try {
+      const db = await connectMongo();
+      const collections = ['members', 'golf_courses', 'income_categories', 'expense_categories',
+        'incomes', 'expenses', 'schedules', 'reservations', 'membership_fees', 'course_holes'];
+
+      for (const name of collections) {
+        const data = await db.collection(name).find({}).toArray();
+        this.mongoCache[name] = data;
+      }
+
+      // _meta 로드
+      const meta = await db.collection('_meta').findOne({});
+      if (meta) {
+        this.mongoCache._meta = meta;
+      }
+
+      this.cacheLoaded = true;
+      console.log('MongoDB 캐시 초기화 완료');
+    } catch (error) {
+      console.error('MongoDB 캐시 초기화 오류:', error);
+    }
+  }
+
+  // 테이블(컬렉션) 전체 데이터 가져오기
+  getTable(name) {
+    if (useMongoDb && this.mongoCache[name]) {
+      return this.mongoCache[name];
+    }
+    return this.data[name] || [];
+  }
+
+  // ID로 문서 찾기
+  findById(table, id) {
+    const data = this.getTable(table);
+    return data.find(r => r.id === id || r.id === parseInt(id));
+  }
+
+  // 데이터 삽입
+  async insert(table, record) {
+    if (useMongoDb) {
+      return await this._mongoInsert(table, record);
+    }
+    return this._jsonInsert(table, record);
+  }
+
+  // 데이터 업데이트
+  async update(table, id, updates) {
+    if (useMongoDb) {
+      return await this._mongoUpdate(table, id, updates);
+    }
+    return this._jsonUpdate(table, id, updates);
+  }
+
+  // 데이터 삭제
+  async delete(table, id) {
+    if (useMongoDb) {
+      return await this._mongoDelete(table, id);
+    }
+    return this._jsonDelete(table, id);
+  }
+
+  // ============================================
+  // MongoDB 메서드
+  // ============================================
+  async _mongoInsert(table, record) {
+    try {
+      const collection = await this.getCollection(table);
+
+      // 새 ID 생성
+      const maxIdDoc = await collection.find({}).sort({ id: -1 }).limit(1).toArray();
+      const newId = maxIdDoc.length > 0 ? (parseInt(maxIdDoc[0].id) || 0) + 1 : 1;
+
+      const newRecord = {
+        ...record,
+        id: newId,
+        created_at: new Date().toISOString()
+      };
+
+      await collection.insertOne(newRecord);
+
+      // 캐시 업데이트
+      if (this.mongoCache[table]) {
+        this.mongoCache[table].push(newRecord);
+      }
+
+      return newId;
+    } catch (error) {
+      console.error(`MongoDB insert 오류 (${table}):`, error);
+      throw error;
+    }
+  }
+
+  async _mongoUpdate(table, id, updates) {
+    try {
+      const collection = await this.getCollection(table);
+      const updateData = { ...updates, updated_at: new Date().toISOString() };
+
+      const result = await collection.updateOne(
+        { $or: [{ id: parseInt(id) }, { id: String(id) }] },
+        { $set: updateData }
+      );
+
+      // 캐시 업데이트
+      if (this.mongoCache[table]) {
+        const idx = this.mongoCache[table].findIndex(r => r.id === id || r.id === parseInt(id));
+        if (idx !== -1) {
+          Object.assign(this.mongoCache[table][idx], updateData);
+        }
+      }
+
+      return result.matchedCount > 0;
+    } catch (error) {
+      console.error(`MongoDB update 오류 (${table}, ${id}):`, error);
+      return false;
+    }
+  }
+
+  async _mongoDelete(table, id) {
+    try {
+      const collection = await this.getCollection(table);
+      const result = await collection.deleteOne({
+        $or: [{ id: parseInt(id) }, { id: String(id) }]
+      });
+
+      // 캐시 업데이트
+      if (this.mongoCache[table]) {
+        this.mongoCache[table] = this.mongoCache[table].filter(
+          r => r.id !== id && r.id !== parseInt(id)
+        );
+      }
+
+      return result.deletedCount > 0;
+    } catch (error) {
+      console.error(`MongoDB delete 오류 (${table}, ${id}):`, error);
+      return false;
+    }
+  }
+
+  // 캐시 새로고침
+  async refreshCache(table) {
+    if (!useMongoDb) return;
+
+    try {
+      const collection = await this.getCollection(table);
+      this.mongoCache[table] = await collection.find({}).toArray();
+    } catch (error) {
+      console.error(`캐시 새로고침 오류 (${table}):`, error);
+    }
+  }
+
+  // ============================================
+  // JSON 파일 메서드 (기존 코드 호환)
+  // ============================================
+  _jsonInsert(table, record) {
+    if (!this.data[table]) this.data[table] = [];
+    if (!this.data._meta) this.data._meta = { lastId: {} };
+    if (!this.data._meta.lastId[table]) this.data._meta.lastId[table] = 0;
+
+    const newId = ++this.data._meta.lastId[table];
+    record.id = newId;
+    record.created_at = new Date().toISOString();
+    this.data[table].push(record);
+    saveDB(this.data);
+    return newId;
+  }
+
+  _jsonUpdate(table, id, updates) {
+    const record = this.findById(table, id);
+    if (record) {
+      Object.assign(record, updates, { updated_at: new Date().toISOString() });
+      saveDB(this.data);
+      return true;
+    }
+    return false;
+  }
+
+  _jsonDelete(table, id) {
+    if (!this.data[table]) return false;
+    const before = this.data[table].length;
+    this.data[table] = this.data[table].filter(r => r.id !== id && r.id !== parseInt(id));
+    saveDB(this.data);
+    return before > this.data[table].length;
+  }
+
+  // ============================================
+  // SQL 호환 인터페이스 (기존 코드 호환)
+  // ============================================
   prepare(sql) {
     const self = this;
     return {
@@ -120,24 +356,17 @@ class Database {
   execute(sql, params, mode) {
     const sqlLower = sql.toLowerCase().trim();
 
-    // INSERT
     if (sqlLower.startsWith('insert')) {
       return this.handleInsert(sql, params);
     }
-
-    // SELECT
     if (sqlLower.startsWith('select')) {
       const results = this.handleSelect(sql, params);
       if (mode === 'get') return results[0] || null;
       return results;
     }
-
-    // UPDATE
     if (sqlLower.startsWith('update')) {
       return this.handleUpdate(sql, params);
     }
-
-    // DELETE
     if (sqlLower.startsWith('delete')) {
       return this.handleDelete(sql, params);
     }
@@ -146,7 +375,6 @@ class Database {
   }
 
   handleInsert(sql, params) {
-    // 간단한 INSERT 파싱
     const tableMatch = sql.match(/insert\s+(?:or\s+\w+\s+)?into\s+(\w+)/i);
     if (!tableMatch) return { changes: 0 };
 
@@ -157,6 +385,8 @@ class Database {
     if (!columnsMatch) return { changes: 0 };
 
     const columns = columnsMatch[1].split(',').map(c => c.trim());
+    if (!this.data._meta) this.data._meta = { lastId: {} };
+    if (!this.data._meta.lastId[table]) this.data._meta.lastId[table] = 0;
     const newId = ++this.data._meta.lastId[table];
 
     const record = { id: newId };
@@ -164,7 +394,6 @@ class Database {
       record[col] = params[idx];
     });
 
-    // created_at 자동 추가
     if (!record.created_at) {
       record.created_at = new Date().toISOString();
     }
@@ -176,25 +405,21 @@ class Database {
   }
 
   handleSelect(sql, params) {
-    // 테이블 추출
     const fromMatch = sql.match(/from\s+(\w+)/i);
     if (!fromMatch) return [];
 
     const table = fromMatch[1];
-    let results = [...(this.data[table] || [])];
+    let results = [...this.getTable(table)];
 
-    // WHERE 조건 처리 (간단한 버전)
     const whereMatch = sql.match(/where\s+(.+?)(?:order|group|limit|$)/i);
     if (whereMatch) {
       let paramIndex = 0;
       const conditions = whereMatch[1];
-
       results = results.filter(row => {
         return this.evaluateWhere(row, conditions, params, () => paramIndex++);
       });
     }
 
-    // ORDER BY
     const orderMatch = sql.match(/order\s+by\s+(\w+)(?:\s+(asc|desc))?/i);
     if (orderMatch) {
       const field = orderMatch[1];
@@ -206,18 +431,15 @@ class Database {
       });
     }
 
-    // LIMIT
     const limitMatch = sql.match(/limit\s+(\d+)/i);
     if (limitMatch) {
       results = results.slice(0, parseInt(limitMatch[1]));
     }
 
-    // COUNT(*) 처리
     if (sql.toLowerCase().includes('count(*)')) {
       return [{ count: results.length }];
     }
 
-    // SUM 처리
     const sumMatch = sql.match(/sum\((\w+)\)/i);
     if (sumMatch) {
       const field = sumMatch[1];
@@ -229,11 +451,9 @@ class Database {
   }
 
   evaluateWhere(row, conditions, params, getParamIndex) {
-    // 간단한 AND 조건만 처리
     const parts = conditions.split(/\s+and\s+/i);
 
     for (const part of parts) {
-      // field = ?
       const eqMatch = part.match(/(\w+)\s*=\s*\?/);
       if (eqMatch) {
         const field = eqMatch[1];
@@ -242,7 +462,6 @@ class Database {
         continue;
       }
 
-      // field != ?
       const neqMatch = part.match(/(\w+)\s*!=\s*\?/);
       if (neqMatch) {
         const field = neqMatch[1];
@@ -251,7 +470,6 @@ class Database {
         continue;
       }
 
-      // field LIKE ?
       const likeMatch = part.match(/(\w+)\s+like\s+\?/i);
       if (likeMatch) {
         const field = likeMatch[1];
@@ -261,7 +479,6 @@ class Database {
         continue;
       }
 
-      // field >= ?
       const gteMatch = part.match(/(\w+)\s*>=\s*\?/);
       if (gteMatch) {
         const field = gteMatch[1];
@@ -270,7 +487,6 @@ class Database {
         continue;
       }
 
-      // field > ?
       const gtMatch = part.match(/(\w+)\s*>\s*\?/);
       if (gtMatch) {
         const field = gtMatch[1];
@@ -279,7 +495,6 @@ class Database {
         continue;
       }
 
-      // field IN (?)
       const inMatch = part.match(/(\w+)\s+in\s*\(/i);
       if (inMatch) {
         const field = inMatch[1];
@@ -300,15 +515,14 @@ class Database {
     if (!tableMatch) return { changes: 0 };
 
     const table = tableMatch[1];
-    if (!this.data[table]) return { changes: 0 };
+    const data = this.getTable(table);
+    if (!data.length) return { changes: 0 };
 
-    // SET 절 파싱
     const setMatch = sql.match(/set\s+(.+?)\s+where/i);
     if (!setMatch) return { changes: 0 };
 
     const setFields = setMatch[1].split(',').map(s => s.trim().split('=')[0].trim());
 
-    // WHERE 조건
     const whereMatch = sql.match(/where\s+(\w+)\s*=\s*\?/i);
     if (!whereMatch) return { changes: 0 };
 
@@ -316,7 +530,7 @@ class Database {
     const whereValue = params[setFields.length];
 
     let changes = 0;
-    this.data[table].forEach(row => {
+    data.forEach(row => {
       if (row[whereField] == whereValue) {
         setFields.forEach((field, idx) => {
           row[field] = params[idx];
@@ -326,7 +540,9 @@ class Database {
       }
     });
 
-    saveDB(this.data);
+    if (!useMongoDb) {
+      saveDB(this.data);
+    }
     return { changes };
   }
 
@@ -337,7 +553,6 @@ class Database {
     const table = tableMatch[1];
     if (!this.data[table]) return { changes: 0 };
 
-    // WHERE 조건
     const whereMatch = sql.match(/where\s+(\w+)\s*=\s*\?/i);
     if (!whereMatch) return { changes: 0 };
 
@@ -348,52 +563,16 @@ class Database {
     this.data[table] = this.data[table].filter(row => row[field] != value);
     const changes = before - this.data[table].length;
 
-    saveDB(this.data);
+    if (!useMongoDb) {
+      saveDB(this.data);
+    }
     return { changes };
   }
 
-  // 직접 데이터 접근
-  getTable(name) {
-    return this.data[name] || [];
-  }
-
-  findById(table, id) {
-    return (this.data[table] || []).find(r => r.id === id);
-  }
-
-  insert(table, record) {
-    if (!this.data[table]) this.data[table] = [];
-    const newId = ++this.data._meta.lastId[table];
-    record.id = newId;
-    record.created_at = new Date().toISOString();
-    this.data[table].push(record);
-    saveDB(this.data);
-    return newId;
-  }
-
-  update(table, id, updates) {
-    const record = this.findById(table, id);
-    if (record) {
-      Object.assign(record, updates, { updated_at: new Date().toISOString() });
-      saveDB(this.data);
-      return true;
-    }
-    return false;
-  }
-
-  delete(table, id) {
-    if (!this.data[table]) return false;
-    const before = this.data[table].length;
-    this.data[table] = this.data[table].filter(r => r.id !== id);
-    saveDB(this.data);
-    return before > this.data[table].length;
-  }
-
-  // 복잡한 쿼리용 메서드
+  // 쿼리 메서드
   query(table, filter = {}, options = {}) {
-    let results = [...(this.data[table] || [])];
+    let results = [...this.getTable(table)];
 
-    // 필터 적용
     if (Object.keys(filter).length > 0) {
       results = results.filter(row => {
         return Object.entries(filter).every(([key, value]) => {
@@ -403,7 +582,6 @@ class Database {
       });
     }
 
-    // 정렬
     if (options.orderBy) {
       const desc = options.orderDesc;
       results.sort((a, b) => {
@@ -413,7 +591,6 @@ class Database {
       });
     }
 
-    // 제한
     if (options.limit) {
       results = results.slice(0, options.limit);
     }
@@ -421,10 +598,9 @@ class Database {
     return results;
   }
 
-  // 조인 헬퍼
   join(table1, table2, key1, key2) {
-    const data1 = this.data[table1] || [];
-    const data2 = this.data[table2] || [];
+    const data1 = this.getTable(table1);
+    const data2 = this.getTable(table2);
 
     return data1.map(row1 => {
       const match = data2.find(row2 => row1[key1] === row2[key2]);
@@ -433,4 +609,17 @@ class Database {
   }
 }
 
-module.exports = new Database();
+// 싱글톤 인스턴스
+const db = new Database();
+
+// MongoDB 사용 시 앱 시작 시 캐시 초기화
+if (useMongoDb) {
+  console.log('MongoDB 모드 활성화 (MONGODB_URI 감지됨)');
+  db.initMongoCache().catch(err => {
+    console.error('MongoDB 초기화 실패:', err);
+  });
+} else {
+  console.log('JSON 파일 모드 (로컬 개발 환경)');
+}
+
+module.exports = db;

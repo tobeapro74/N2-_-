@@ -180,11 +180,17 @@
 </div>
 
 <script>
+// CSRF 토큰
+const csrfToken = '<%= csrfToken %>';
+
 function applyReservation(scheduleId) {
   fetch('/reservations/apply', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ schedule_id: scheduleId })
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRF-Token': csrfToken
+    },
+    body: JSON.stringify({ schedule_id: scheduleId, _csrf: csrfToken })
   })
   .then(res => res.json())
   .then(data => {
@@ -202,8 +208,11 @@ function cancelReservation(reservationId) {
 
   fetch('/reservations/cancel', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ reservation_id: reservationId })
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRF-Token': csrfToken
+    },
+    body: JSON.stringify({ reservation_id: reservationId, _csrf: csrfToken })
   })
   .then(res => res.json())
   .then(data => {

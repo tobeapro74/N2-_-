@@ -248,28 +248,46 @@ class Database {
       const collection = await this.getCollection(table);
       const updateData = { ...updates, updated_at: new Date().toISOString() };
       const numericId = parseInt(id);
+      const stringId = String(id);
 
-      console.log(`[MongoDB] 업데이트 시도: ${table}, id=${id} (numeric: ${numericId})`, updateData);
+      console.log(`[MongoDB] 업데이트 시도: ${table}, id=${id}`, JSON.stringify(updateData));
 
+      // 먼저 문서가 존재하는지 확인
+      const existingDoc = await collection.findOne({
+        $or: [{ id: numericId }, { id: stringId }]
+      });
+
+      if (!existingDoc) {
+        console.log(`[MongoDB] 문서를 찾지 못함: id=${id}`);
+        return false;
+      }
+
+      console.log(`[MongoDB] 기존 문서:`, JSON.stringify({ _id: existingDoc._id, id: existingDoc.id, team_number: existingDoc.team_number }));
+
+      // MongoDB ObjectId를 사용하여 업데이트
       const result = await collection.updateOne(
-        { id: numericId },
+        { _id: existingDoc._id },
         { $set: updateData }
       );
 
       console.log(`[MongoDB] 업데이트 결과: matched=${result.matchedCount}, modified=${result.modifiedCount}`);
 
-      // 캐시 업데이트 - 숫자 타입으로 비교
-      if (this.mongoCache[table]) {
-        const idx = this.mongoCache[table].findIndex(r => r.id === numericId);
-        if (idx !== -1) {
-          Object.assign(this.mongoCache[table][idx], updateData);
-          console.log(`[MongoDB] 캐시 업데이트 완료: idx=${idx}`);
-        } else {
-          console.log(`[MongoDB] 캐시에서 레코드를 찾지 못함: id=${numericId}`);
-        }
-      }
+      // 업데이트 후 문서 직접 조회 (캐시 아님)
+      const updatedDoc = await collection.findOne({ _id: existingDoc._id });
+      console.log(`[MongoDB] 업데이트 후 문서:`, JSON.stringify({ id: updatedDoc?.id, team_number: updatedDoc?.team_number }));
 
-      return result.matchedCount > 0;
+      // 실제 업데이트 성공 여부를 문서 비교로 확인
+      const updateSuccess = updates.team_number !== undefined
+        ? updatedDoc?.team_number === updates.team_number
+        : result.matchedCount > 0;
+
+      console.log(`[MongoDB] 실제 업데이트 성공 여부:`, updateSuccess);
+
+      // 캐시 새로고침 (전체 다시 로드)
+      this.mongoCache[table] = await collection.find({}).toArray();
+      console.log(`[MongoDB] 캐시 새로고침 완료, 총 ${this.mongoCache[table].length}건`);
+
+      return updateSuccess;
     } catch (error) {
       console.error(`MongoDB update 오류 (${table}, ${id}):`, error);
       return false;

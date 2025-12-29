@@ -408,7 +408,6 @@ function showSwapModal(fromTeam, toTeam, movedReservationId, teamMembers) {
             </select>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" onclick="cancelSwap(${movedReservationId}, ${toTeam}); return false;">교환 없이 진행</button>
             <button type="button" class="btn btn-primary" onclick="confirmSwap(${movedReservationId}, ${fromTeam}); return false;">멤버 교환</button>
           </div>
         </div>
@@ -424,19 +423,6 @@ function showSwapModal(fromTeam, toTeam, movedReservationId, teamMembers) {
   document.body.insertAdjacentHTML('beforeend', modalHtml);
   const modal = new bootstrap.Modal(document.getElementById('swapModal'));
   modal.show();
-}
-
-// 교환 취소 (팀 이동 유지, 교환 없이 진행)
-function cancelSwap(movedReservationId, targetTeam) {
-  console.log('cancelSwap 호출 - 교환 없이 진행:', movedReservationId, '-> 팀:', targetTeam);
-
-  // 이미 targetTeam으로 이동된 상태이므로, 모달만 닫고 새로고침
-  const modalEl = document.getElementById('swapModal');
-  const modal = bootstrap.Modal.getInstance(modalEl);
-  if (modal) modal.hide();
-
-  alert(`${targetTeam}팀으로 이동되었습니다. (교환 없이 진행)`);
-  location.reload();
 }
 
 // 교환 확인

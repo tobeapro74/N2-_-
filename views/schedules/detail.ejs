@@ -1,5 +1,34 @@
 <%- include('../partials/header') %>
 
+<style>
+/* 상태별 드롭다운 색상 */
+.status-confirmed {
+  background-color: #198754 !important;
+  color: white !important;
+  border-color: #198754 !important;
+}
+.status-pending {
+  background-color: #ffc107 !important;
+  color: #000 !important;
+  border-color: #ffc107 !important;
+}
+.status-waitlist {
+  background-color: #dc3545 !important;
+  color: white !important;
+  border-color: #dc3545 !important;
+}
+.status-cancelled {
+  background-color: #6c757d !important;
+  color: white !important;
+  border-color: #6c757d !important;
+}
+.status-deleted {
+  background-color: #212529 !important;
+  color: white !important;
+  border-color: #212529 !important;
+}
+</style>
+
 <div class="d-flex align-items-center mb-4 page-header">
   <a href="/schedules" class="back-link" aria-label="일정 목록으로 이동">
     <i class="bi bi-chevron-left" aria-hidden="true"></i>일정
@@ -178,8 +207,21 @@
                 <td><small><%= moment(r.applied_at).format('MM/DD HH:mm') %></small></td>
                 <td>
                   <% if (user && user.is_admin) { %>
-                  <select class="form-select form-select-sm status-select"
+                  <%
+                    // 상태별 색상 클래스
+                    const statusColorClass = {
+                      'confirmed': 'status-confirmed',
+                      'pending': 'status-pending',
+                      'waitlist': 'status-waitlist',
+                      'cancelled': 'status-cancelled',
+                      'deleted': 'status-deleted'
+                    };
+                    const currentStatus = r.status || (isOverCapacity ? 'waitlist' : 'pending');
+                  %>
+                  <select class="form-select form-select-sm status-select <%= statusColorClass[currentStatus] || '' %>"
                           data-reservation-id="<%= r.id %>"
+                          data-member-name="<%= r.member_name %>"
+                          data-original-status="<%= currentStatus %>"
                           style="width: 65px; height: 28px; font-size: 0.7rem; padding: 0.1rem 0.2rem; min-height: unset; -webkit-appearance: none;">
                     <option value="confirmed" <%= r.status === 'confirmed' ? 'selected' : '' %>>확정</option>
                     <option value="pending" <%= r.status === 'pending' ? 'selected' : '' %>>신청</option>
@@ -695,26 +737,69 @@ function updateStatus(reservationId, status) {
   .then(res => res.json());
 }
 
+// 상태 라벨 매핑
+const statusLabels = {
+  'confirmed': '확정',
+  'pending': '신청',
+  'waitlist': '대기자',
+  'cancelled': '취소',
+  'deleted': '삭제'
+};
+
+// 상태별 색상 클래스
+const statusColorClasses = {
+  'confirmed': 'status-confirmed',
+  'pending': 'status-pending',
+  'waitlist': 'status-waitlist',
+  'cancelled': 'status-cancelled',
+  'deleted': 'status-deleted'
+};
+
+// 상태 변경 확인 및 실행
+async function confirmStatusChange(selectElement, reservationId, newStatus, memberName, originalStatus) {
+  const originalLabel = statusLabels[originalStatus] || originalStatus;
+  const newLabel = statusLabels[newStatus] || newStatus;
+
+  // 확인 모달 표시
+  const confirmMessage = `${memberName}님의 상태를\n"${originalLabel}" → "${newLabel}"(으)로 변경하시겠습니까?`;
+
+  if (!confirm(confirmMessage)) {
+    // 취소 시 원래 상태로 복원
+    selectElement.value = originalStatus;
+    return;
+  }
+
+  const result = await updateStatus(reservationId, newStatus);
+
+  if (result.success) {
+    // 드롭다운 색상 업데이트
+    Object.values(statusColorClasses).forEach(cls => selectElement.classList.remove(cls));
+    selectElement.classList.add(statusColorClasses[newStatus] || '');
+    selectElement.dataset.originalStatus = newStatus;
+
+    // 성공 피드백
+    selectElement.style.boxShadow = '0 0 5px 2px rgba(25, 135, 84, 0.5)';
+    setTimeout(() => {
+      selectElement.style.boxShadow = '';
+      // 페이지 새로고침하여 취소선 등 스타일 반영
+      location.reload();
+    }, 500);
+  } else {
+    alert(result.error || '오류가 발생했습니다.');
+    // 실패 시 원래 상태로 복원
+    selectElement.value = originalStatus;
+  }
+}
+
 // 상태 선택 변경 이벤트
 document.querySelectorAll('.status-select').forEach(select => {
-  select.addEventListener('change', async function() {
+  select.addEventListener('change', function() {
     const reservationId = parseInt(this.dataset.reservationId);
     const newStatus = this.value;
-    const selectElement = this;
+    const memberName = this.dataset.memberName;
+    const originalStatus = this.dataset.originalStatus;
 
-    const result = await updateStatus(reservationId, newStatus);
-
-    if (result.success) {
-      // 성공 피드백
-      selectElement.classList.add('border-success');
-      setTimeout(() => {
-        selectElement.classList.remove('border-success');
-        // 페이지 새로고침하여 취소선 등 스타일 반영
-        location.reload();
-      }, 500);
-    } else {
-      alert(result.error || '오류가 발생했습니다.');
-    }
+    confirmStatusChange(this, reservationId, newStatus, memberName, originalStatus);
   });
 });
 </script>

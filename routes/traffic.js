@@ -144,30 +144,30 @@ router.get('/duration', requireAuthApi, async (req, res) => {
   }
 });
 
-// 기본 소요시간 (API 실패 시 사용)
+// 기본 소요시간 (API 실패 시 사용) - 실제 평균 소요시간 기준
 function getDefaultDurations() {
   return {
     yangji: {
-      yeouido: { duration: 50, distance: 45, trafficState: '보통' },
-      jamsil: { duration: 40, distance: 38, trafficState: '보통' }
+      yeouido: { duration: 70, distance: 45, trafficState: '보통' },
+      jamsil: { duration: 60, distance: 38, trafficState: '보통' }
     },
     daeyoungHills: {
-      yeouido: { duration: 90, distance: 110, trafficState: '보통' },
-      jamsil: { duration: 80, distance: 100, trafficState: '보통' }
+      yeouido: { duration: 120, distance: 110, trafficState: '보통' },
+      jamsil: { duration: 110, distance: 100, trafficState: '보통' }
     },
     daeyoungBase: {
-      yeouido: { duration: 90, distance: 108, trafficState: '보통' },
-      jamsil: { duration: 80, distance: 98, trafficState: '보통' }
+      yeouido: { duration: 120, distance: 108, trafficState: '보통' },
+      jamsil: { duration: 110, distance: 98, trafficState: '보통' }
     }
   };
 }
 
-// 교통 상태 판단 (기본 소요시간 대비)
+// 교통 상태 판단 (기본 소요시간 대비) - 실제 평균 소요시간 기준
 function getTrafficState(duration, courseId, fromId) {
   const baseTimes = {
-    yangji: { yeouido: 50, jamsil: 40 },
-    daeyoungHills: { yeouido: 90, jamsil: 80 },
-    daeyoungBase: { yeouido: 90, jamsil: 80 }
+    yangji: { yeouido: 70, jamsil: 60 },
+    daeyoungHills: { yeouido: 120, jamsil: 110 },
+    daeyoungBase: { yeouido: 120, jamsil: 110 }
   };
 
   const baseTime = baseTimes[courseId]?.[fromId] || 60;

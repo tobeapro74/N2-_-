@@ -631,7 +631,7 @@ router.post('/admin/revert-swap', requireAuth, requireAdmin, async (req, res) =>
   }
 });
 
-// 관리자: 예약 삭제
+// 관리자: 예약 삭제 (실제 삭제 대신 상태를 'deleted'로 변경)
 router.post('/admin/delete', requireAuth, requireAdmin, async (req, res) => {
   try {
     const { reservation_id } = req.body;
@@ -647,17 +647,62 @@ router.post('/admin/delete', requireAuth, requireAdmin, async (req, res) => {
       return res.status(404).json({ error: '예약을 찾을 수 없습니다.' });
     }
 
-    await db.delete('reservations', reservationId);
+    // 실제 삭제 대신 상태를 'deleted'로 변경
+    await db.update('reservations', reservationId, { status: 'deleted' });
 
     // 캐시 새로고침
     if (db.refreshCache) {
       await db.refreshCache('reservations');
     }
 
-    res.json({ success: true, message: '예약이 삭제되었습니다.' });
+    res.json({ success: true, message: '예약이 삭제 처리되었습니다.' });
   } catch (error) {
     console.error('예약 삭제 오류:', error);
     res.status(500).json({ error: '예약 삭제 중 오류가 발생했습니다.' });
+  }
+});
+
+// 관리자: 예약 상태 변경
+router.post('/admin/update-status', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const { reservation_id, status } = req.body;
+    const reservationId = parseInt(reservation_id);
+
+    // 유효한 상태값 확인
+    const validStatuses = ['confirmed', 'pending', 'waitlist', 'cancelled', 'deleted'];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ error: '유효하지 않은 상태값입니다.' });
+    }
+
+    // 캐시 새로고침
+    if (db.refreshCache) {
+      await db.refreshCache('reservations');
+    }
+
+    const reservation = db.findById('reservations', reservationId);
+    if (!reservation) {
+      return res.status(404).json({ error: '예약을 찾을 수 없습니다.' });
+    }
+
+    await db.update('reservations', reservationId, { status });
+
+    // 캐시 새로고침
+    if (db.refreshCache) {
+      await db.refreshCache('reservations');
+    }
+
+    const statusLabels = {
+      confirmed: '확정',
+      pending: '신청',
+      waitlist: '대기자',
+      cancelled: '취소',
+      deleted: '삭제'
+    };
+
+    res.json({ success: true, message: `상태가 '${statusLabels[status]}'(으)로 변경되었습니다.` });
+  } catch (error) {
+    console.error('상태 변경 오류:', error);
+    res.status(500).json({ error: '상태 변경 중 오류가 발생했습니다.' });
   }
 });
 

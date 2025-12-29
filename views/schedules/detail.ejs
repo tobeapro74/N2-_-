@@ -162,11 +162,12 @@
             <tbody>
               <% let seq = 0; %>
               <% reservations.forEach((r, index) => { %>
-              <% if (r.status !== 'cancelled') seq++; %>
-              <% const isOverCapacity = seq > schedule.max_members && r.status !== 'cancelled'; %>
-              <tr class="<%= r.status === 'cancelled' ? 'table-secondary text-decoration-line-through' : '' %>
+              <% const isInactive = ['cancelled', 'deleted'].includes(r.status); %>
+              <% if (!isInactive) seq++; %>
+              <% const isOverCapacity = seq > schedule.max_members && !isInactive; %>
+              <tr class="<%= isInactive ? 'table-secondary text-decoration-line-through' : '' %>
                          <%= isOverCapacity ? 'table-warning' : '' %>">
-                <td><%= r.status !== 'cancelled' ? seq : '-' %></td>
+                <td><%= !isInactive ? seq : '-' %></td>
                 <td>
                   <strong><%= r.member_name %></strong>
                   <% if (r.priority > 0) { %>
@@ -176,21 +177,35 @@
                 <td><small><%= r.department || '-' %></small></td>
                 <td><small><%= moment(r.applied_at).format('MM/DD HH:mm') %></small></td>
                 <td>
-                  <% if (r.status === 'cancelled') { %>
-                  <span class="badge bg-secondary">취소</span>
-                  <% } else if (r.status === 'confirmed') { %>
-                  <span class="badge bg-success">확정</span>
-                  <% } else if (isOverCapacity) { %>
-                  <span class="badge bg-danger">대기자</span>
+                  <% if (user && user.is_admin) { %>
+                  <select class="form-select form-select-sm status-select"
+                          data-reservation-id="<%= r.id %>"
+                          style="width: 65px; height: 28px; font-size: 0.7rem; padding: 0.1rem 0.2rem; min-height: unset; -webkit-appearance: none;">
+                    <option value="confirmed" <%= r.status === 'confirmed' ? 'selected' : '' %>>확정</option>
+                    <option value="pending" <%= r.status === 'pending' ? 'selected' : '' %>>신청</option>
+                    <option value="waitlist" <%= r.status === 'waitlist' || isOverCapacity ? 'selected' : '' %>>대기자</option>
+                    <option value="cancelled" <%= r.status === 'cancelled' ? 'selected' : '' %>>취소</option>
+                    <option value="deleted" <%= r.status === 'deleted' ? 'selected' : '' %>>삭제</option>
+                  </select>
                   <% } else { %>
-                  <span class="badge bg-warning">신청</span>
+                    <% if (r.status === 'cancelled') { %>
+                    <span class="badge bg-secondary">취소</span>
+                    <% } else if (r.status === 'deleted') { %>
+                    <span class="badge bg-dark">삭제</span>
+                    <% } else if (r.status === 'confirmed') { %>
+                    <span class="badge bg-success">확정</span>
+                    <% } else if (r.status === 'waitlist' || isOverCapacity) { %>
+                    <span class="badge bg-danger">대기자</span>
+                    <% } else { %>
+                    <span class="badge bg-warning">신청</span>
+                    <% } %>
                   <% } %>
                 </td>
                 <td>
                   <small><%= r.preferred_tee_time || '-' %></small>
                 </td>
                 <td>
-                  <% if (user && user.is_admin && r.status !== 'cancelled') { %>
+                  <% if (user && user.is_admin && !isInactive) { %>
                   <select class="form-select form-select-sm team-select"
                           data-reservation-id="<%= r.id %>"
                           data-swap-partner-id="<%= r.swap_partner_id || '' %>"
@@ -210,7 +225,7 @@
                   <% } %>
                 </td>
                 <td>
-                  <% if (user && user.is_admin && r.status !== 'cancelled') { %>
+                  <% if (user && user.is_admin && !isInactive) { %>
                   <input type="time" class="form-control form-control-sm tee-time-input" data-reservation-id="<%= r.id %>" value="<%= r.tee_time || '' %>" style="width: 75px; height: 28px; font-size: 0.7rem; padding: 0.1rem 0.2rem; min-height: unset; -webkit-appearance: none;">
                   <% } else { %>
                   <small><%= r.tee_time || '-' %></small>
@@ -218,9 +233,13 @@
                 </td>
                 <% if (user && user.is_admin) { %>
                 <td>
+                  <% if (!isInactive) { %>
                   <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteReservation(<%= r.id %>, '<%= r.member_name %>')" title="예약 삭제">
                     <i class="bi bi-trash"></i>
                   </button>
+                  <% } else { %>
+                  <span class="text-muted">-</span>
+                  <% } %>
                 </td>
                 <% } %>
               </tr>
@@ -657,6 +676,46 @@ document.querySelectorAll('.tee-time-input').forEach(input => {
 // 초기화: 현재 팀 번호 저장
 document.querySelectorAll('.team-select').forEach(select => {
   select.dataset.currentTeam = select.value;
+});
+
+// 상태 변경 함수
+function updateStatus(reservationId, status) {
+  return fetch('/reservations/admin/update-status', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRF-Token': csrfToken
+    },
+    body: JSON.stringify({
+      reservation_id: reservationId,
+      status: status,
+      _csrf: csrfToken
+    })
+  })
+  .then(res => res.json());
+}
+
+// 상태 선택 변경 이벤트
+document.querySelectorAll('.status-select').forEach(select => {
+  select.addEventListener('change', async function() {
+    const reservationId = parseInt(this.dataset.reservationId);
+    const newStatus = this.value;
+    const selectElement = this;
+
+    const result = await updateStatus(reservationId, newStatus);
+
+    if (result.success) {
+      // 성공 피드백
+      selectElement.classList.add('border-success');
+      setTimeout(() => {
+        selectElement.classList.remove('border-success');
+        // 페이지 새로고침하여 취소선 등 스타일 반영
+        location.reload();
+      }, 500);
+    } else {
+      alert(result.error || '오류가 발생했습니다.');
+    }
+  });
 });
 </script>
 

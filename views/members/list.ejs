@@ -61,6 +61,7 @@
             <th scope="col" class="py-2 ps-3" data-sort="string">이름</th>
             <th scope="col" class="py-2" data-sort="string">구내번호</th>
             <th scope="col" class="py-2" data-sort="string">부서</th>
+            <th scope="col" class="py-2" data-sort="string">직위</th>
             <th scope="col" class="py-2 text-center" data-sort="number">라운딩수</th>
             <th scope="col" class="py-2 text-center" data-sort="number">평균타수</th>
             <th scope="col" class="py-2 text-center" data-sort="string">활동여부</th>
@@ -70,14 +71,18 @@
         <tbody>
           <% if (members.length === 0) { %>
           <tr>
-            <td colspan="7" class="text-center text-muted py-4">등록된 회원이 없습니다.</td>
+            <td colspan="8" class="text-center text-muted py-4">등록된 회원이 없습니다.</td>
           </tr>
           <% } else { %>
           <% members.forEach((member, index) => { %>
           <tr data-href="/members/<%= member.id %>" tabindex="0" role="button" aria-label="<%= member.name %> 회원 상세 보기">
-            <td class="py-2 ps-3"><strong><%= member.name %></strong></td>
+            <td class="py-2 ps-3">
+              <strong><%= member.name %></strong>
+              <% if (member.role) { %><span class="badge bg-primary ms-1" style="font-size: 0.65rem;"><%= member.role %></span><% } %>
+            </td>
             <td class="py-2"><%= member.internal_phone || '-' %></td>
             <td class="py-2"><small class="text-muted"><%= member.department || '-' %></small></td>
+            <td class="py-2"><small><%= member.position || '-' %></small></td>
             <td class="py-2 text-center" data-value="<%= member.total_rounds || 0 %>">
               <span class="badge bg-success bg-opacity-75" style="font-size: 0.75rem;"><%= member.total_rounds || 0 %></span>
             </td>
@@ -117,7 +122,10 @@
       <% members.forEach((member, index) => { %>
       <a href="/members/<%= member.id %>" class="mobile-card-item text-decoration-none text-dark" aria-label="<%= member.name %> 회원 상세 보기">
         <div class="item-header">
-          <h3 class="item-title"><%= member.name %></h3>
+          <h3 class="item-title">
+            <%= member.name %>
+            <% if (member.role) { %><span class="badge bg-primary ms-1" style="font-size: 0.65rem;"><%= member.role %></span><% } %>
+          </h3>
           <% if (member.status === 'active') { %>
           <span class="badge bg-success">활동</span>
           <% } else if (member.status === 'inactive') { %>
@@ -129,6 +137,9 @@
         <div class="item-meta">
           <% if (member.internal_phone) { %>
           <span><i class="bi bi-telephone" aria-hidden="true"></i> <%= member.internal_phone %></span>
+          <% } %>
+          <% if (member.position) { %>
+          <span class="ms-2"><i class="bi bi-person-badge" aria-hidden="true"></i> <%= member.position %></span>
           <% } %>
           <% if (member.department) { %>
           <span class="ms-2"><i class="bi bi-building" aria-hidden="true"></i> <%= member.department %></span>

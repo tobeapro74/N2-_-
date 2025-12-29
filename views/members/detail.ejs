@@ -37,6 +37,16 @@
             <td class="py-1"><%= member.department || '-' %></td>
           </tr>
           <tr>
+            <th class="py-1 text-muted">직위</th>
+            <td class="py-1"><%= member.position || '-' %></td>
+          </tr>
+          <% if (member.role) { %>
+          <tr>
+            <th class="py-1 text-muted">역할</th>
+            <td class="py-1"><span class="badge bg-primary"><%= member.role %></span></td>
+          </tr>
+          <% } %>
+          <tr>
             <th class="py-1 text-muted">이메일</th>
             <td class="py-1"><%= member.email || '-' %></td>
           </tr>

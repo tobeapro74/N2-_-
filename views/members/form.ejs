@@ -33,6 +33,26 @@
             <label class="form-label">부서</label>
             <input type="text" name="department" class="form-control" value="<%= member ? member.department || '' : '' %>">
           </div>
+          <div class="row">
+            <div class="col-6">
+              <div class="mb-3">
+                <label class="form-label">직위</label>
+                <input type="text" name="position" class="form-control" placeholder="예: 부장, 차장, 과장" value="<%= member ? member.position || '' : '' %>">
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="mb-3">
+                <label class="form-label">역할</label>
+                <select name="role" class="form-select">
+                  <option value="">일반 회원</option>
+                  <option value="회장" <%= member && member.role === '회장' ? 'selected' : '' %>>회장</option>
+                  <option value="부회장" <%= member && member.role === '부회장' ? 'selected' : '' %>>부회장</option>
+                  <option value="총무" <%= member && member.role === '총무' ? 'selected' : '' %>>총무</option>
+                  <option value="감사" <%= member && member.role === '감사' ? 'selected' : '' %>>감사</option>
+                </select>
+              </div>
+            </div>
+          </div>
           <div class="mb-3">
             <label class="form-label">이메일</label>
             <input type="email" name="email" class="form-control" value="<%= member ? member.email || '' : '' %>">

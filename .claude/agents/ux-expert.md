@@ -919,6 +919,80 @@ function showDirections(locationName, lat, lng) {
 
 ## 최근 수정 이력
 
+### 2024-12-29: 회원 관리 UI 확장 (직위, 역할 필드 추가)
+**변경 내용**:
+회원 데이터에 `position`(직위), `role`(역할) 필드가 추가되어 UI 전반에 반영됨
+
+**UI 변경 사항**:
+
+1. **회원 목록 (`views/members/list.ejs`)**:
+   - 데스크톱 테이블에 '직위' 컬럼 추가
+   - 이름 옆에 역할 뱃지 표시 (회장, 총무 등)
+   - 모바일 카드에 직위 아이콘과 함께 표시
+
+```html
+<!-- 역할 뱃지 패턴 -->
+<td class="py-2 ps-3">
+  <strong><%= member.name %></strong>
+  <% if (member.role) { %>
+  <span class="badge bg-primary ms-1" style="font-size: 0.65rem;"><%= member.role %></span>
+  <% } %>
+</td>
+<td class="py-2"><small><%= member.position || '-' %></small></td>
+```
+
+2. **회원 상세 (`views/members/detail.ejs`)**:
+   - 회원 정보 테이블에 직위, 역할 행 추가
+
+```html
+<tr>
+  <th class="py-1 text-muted">직위</th>
+  <td class="py-1"><%= member.position || '-' %></td>
+</tr>
+<% if (member.role) { %>
+<tr>
+  <th class="py-1 text-muted">역할</th>
+  <td class="py-1"><span class="badge bg-primary"><%= member.role %></span></td>
+</tr>
+<% } %>
+```
+
+3. **회원 등록/수정 폼 (`views/members/form.ejs`)**:
+   - 직위 입력 필드 (텍스트)
+   - 역할 선택 드롭다운 (회장/부회장/총무/감사/일반회원)
+
+```html
+<div class="row">
+  <div class="col-6">
+    <div class="mb-3">
+      <label class="form-label">직위</label>
+      <input type="text" name="position" class="form-control"
+             placeholder="예: 부장, 차장, 과장"
+             value="<%= member ? member.position || '' : '' %>">
+    </div>
+  </div>
+  <div class="col-6">
+    <div class="mb-3">
+      <label class="form-label">역할</label>
+      <select name="role" class="form-select">
+        <option value="">일반 회원</option>
+        <option value="회장" <%= member && member.role === '회장' ? 'selected' : '' %>>회장</option>
+        <option value="부회장" <%= member && member.role === '부회장' ? 'selected' : '' %>>부회장</option>
+        <option value="총무" <%= member && member.role === '총무' ? 'selected' : '' %>>총무</option>
+        <option value="감사" <%= member && member.role === '감사' ? 'selected' : '' %>>감사</option>
+      </select>
+    </div>
+  </div>
+</div>
+```
+
+**UX 고려사항**:
+- 역할 뱃지는 회장/총무 등 특별 역할만 표시 (일반 회원은 뱃지 없음)
+- 직위와 역할 입력란을 2열 레이아웃으로 배치하여 공간 효율성 확보
+- 역할 선택 시 빈 값("")은 "일반 회원"으로 표시
+
+---
+
 ### 2024-12-29: 에러 페이지 UX 개선
 **문제**: 에러 페이지(404, 500, CSRF 에러)에서 헤더가 깨지는 현상
 

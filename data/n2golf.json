@@ -16,904 +16,1134 @@
       "id": 2,
       "name": "강애련",
       "internal_phone": "3986",
-      "department": null,
+      "department": "Premier Blue 도곡센터",
       "email": null,
-      "join_date": "2025-12-24",
+      "join_date": "2025-10-21",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$0gYBWMVZjVsteE3wll1PhOoKjLApHSkRQvrRIp6b6ANm5mxtwDSeG",
-      "created_at": "2025-12-24T07:21:24.954Z"
+      "created_at": "2025-12-24T07:21:24.954Z",
+      "position": "차장",
+      "updated_at": "2025-12-29T01:07:08.276Z"
     },
     {
       "id": 3,
       "name": "강진동",
       "internal_phone": "6563",
-      "department": null,
+      "department": "스쿼드개발부",
       "email": null,
-      "join_date": "2025-12-24",
+      "join_date": "2025-10-21",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$0b1g9Xp3DyR826AtwGB7Keq/xpjt82ED8DGESJrX4UXjmhREwCV56",
-      "created_at": "2025-12-24T07:21:25.065Z"
+      "created_at": "2025-12-24T07:21:25.065Z",
+      "position": "부부장",
+      "updated_at": "2025-12-29T01:07:08.276Z"
     },
     {
       "id": 4,
       "name": "강희령",
       "internal_phone": "6426",
-      "department": null,
+      "department": "업무혁신부",
       "email": null,
-      "join_date": "2025-12-24",
+      "join_date": "2025-10-21",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$c6PUrfr/5lBy2bkhtGyYT.f0K05aYzVThjkS.qt0crcQmeXjWoIKC",
-      "created_at": "2025-12-24T07:21:25.178Z"
+      "created_at": "2025-12-24T07:21:25.178Z",
+      "position": "차장",
+      "updated_at": "2025-12-29T01:07:08.276Z"
     },
     {
       "id": 5,
       "name": "김경래",
       "internal_phone": "6259",
-      "department": null,
+      "department": "노동조합",
       "email": null,
-      "join_date": "2025-12-24",
+      "join_date": "2025-10-28",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$F8eoHOfs38Vq1Mn5teEkX.pLuoLGN0ApNS4bKby/IK7dLVwxnXK/a",
-      "created_at": "2025-12-24T07:21:25.289Z"
+      "created_at": "2025-12-24T07:21:25.289Z",
+      "position": "부위원장",
+      "updated_at": "2025-12-29T01:07:08.276Z"
     },
     {
       "id": 6,
       "name": "김명진",
       "internal_phone": "6278",
-      "department": null,
+      "department": "IT기획부",
       "email": null,
-      "join_date": "2025-12-24",
+      "join_date": "2025-10-30",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$Rggo5WETfqWFSKX4o7VdTeNBLzMyoogYDzACUXHew4mJZ/3ixHEfa",
-      "created_at": "2025-12-24T07:21:25.400Z"
+      "created_at": "2025-12-24T07:21:25.400Z",
+      "position": "대리",
+      "updated_at": "2025-12-29T01:07:08.276Z"
     },
     {
       "id": 7,
       "name": "김미정",
       "internal_phone": "6051",
-      "department": null,
+      "department": "코어뱅킹UX부",
       "email": null,
-      "join_date": "2025-12-24",
+      "join_date": "2025-10-21",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$1XedQuOSNWJhZUGPkKoQh.ls5tIcnuu18je0/4oTeUimCi8Wjlq1W",
-      "created_at": "2025-12-24T07:21:25.511Z"
+      "created_at": "2025-12-24T07:21:25.511Z",
+      "position": "차장",
+      "updated_at": "2025-12-29T01:07:08.276Z"
     },
     {
       "id": 8,
       "name": "김범준",
       "internal_phone": "8667",
-      "department": null,
+      "department": "연금자산관리센터",
       "email": null,
-      "join_date": "2025-12-24",
+      "join_date": "2025-10-24",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$Y5E1kyO6zXum/XUIzCI9AOsU7PFqFWujXvO7dbsJpl5HKefgVXYi.",
-      "created_at": "2025-12-24T07:21:25.622Z"
+      "created_at": "2025-12-24T07:21:25.622Z",
+      "position": "차장",
+      "updated_at": "2025-12-29T01:07:08.276Z"
     },
     {
       "id": 9,
       "name": "김병우",
       "internal_phone": "6650",
-      "department": null,
+      "department": "정보시스템부",
       "email": null,
-      "join_date": "2025-12-24",
+      "join_date": "2025-10-21",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$zdx.rPse/wHKhi2WS9ghIuR.5h1HrGC9IYiZ.8tXoLKzWc0n1DTb2",
-      "created_at": "2025-12-24T07:21:25.733Z"
+      "created_at": "2025-12-24T07:21:25.733Z",
+      "position": "부부장",
+      "updated_at": "2025-12-29T01:07:08.276Z"
     },
     {
       "id": 10,
       "name": "김선영",
       "internal_phone": "6040",
-      "department": null,
-      "email": null,
-      "join_date": "2025-12-24",
+      "department": "홍보실",
+      "email": "",
+      "join_date": "2025-10-21",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$8XnGwYzPQFTskdxVyOa2XOuPpGtzhd0L6dg4be78KXbqplEifmYZK",
-      "created_at": "2025-12-24T07:21:25.844Z"
+      "created_at": "2025-12-24T07:21:25.844Z",
+      "position": "차장",
+      "updated_at": "2025-12-29T01:18:05.599Z",
+      "role": "총무"
     },
     {
       "id": 11,
       "name": "김승우",
       "internal_phone": "6782",
-      "department": null,
+      "department": "디지털시스템부",
       "email": null,
-      "join_date": "2025-12-24",
+      "join_date": "2025-10-21",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$L2kiTUIxh4E.ImZ4kQHLI.c3ga5yqmFHVSUuITEsax/OjXkayQIKG",
-      "created_at": "2025-12-24T07:21:25.955Z"
+      "created_at": "2025-12-24T07:21:25.955Z",
+      "position": "사원",
+      "updated_at": "2025-12-29T01:07:08.276Z"
     },
     {
       "id": 12,
       "name": "김연성",
       "internal_phone": "6101",
-      "department": null,
+      "department": "스쿼드개발부",
       "email": null,
-      "join_date": "2025-12-24",
+      "join_date": "2025-10-21",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$2jOiAiPO/BkJWz.u9I3UjOJAfeOGok6KQ2oZPDs6fkWpMKNdLpImG",
-      "created_at": "2025-12-24T07:21:26.066Z"
+      "created_at": "2025-12-24T07:21:26.066Z",
+      "position": "부부장",
+      "updated_at": "2025-12-29T01:07:08.276Z"
     },
     {
       "id": 13,
       "name": "김영훈",
       "internal_phone": "6080",
-      "department": null,
+      "department": "인덱스 개발팀",
       "email": null,
-      "join_date": "2025-12-24",
+      "join_date": "2025-10-30",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$ZiuXA.nj51wzj.d8MuylXem5qlIHyE3F/GUxKpnoBiEhlWsRGgoJa",
-      "created_at": "2025-12-24T07:21:26.177Z"
+      "created_at": "2025-12-24T07:21:26.177Z",
+      "position": "대리",
+      "updated_at": "2025-12-29T01:07:08.276Z"
     },
     {
       "id": 14,
       "name": "김용석",
       "internal_phone": "6112",
-      "department": null,
+      "department": "코어뱅킹개발부",
       "email": null,
-      "join_date": "2025-12-24",
+      "join_date": "2025-10-21",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$NHlVl2ZRw02msJ2zq2hA6OEF.oiJgzVpbvZk8Ka5oZUyGXOcbQRhq",
-      "created_at": "2025-12-24T07:21:26.288Z"
+      "created_at": "2025-12-24T07:21:26.288Z",
+      "position": "부부장",
+      "updated_at": "2025-12-29T01:07:08.276Z"
     },
     {
       "id": 15,
       "name": "김재민",
       "internal_phone": "5739",
-      "department": null,
+      "department": "파생상품솔루션부",
       "email": null,
-      "join_date": "2025-12-24",
+      "join_date": "2025-10-21",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$R8seT0k8DiSD6sSCb1FKo.rK4QPN0vvUyib0yFKQAAaStCnBj1CNO",
-      "created_at": "2025-12-24T07:21:26.399Z"
+      "created_at": "2025-12-24T07:21:26.399Z",
+      "position": "과장",
+      "updated_at": "2025-12-29T01:07:08.276Z"
     },
     {
       "id": 16,
       "name": "김재범",
       "internal_phone": "7546",
-      "department": null,
+      "department": "IB기획부",
       "email": null,
-      "join_date": "2025-12-24",
+      "join_date": "2025-10-21",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$OwE7vSyvqrLGkQQm4atR8.AfZUT53rS2lmc7mRK.jmaCzUMmJXocy",
-      "created_at": "2025-12-24T07:21:26.511Z"
+      "created_at": "2025-12-24T07:21:26.511Z",
+      "position": "차장",
+      "updated_at": "2025-12-29T01:07:08.276Z"
     },
     {
       "id": 17,
       "name": "김지현",
       "internal_phone": "6558",
-      "department": null,
+      "department": "WM기획부",
       "email": null,
-      "join_date": "2025-12-24",
+      "join_date": "2025-11-05",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$lR8F7IwnO6OYKa3T/LBacukZ/GdEvBKenOrd3U1LLqtXBHV9iYpaO",
-      "created_at": "2025-12-24T07:21:26.622Z"
+      "created_at": "2025-12-24T07:21:26.622Z",
+      "position": "과장",
+      "updated_at": "2025-12-29T01:07:08.276Z"
     },
     {
       "id": 18,
       "name": "김혜진",
       "internal_phone": "7937",
-      "department": null,
+      "department": "HNW지원부",
       "email": null,
-      "join_date": "2025-12-24",
+      "join_date": "2025-10-21",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$lu99dNrNfEdXpv13h0Kk3.mCy94yNLiLCO7jCbv252DUDNvIP92OK",
-      "created_at": "2025-12-24T07:21:26.733Z"
+      "created_at": "2025-12-24T07:21:26.733Z",
+      "position": "부부장",
+      "updated_at": "2025-12-29T01:07:08.276Z"
     },
     {
       "id": 19,
       "name": "문연상",
       "internal_phone": "7858",
-      "department": null,
+      "department": "연금컨설팅1부",
       "email": null,
-      "join_date": "2025-12-24",
+      "join_date": "2025-10-24",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$7vQmpluqAR8quJFENNBC6.ZN/rvskM2fJkuFN9rb1q3dmfCfRaowy",
-      "created_at": "2025-12-24T07:21:26.844Z"
+      "created_at": "2025-12-24T07:21:26.844Z",
+      "position": "부부장",
+      "updated_at": "2025-12-29T01:07:08.276Z"
     },
     {
       "id": 20,
       "name": "박병철",
       "internal_phone": "7277",
-      "department": null,
+      "department": "코어뱅킹UX부",
       "email": null,
-      "join_date": "2025-12-24",
+      "join_date": "2025-10-21",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$e40Q8imCTwj72xsRjoSndeQXFExJ1qi5ZMYhdYS7TwqiZ7qun/UIq",
       "created_at": "2025-12-24T07:21:26.955Z",
       "avg_score": 78,
       "recent_score": 78,
-      "updated_at": "2025-12-27T05:47:16.110Z"
+      "updated_at": "2025-12-29T01:07:08.276Z",
+      "position": "부부장",
+      "role": "총무"
     },
     {
       "id": 21,
       "name": "박근범",
       "internal_phone": "6876",
-      "department": null,
+      "department": "코어뱅킹개발부",
       "email": null,
-      "join_date": "2025-12-24",
+      "join_date": "2025-11-06",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$usizdnUxWH.9.NKx6.aMyOhrFPSqOszM5uTFOxv44koxxmDcPW4kW",
-      "created_at": "2025-12-24T07:21:27.066Z"
+      "created_at": "2025-12-24T07:21:27.066Z",
+      "position": "부장",
+      "updated_at": "2025-12-29T01:07:08.276Z"
     },
     {
       "id": 22,
       "name": "박선식",
       "internal_phone": "6633",
-      "department": null,
+      "department": "스쿼드개발부",
       "email": null,
-      "join_date": "2025-12-24",
+      "join_date": "2025-10-21",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$RM4BA6Lv9DXPVJwWhJVNGuBi.O1kcW8K17GARssrsz6z6hQOjWbV2",
-      "created_at": "2025-12-24T07:21:27.177Z"
+      "created_at": "2025-12-24T07:21:27.177Z",
+      "position": "부부장",
+      "updated_at": "2025-12-29T01:07:08.276Z"
     },
     {
       "id": 23,
       "name": "박성민",
       "internal_phone": "6930",
-      "department": null,
+      "department": "상품시스템부",
       "email": null,
-      "join_date": "2025-12-24",
+      "join_date": "2025-10-21",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$mDBuaDEIrLiFl132/YRCVuGUmvoluiMrNeiRPyb/QcSWatwpMq3mW",
-      "created_at": "2025-12-24T07:21:27.289Z"
+      "created_at": "2025-12-24T07:21:27.289Z",
+      "position": "부부장",
+      "updated_at": "2025-12-29T01:07:08.276Z"
     },
     {
       "id": 24,
       "name": "박영민",
       "internal_phone": "6199",
-      "department": null,
+      "department": "스쿼드개발부",
       "email": null,
-      "join_date": "2025-12-24",
+      "join_date": "2025-10-21",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$HqwJWagWqej4j0pjS5DDvevfAfvQhdGlxBFPYD4muyWTlgpZYBTz2",
-      "created_at": "2025-12-24T07:21:27.400Z"
+      "created_at": "2025-12-24T07:21:27.400Z",
+      "position": "과장",
+      "updated_at": "2025-12-29T01:07:08.276Z"
     },
     {
       "id": 25,
       "name": "박준원",
       "internal_phone": "4205",
-      "department": null,
+      "department": "신사EA센터",
       "email": null,
-      "join_date": "2025-12-24",
+      "join_date": "2025-10-21",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$G1sUWNoj9CeeUAzxxHR9WuFKKrF7fLu2Jg39hPnXExr1HsbwVoj56",
-      "created_at": "2025-12-24T07:21:27.511Z"
+      "created_at": "2025-12-24T07:21:27.511Z",
+      "position": "부장",
+      "updated_at": "2025-12-29T01:07:08.276Z"
     },
     {
       "id": 26,
       "name": "박혜진",
       "internal_phone": "5518",
-      "department": null,
+      "department": "리스크관리부",
       "email": null,
-      "join_date": "2025-12-24",
+      "join_date": "2025-10-21",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$P1XjJF567DLf/ufeOL6kCeGB0c/hmbg8FHjilaltQcSI1LYkT0aaa",
-      "created_at": "2025-12-24T07:21:27.622Z"
+      "created_at": "2025-12-24T07:21:27.622Z",
+      "position": "과장",
+      "updated_at": "2025-12-29T01:07:08.276Z"
     },
     {
       "id": 27,
       "name": "방미영",
       "internal_phone": "0666",
-      "department": null,
+      "department": "안산WM센터",
       "email": null,
-      "join_date": "2025-12-24",
+      "join_date": "2025-10-21",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$1bRNJtCUZf/ZZnHmtmxuW.J0BsBtzDbqgqlgthkmADcIYMwZwLm7i",
-      "created_at": "2025-12-24T07:21:27.733Z"
+      "created_at": "2025-12-24T07:21:27.733Z",
+      "position": "부부장",
+      "updated_at": "2025-12-29T01:07:08.276Z"
     },
     {
       "id": 28,
       "name": "백승용",
       "internal_phone": "6733",
-      "department": null,
+      "department": "IT기획부",
       "email": null,
-      "join_date": "2025-12-24",
+      "join_date": "2025-10-21",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$MvU837.VR7blWLJj1HjrVOXFNWNcw71crTiY7bHl6Zi4BhmK2vpqS",
-      "created_at": "2025-12-24T07:21:27.844Z"
+      "created_at": "2025-12-24T07:21:27.844Z",
+      "position": "부부장",
+      "updated_at": "2025-12-29T01:07:08.276Z"
     },
     {
       "id": 29,
       "name": "서보라",
       "internal_phone": "7049",
-      "department": null,
+      "department": "재무관리부",
       "email": null,
-      "join_date": "2025-12-24",
+      "join_date": "2025-10-21",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$UdEirrk6lr7hUh3NRe8KFugupA8y/ie.828TPUuXY9vmPWJ8DOZr.",
-      "created_at": "2025-12-24T07:21:27.955Z"
+      "created_at": "2025-12-24T07:21:27.955Z",
+      "position": "차장",
+      "updated_at": "2025-12-29T01:07:08.276Z"
     },
     {
       "id": 30,
       "name": "성주희",
       "internal_phone": "7761",
-      "department": null,
+      "department": "코어뱅킹개발부",
       "email": null,
-      "join_date": "2025-12-24",
+      "join_date": "2025-10-21",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$NpX2EfTge9GQHFls.1GC0ebnEz3nQBqQofr2gdMf3SDWpShW6vmwG",
-      "created_at": "2025-12-24T07:21:28.067Z"
+      "created_at": "2025-12-24T07:21:28.067Z",
+      "position": "대리",
+      "updated_at": "2025-12-29T01:07:08.276Z"
     },
     {
       "id": 31,
       "name": "송덕화",
       "internal_phone": "7038",
-      "department": null,
+      "department": "업무시스템부",
       "email": null,
-      "join_date": "2025-12-24",
+      "join_date": "2025-10-29",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$CZkknfpvacP7MQ9DVR3DpuVAITaQA0a4oE1f2fSE6pzfKER/rxY0q",
-      "created_at": "2025-12-24T07:21:28.178Z"
+      "created_at": "2025-12-24T07:21:28.178Z",
+      "position": "차장",
+      "updated_at": "2025-12-29T01:07:08.276Z"
     },
     {
       "id": 32,
       "name": "송상인",
       "internal_phone": "6067",
-      "department": null,
+      "department": "인프라운영부",
       "email": null,
-      "join_date": "2025-12-24",
+      "join_date": "2025-10-21",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$mT1zmowUYVHddxtVN8r1keP3h7FGUCwJiUFTK1qJ5z28hwlxDKnD.",
-      "created_at": "2025-12-24T07:21:28.288Z"
+      "created_at": "2025-12-24T07:21:28.288Z",
+      "position": "부부장",
+      "role": "회장",
+      "updated_at": "2025-12-29T01:07:08.276Z"
     },
     {
       "id": 33,
       "name": "송성희",
       "internal_phone": "7576",
-      "department": null,
+      "department": "디지털자산관리추진부",
       "email": null,
-      "join_date": "2025-12-24",
+      "join_date": "2025-10-24",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$Q2xmHe4Q7ePbx7WP5WtB4e8ig3607pg/OCQGkVJ9CHjUAnMgZZmPG",
-      "created_at": "2025-12-24T07:21:28.399Z"
+      "created_at": "2025-12-24T07:21:28.399Z",
+      "position": "부부장",
+      "updated_at": "2025-12-29T01:07:08.276Z"
     },
     {
       "id": 34,
       "name": "송은주",
       "internal_phone": "6183",
-      "department": null,
+      "department": "매체시스템부",
       "email": null,
-      "join_date": "2025-12-24",
+      "join_date": "2025-10-28",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$p9aCTsYyG0.Nu4QP0//23eR5d9jlDsgqPhlN70CyY5.n9xQZvXtk.",
-      "created_at": "2025-12-24T07:21:28.510Z"
+      "created_at": "2025-12-24T07:21:28.510Z",
+      "position": "부부장",
+      "updated_at": "2025-12-29T01:07:08.276Z"
     },
     {
       "id": 35,
       "name": "신동민",
       "internal_phone": "6097",
-      "department": null,
+      "department": "리스크관리부",
       "email": null,
-      "join_date": "2025-12-24",
+      "join_date": "2025-10-21",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$iG12iENY.ryzt.Ymw2VkzuDfnh3YMsPegLEew6VWP85ZIpgwWqzPS",
-      "created_at": "2025-12-24T07:21:28.621Z"
+      "created_at": "2025-12-24T07:21:28.621Z",
+      "position": "부부장",
+      "updated_at": "2025-12-29T01:07:08.276Z"
     },
     {
       "id": 36,
       "name": "신지혜",
       "internal_phone": "6525",
-      "department": null,
+      "department": "업무혁신부",
       "email": null,
-      "join_date": "2025-12-24",
+      "join_date": "2025-10-21",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$drqpHWOFipa4feIYiyReE.9.E5P0zikAjDmX.w36ovCx9t/dySbeu",
-      "created_at": "2025-12-24T07:21:28.732Z"
+      "created_at": "2025-12-24T07:21:28.732Z",
+      "position": "차장",
+      "updated_at": "2025-12-29T01:07:08.276Z"
     },
     {
       "id": 37,
       "name": "신현식",
       "internal_phone": "6813",
-      "department": null,
+      "department": "인프라운영부",
       "email": null,
-      "join_date": "2025-12-24",
+      "join_date": "2025-10-21",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$G39A0QJGbqN6goDHbI4TQ.5Fi4gKmS3vPAkKWAPgReSEZC47UJXVS",
-      "created_at": "2025-12-24T07:21:28.844Z"
+      "created_at": "2025-12-24T07:21:28.844Z",
+      "position": "사원",
+      "updated_at": "2025-12-29T01:07:08.276Z"
     },
     {
       "id": 38,
       "name": "안치헌",
       "internal_phone": "6128",
-      "department": null,
+      "department": "업무시스템부",
       "email": null,
-      "join_date": "2025-12-24",
+      "join_date": "2025-10-21",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$nu2ywHdsZU8jcxgrsq8ri.eZis3ed1niGRkSlzyYcGMZ3oj1a19QG",
-      "created_at": "2025-12-24T07:21:28.955Z"
+      "created_at": "2025-12-24T07:21:28.955Z",
+      "position": "부부장",
+      "updated_at": "2025-12-29T01:07:08.276Z"
     },
     {
       "id": 39,
       "name": "안효진",
       "internal_phone": "6246",
-      "department": null,
+      "department": "Global&파생결제부",
       "email": null,
-      "join_date": "2025-12-24",
+      "join_date": "2025-10-21",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$txonpRR59kDFWCneCzl.7uaIyzZjHof3ExSpkxf7K7nYTSU.1eTES",
-      "created_at": "2025-12-24T07:21:29.066Z"
+      "created_at": "2025-12-24T07:21:29.066Z",
+      "position": "차장",
+      "updated_at": "2025-12-29T01:07:08.276Z"
     },
     {
       "id": 40,
       "name": "양덕영",
       "internal_phone": "7181",
-      "department": null,
+      "department": "결제업무부",
       "email": null,
-      "join_date": "2025-12-24",
+      "join_date": "2025-10-21",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$f9BKsCt2XIwYgBoX8Oy8PucNpzCN0kzJGrTEriUHaHCCwT488fqOe",
-      "created_at": "2025-12-24T07:21:29.177Z"
+      "created_at": "2025-12-24T07:21:29.177Z",
+      "position": "과장",
+      "updated_at": "2025-12-29T01:07:08.276Z"
     },
     {
       "id": 41,
       "name": "용대곤",
       "internal_phone": "7293",
-      "department": null,
+      "department": "WM기획부",
       "email": null,
-      "join_date": "2025-12-24",
+      "join_date": "2025-10-21",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$11sTPMScITp99Csa8/R0d.w5YS0.5XptpDCSyPNGikWjAYaBfOOzm",
-      "created_at": "2025-12-24T07:21:29.288Z"
+      "created_at": "2025-12-24T07:21:29.288Z",
+      "position": "대리",
+      "updated_at": "2025-12-29T01:07:08.276Z"
     },
     {
       "id": 42,
       "name": "원정연",
       "internal_phone": "6468",
-      "department": null,
+      "department": "코어뱅킹UX부",
       "email": null,
-      "join_date": "2025-12-24",
+      "join_date": "2025-10-21",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$Que.x00Xv.wRj3TRrACTT.inU05rR5vZTyY9d1cYbl6xglobZzO7C",
-      "created_at": "2025-12-24T07:21:29.399Z"
+      "created_at": "2025-12-24T07:21:29.399Z",
+      "position": "과장",
+      "updated_at": "2025-12-29T01:07:08.276Z"
     },
     {
       "id": 43,
       "name": "윤광현",
       "internal_phone": "8683",
-      "department": null,
+      "department": "디지털자산관리2센터",
       "email": null,
-      "join_date": "2025-12-24",
+      "join_date": "2025-10-24",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$U4USrhstY8fSkZHgtkskM.Zvi00/L/fn4v7XK0pIHMXGzbGbQVXHi",
-      "created_at": "2025-12-24T07:21:29.510Z"
+      "created_at": "2025-12-24T07:21:29.510Z",
+      "position": "부부장",
+      "updated_at": "2025-12-29T01:07:08.276Z"
     },
     {
       "id": 44,
       "name": "윤소민",
       "internal_phone": "6493",
-      "department": null,
+      "department": "Client솔루션본부",
       "email": null,
-      "join_date": "2025-12-24",
+      "join_date": "2025-10-29",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$r0aSg4kxCnI6IkA3XC/KJuNb/kC.STyrFr1pGhlBpQTVCOXfKAIsm",
-      "created_at": "2025-12-24T07:21:29.621Z"
+      "created_at": "2025-12-24T07:21:29.621Z",
+      "position": "사원",
+      "updated_at": "2025-12-29T01:07:08.276Z"
     },
     {
       "id": 45,
       "name": "윤영준",
       "internal_phone": "6173",
-      "department": null,
+      "department": "업무시스템부",
       "email": null,
-      "join_date": "2025-12-24",
+      "join_date": "2025-10-21",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$gfXQWM1gW/mSYmCBa59TEOsGmVZ0XLTCvQM45o9oEuC0/SCX41/nm",
-      "created_at": "2025-12-24T07:21:29.732Z"
+      "created_at": "2025-12-24T07:21:29.732Z",
+      "position": "부부장",
+      "updated_at": "2025-12-29T01:07:08.276Z"
     },
     {
       "id": 46,
       "name": "이건영",
       "internal_phone": "6788",
-      "department": null,
+      "department": "정보시스템부",
       "email": null,
-      "join_date": "2025-12-24",
+      "join_date": "2025-10-27",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$XSGOKt3K3gESDjRT014Y/e6dzuPzKt79mk.fEAJ.5H9uhfowSmCru",
-      "created_at": "2025-12-24T07:21:29.843Z"
+      "created_at": "2025-12-24T07:21:29.843Z",
+      "position": "부부장",
+      "updated_at": "2025-12-29T01:07:08.276Z"
     },
     {
       "id": 47,
       "name": "이도경",
       "internal_phone": "6491",
-      "department": null,
+      "department": "디지털기획부",
       "email": null,
-      "join_date": "2025-12-24",
+      "join_date": "2025-10-28",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$s5hTDqMyRK7y1Zqf90HFMuGqzFkKQCFKRAeJaNhF8fT1feSd.DK8i",
-      "created_at": "2025-12-24T07:21:29.954Z"
+      "created_at": "2025-12-24T07:21:29.954Z",
+      "position": "대리",
+      "updated_at": "2025-12-29T01:07:08.276Z"
     },
     {
       "id": 48,
       "name": "이상옥",
       "internal_phone": "6039",
-      "department": null,
+      "department": "AI&데이터지원부",
       "email": null,
-      "join_date": "2025-12-24",
+      "join_date": "2025-10-21",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$HmdD2CkLioQqF/a8pPaIgeiybSg20VORgRiQjSbJff6aYXLqxUNl2",
-      "created_at": "2025-12-24T07:21:30.066Z"
+      "created_at": "2025-12-24T07:21:30.066Z",
+      "position": "차장",
+      "updated_at": "2025-12-29T01:07:08.276Z"
     },
     {
       "id": 49,
       "name": "이선규",
       "internal_phone": "6179",
-      "department": null,
+      "department": "정보보호본부",
       "email": null,
-      "join_date": "2025-12-24",
+      "join_date": "2025-10-21",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$jWKnyo3jw.5s39l7PjLmweqKmtQqKVwPOL5bjkeJOi4C3ax99VHvO",
-      "created_at": "2025-12-24T07:21:30.177Z"
+      "created_at": "2025-12-24T07:21:30.177Z",
+      "position": "상무보",
+      "updated_at": "2025-12-29T01:07:08.276Z"
     },
     {
       "id": 50,
       "name": "이선화",
       "internal_phone": "4050",
-      "department": null,
+      "department": "NH금융PLUS 영업부금융센터 WM3센터",
       "email": null,
-      "join_date": "2025-12-24",
+      "join_date": "2025-10-31",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$Azw6Ul7myLXtJtL9Rx75he4rZ1t3xIcLs7bzm80Wywc/rBo2DavTq",
-      "created_at": "2025-12-24T07:21:30.288Z"
+      "created_at": "2025-12-24T07:21:30.288Z",
+      "position": "과장",
+      "updated_at": "2025-12-29T01:07:08.276Z"
     },
     {
       "id": 51,
       "name": "이성범",
       "internal_phone": "6132",
-      "department": null,
+      "department": "상품시스템부",
       "email": null,
-      "join_date": "2025-12-24",
+      "join_date": "2025-10-21",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$5IKQG6zjlAwYn8UeXstGJOeHiTSr1y.4UYPBwms.WeTKHnqZD4bqe",
-      "created_at": "2025-12-24T07:21:30.399Z"
+      "created_at": "2025-12-24T07:21:30.399Z",
+      "position": "부장",
+      "updated_at": "2025-12-29T01:07:08.276Z"
     },
     {
       "id": 52,
       "name": "이영록",
       "internal_phone": "6860",
-      "department": null,
+      "department": "코어뱅킹개발부",
       "email": null,
-      "join_date": "2025-12-24",
+      "join_date": "2025-10-21",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$mVPmDnzMqqdobgcOEV7/ZeGKtWHayhef7HVJS5ai3mVMRoHaQ5USa",
-      "created_at": "2025-12-24T07:21:30.510Z"
+      "created_at": "2025-12-24T07:21:30.510Z",
+      "position": "부부장",
+      "updated_at": "2025-12-29T01:07:08.276Z"
     },
     {
       "id": 53,
       "name": "이우진",
       "internal_phone": "6458",
-      "department": null,
+      "department": "업무시스템부",
       "email": null,
-      "join_date": "2025-12-24",
+      "join_date": "2025-10-21",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$L2ByIcnSsNnyk8tepIGIDeJNwsnSJ2TVDsGVxqdfXTp31k1yVYaH2",
-      "created_at": "2025-12-24T07:21:30.621Z"
+      "created_at": "2025-12-24T07:21:30.621Z",
+      "position": "부부장",
+      "updated_at": "2025-12-29T01:07:08.276Z"
     },
     {
       "id": 54,
       "name": "이준수",
       "internal_phone": "6698",
-      "department": null,
+      "department": "매체시스템부",
       "email": null,
-      "join_date": "2025-12-24",
+      "join_date": "2025-10-21",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$fmOMiIP4t2rTuLRdF0MUd./0P/nLJ6sZrkfrbveNfmqGOsSIRey9S",
-      "created_at": "2025-12-24T07:21:30.732Z"
+      "created_at": "2025-12-24T07:21:30.732Z",
+      "position": "차장",
+      "updated_at": "2025-12-29T01:07:08.276Z"
     },
     {
       "id": 55,
       "name": "이지혜",
       "internal_phone": "7561",
-      "department": null,
+      "department": "결제업무부",
       "email": null,
-      "join_date": "2025-12-24",
+      "join_date": "2025-10-21",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$SVR8wa8OTjffFwyLtHn1Au37rIDz64hDQ6dTxKb7bPlB2dGnobCUK",
-      "created_at": "2025-12-24T07:21:30.843Z"
+      "created_at": "2025-12-24T07:21:30.843Z",
+      "position": "차장",
+      "updated_at": "2025-12-29T01:07:08.276Z"
     },
     {
       "id": 56,
       "name": "이창구",
       "internal_phone": "6066",
-      "department": null,
+      "department": "코어뱅킹UX부",
       "email": null,
-      "join_date": "2025-12-24",
+      "join_date": "2025-10-21",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$jj82hFC2LYmLpY3hZYH6deuERCnKjvjhx5pIu4yB1oUW3u8kDxdNG",
-      "created_at": "2025-12-24T07:21:30.954Z"
+      "created_at": "2025-12-24T07:21:30.954Z",
+      "position": "부부장",
+      "updated_at": "2025-12-29T01:07:08.276Z"
     },
     {
       "id": 57,
       "name": "이채훈",
-      "internal_phone": "7179",
-      "department": null,
+      "internal_phone": "7197",
+      "department": "HNW지원부",
       "email": null,
-      "join_date": "2025-12-24",
+      "join_date": "2025-10-31",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$aD4N.J5DeZgX2oypYJMDq.X2c/xND1ppO0wFQM22cgSPwjsgUiAgq",
-      "created_at": "2025-12-24T07:21:31.065Z"
+      "created_at": "2025-12-24T07:21:31.065Z",
+      "position": "부부장",
+      "updated_at": "2025-12-29T01:07:08.276Z"
     },
     {
       "id": 58,
       "name": "이형문",
       "internal_phone": "5774",
-      "department": null,
+      "department": "업무혁신부",
       "email": null,
-      "join_date": "2025-12-24",
+      "join_date": "2025-10-21",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$JVpgUGM/EwaSf14y9T1uoOo9nf.oMOU6ZvtuolYc6i7WiXZTk7bCu",
-      "created_at": "2025-12-24T07:21:31.176Z"
+      "created_at": "2025-12-24T07:21:31.176Z",
+      "position": "부부장",
+      "updated_at": "2025-12-29T01:07:08.276Z"
     },
     {
       "id": 59,
       "name": "장유락",
       "internal_phone": "6826",
-      "department": null,
+      "department": "NH금융PLUS 영업부금융센터 WM1센터",
       "email": null,
-      "join_date": "2025-12-24",
+      "join_date": "2025-10-24",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$.0H4KcLsnzl2Af1GjTbBteSLgFKiAjTGe1VJJjefXqweFLj6OapnO",
-      "created_at": "2025-12-24T07:21:31.287Z"
+      "created_at": "2025-12-24T07:21:31.287Z",
+      "position": "차장",
+      "updated_at": "2025-12-29T01:07:08.276Z"
     },
     {
       "id": 60,
       "name": "장정임",
       "internal_phone": "6047",
-      "department": null,
+      "department": "코어뱅킹UX부",
       "email": null,
-      "join_date": "2025-12-24",
+      "join_date": "2025-10-21",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$Qj8Lwh7EtlMAMxSvBf3ytermVY9YAsKOrSlSDiBinYX7w7nOaJ9/q",
-      "created_at": "2025-12-24T07:21:31.398Z"
+      "created_at": "2025-12-24T07:21:31.398Z",
+      "position": "부장",
+      "updated_at": "2025-12-29T01:07:08.276Z"
     },
     {
       "id": 61,
       "name": "전희정",
       "internal_phone": "6257",
-      "department": null,
+      "department": "상품기획부",
       "email": null,
-      "join_date": "2025-12-24",
+      "join_date": "2025-11-10",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$co/o2b4baLHk5QxVAgFuE.q6QEbLMLp1EOqHTC.EfxYkceVYcAvf6",
-      "created_at": "2025-12-24T07:21:31.509Z"
+      "created_at": "2025-12-24T07:21:31.509Z",
+      "position": "과장",
+      "updated_at": "2025-12-29T01:07:08.276Z"
     },
     {
       "id": 62,
       "name": "정연미",
       "internal_phone": "6351",
-      "department": null,
+      "department": "디지털기획부",
       "email": null,
-      "join_date": "2025-12-24",
+      "join_date": "2025-10-21",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$dsENNDJeOdmzI3SdXtqxDOfX4se7n/RsSqGTr0j/B6EJIfFEZkm1G",
-      "created_at": "2025-12-24T07:21:31.619Z"
+      "created_at": "2025-12-24T07:21:31.619Z",
+      "position": "부부장",
+      "updated_at": "2025-12-29T01:07:08.276Z"
     },
     {
       "id": 63,
-      "name": "정요한",
+      "name": "정요안",
       "internal_phone": "6891",
-      "department": null,
+      "department": "디지털자산관리추진부",
       "email": null,
-      "join_date": "2025-12-24",
+      "join_date": "2025-10-21",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$88lpF21G43Cs9UYGuGYtXeR029VVp49KjjK7HiiastLokRC94dNDi",
-      "created_at": "2025-12-24T07:21:31.730Z"
+      "created_at": "2025-12-24T07:21:31.730Z",
+      "position": "부장",
+      "updated_at": "2025-12-29T01:07:08.276Z"
     },
     {
       "id": 64,
       "name": "정원숙",
       "internal_phone": "6264",
-      "department": null,
+      "department": "연금컨설팅1부",
       "email": null,
-      "join_date": "2025-12-24",
+      "join_date": "2025-10-21",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$9lDTd0yFhyT6/mOiK1jh7.CDkXLrUbI23BdScw2Kna3q2Sfy8PlIG",
-      "created_at": "2025-12-24T07:21:31.841Z"
+      "created_at": "2025-12-24T07:21:31.841Z",
+      "position": "차장",
+      "updated_at": "2025-12-29T01:07:08.276Z"
     },
     {
       "id": 65,
       "name": "정윤혜",
       "internal_phone": "6524",
-      "department": null,
+      "department": "리스크관리부",
       "email": null,
-      "join_date": "2025-12-24",
+      "join_date": "2025-10-21",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$5yV/sKpZ/NcWaf5CPrlbEe2p/5Zfr5BHZJMJqvZLkyahVld2Cz6G.",
-      "created_at": "2025-12-24T07:21:31.952Z"
+      "created_at": "2025-12-24T07:21:31.952Z",
+      "position": "과장",
+      "updated_at": "2025-12-29T01:07:08.276Z"
     },
     {
       "id": 66,
       "name": "정윤희",
       "internal_phone": "7989",
-      "department": null,
+      "department": "전략운용본부",
       "email": null,
-      "join_date": "2025-12-24",
+      "join_date": "2025-10-21",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$.rj.RsXUV6BywjaCSecJiuA9fkqMxcrrcJX/aKFXvNBrym584Z0ge",
-      "created_at": "2025-12-24T07:21:32.063Z"
+      "created_at": "2025-12-24T07:21:32.063Z",
+      "position": "차장",
+      "updated_at": "2025-12-29T01:07:08.276Z"
     },
     {
       "id": 67,
       "name": "정재엽",
       "internal_phone": "6068",
-      "department": null,
+      "department": "IT기획부",
       "email": null,
-      "join_date": "2025-12-24",
+      "join_date": "2025-10-21",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$ZdRnBSKI4j7g0jICYai8Ru7ONMTCYP1P6taQjbLox7LETs4ExcRO.",
-      "created_at": "2025-12-24T07:21:32.174Z"
+      "created_at": "2025-12-24T07:21:32.174Z",
+      "position": "부부장",
+      "updated_at": "2025-12-29T01:07:08.276Z"
     },
     {
       "id": 68,
       "name": "정혁진",
       "internal_phone": "6830",
-      "department": null,
+      "department": "업무시스템부",
       "email": null,
-      "join_date": "2025-12-24",
+      "join_date": "2025-10-21",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$1aLgF3qmnCT/Eb.5esziT.mpPS1x5c0OqtQ/aYhT/qzCR6KE.jyRa",
-      "created_at": "2025-12-24T07:21:32.285Z"
+      "created_at": "2025-12-24T07:21:32.285Z",
+      "position": "차장",
+      "updated_at": "2025-12-29T01:07:08.276Z"
     },
     {
       "id": 69,
       "name": "조재욱",
       "internal_phone": "6451",
-      "department": null,
+      "department": "채권상품부",
       "email": null,
-      "join_date": "2025-12-24",
+      "join_date": "2025-10-23",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$sFc3xFhRn6FN/9D2ej/lX.KIsBOa3QQIBUCuJPNaEMDV2Mv0VYVhm",
-      "created_at": "2025-12-24T07:21:32.396Z"
+      "created_at": "2025-12-24T07:21:32.396Z",
+      "position": "과장",
+      "updated_at": "2025-12-29T01:07:08.276Z"
     },
     {
       "id": 70,
       "name": "지명관",
       "internal_phone": "6916",
-      "department": null,
+      "department": "스쿼드PMO",
       "email": null,
-      "join_date": "2025-12-24",
+      "join_date": "2025-10-24",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$B/m6T3Gfqdho2YdQ5KsjseG.Um8nCrdnX4rEv.Xsz9OnXY5ubgtqe",
-      "created_at": "2025-12-24T07:21:32.507Z"
+      "created_at": "2025-12-24T07:21:32.507Z",
+      "position": "대리",
+      "updated_at": "2025-12-29T01:07:08.276Z"
     },
     {
       "id": 71,
       "name": "최기현",
       "internal_phone": "7044",
-      "department": null,
+      "department": "코어뱅킹개발부",
       "email": null,
-      "join_date": "2025-12-24",
+      "join_date": "2025-10-21",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$nrbvATp0cyhxOY0DZ7s.Oex7t.cxQX8tPy12vkY0zvm9bbXVVjcxK",
-      "created_at": "2025-12-24T07:21:32.618Z"
+      "created_at": "2025-12-24T07:21:32.618Z",
+      "position": "대리",
+      "updated_at": "2025-12-29T01:07:08.276Z"
     },
     {
       "id": 72,
       "name": "한민주",
       "internal_phone": "0478",
-      "department": null,
+      "department": "구리WM센터",
       "email": null,
-      "join_date": "2025-12-24",
+      "join_date": "2025-10-21",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$ph14NT.50OwrFLOchNA.oOoeRYwlAjUZfxQq6MYDq14ZLzWpHcmce",
-      "created_at": "2025-12-24T07:21:32.729Z"
+      "created_at": "2025-12-24T07:21:32.729Z",
+      "position": "과장",
+      "updated_at": "2025-12-29T01:07:08.276Z"
     },
     {
       "id": 73,
       "name": "한위",
       "internal_phone": "7452",
-      "department": null,
+      "department": "리서치본부",
       "email": null,
-      "join_date": "2025-12-24",
+      "join_date": "2025-10-24",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$0PYuMdWdksel63Splk0p9e0K6bbSduYh3X0h7Fb5e3f5DLbS.Ihk.",
-      "created_at": "2025-12-24T07:21:32.840Z"
+      "created_at": "2025-12-24T07:21:32.840Z",
+      "position": "차장",
+      "updated_at": "2025-12-29T01:07:08.276Z"
     },
     {
       "id": 74,
       "name": "홍지영",
       "internal_phone": "6254",
-      "department": null,
+      "department": "경영지원본부",
       "email": null,
-      "join_date": "2025-12-24",
+      "join_date": "2025-10-31",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$KzXSShM7bFH8AHJBm966nee5mF0eKR2qzHiCrSLNSrsJnwAUd1Sve",
-      "created_at": "2025-12-24T07:21:32.951Z"
+      "created_at": "2025-12-24T07:21:32.951Z",
+      "position": "부부장",
+      "updated_at": "2025-12-29T01:07:08.276Z"
     },
     {
       "id": 75,
       "name": "황명상",
       "internal_phone": "6376",
-      "department": null,
+      "department": "상품시스템부",
       "email": null,
-      "join_date": "2025-12-24",
+      "join_date": "2025-10-21",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$sb.QEB.eBY6XQEBJlyG1BOtk7iBX27t3DHSzSJpbdYyQiFdPzfPJu",
-      "created_at": "2025-12-24T07:21:33.062Z"
+      "created_at": "2025-12-24T07:21:33.062Z",
+      "position": "차장",
+      "updated_at": "2025-12-29T01:07:08.276Z"
     },
     {
       "id": 76,
       "name": "황선애",
       "internal_phone": "0416",
-      "department": null,
+      "department": "판교 Biz Plus 금융센터",
+      "email": null,
+      "join_date": "2025-11-03",
+      "status": "active",
+      "is_admin": false,
+      "password_hash": "$2a$10$/bnWTQqDSuuvfz46XCt8lOVgSgKT2ts4bf9d.1p7N03ViaoUcquYm",
+      "created_at": "2025-12-24T07:21:33.172Z",
+      "position": "차장",
+      "updated_at": "2025-12-29T01:07:08.276Z"
+    },
+    {
+      "id": 77,
+      "name": "김봉기",
+      "internal_phone": null,
+      "department": "인사부소속",
+      "position": "상무",
+      "email": null,
+      "join_date": "2025-10-24",
+      "status": "active",
+      "is_admin": false,
+      "password_hash": "$2a$10$WppxLhadtklphsv2DgkxuO00URWAi83g.zekpgNEVju6Ssf7DkkX2",
+      "created_at": "2025-12-29T01:07:08.276Z"
+    },
+    {
+      "id": 78,
+      "name": "김오근",
+      "internal_phone": "0450",
+      "department": "수지WM센터",
+      "position": "부부장",
+      "email": null,
+      "join_date": "2025-11-24",
+      "status": "active",
+      "is_admin": false,
+      "password_hash": "$2a$10$WppxLhadtklphsv2DgkxuO00URWAi83g.zekpgNEVju6Ssf7DkkX2",
+      "created_at": "2025-12-29T01:07:08.276Z"
+    },
+    {
+      "id": 79,
+      "name": "김홍중",
+      "internal_phone": "6568",
+      "department": "업무시스템부",
+      "position": "차장",
+      "email": null,
+      "join_date": "2025-12-01",
+      "status": "active",
+      "is_admin": false,
+      "password_hash": "$2a$10$WppxLhadtklphsv2DgkxuO00URWAi83g.zekpgNEVju6Ssf7DkkX2",
+      "created_at": "2025-12-29T01:07:08.276Z"
+    },
+    {
+      "id": 80,
+      "name": "이경미",
+      "internal_phone": null,
+      "department": "반포금융센터 WM1센터",
+      "position": "차장",
       "email": null,
       "join_date": "2025-12-24",
       "status": "active",
       "is_admin": false,
-      "password_hash": "$2a$10$/bnWTQqDSuuvfz46XCt8lOVgSgKT2ts4bf9d.1p7N03ViaoUcquYm",
-      "created_at": "2025-12-24T07:21:33.172Z"
+      "password_hash": "$2a$10$WppxLhadtklphsv2DgkxuO00URWAi83g.zekpgNEVju6Ssf7DkkX2",
+      "created_at": "2025-12-29T01:07:08.276Z"
+    },
+    {
+      "id": 81,
+      "name": "이지형",
+      "internal_phone": "6965",
+      "department": "전략운용본부",
+      "position": "차장",
+      "email": null,
+      "join_date": "2025-11-27",
+      "status": "active",
+      "is_admin": false,
+      "password_hash": "$2a$10$WppxLhadtklphsv2DgkxuO00URWAi83g.zekpgNEVju6Ssf7DkkX2",
+      "created_at": "2025-12-29T01:07:08.276Z"
+    },
+    {
+      "id": 82,
+      "name": "조현하",
+      "internal_phone": "7763",
+      "department": "영업부법인센터",
+      "position": "대리",
+      "email": null,
+      "join_date": "2025-12-04",
+      "status": "active",
+      "is_admin": false,
+      "password_hash": "$2a$10$WppxLhadtklphsv2DgkxuO00URWAi83g.zekpgNEVju6Ssf7DkkX2",
+      "created_at": "2025-12-29T01:07:08.276Z"
     }
   ],
   "golf_courses": [
@@ -1383,116 +1613,631 @@
     "yangji": {
       "name": "양지파인CC",
       "info": "경기도 용인시 처인구 양지면 | 27홀 (남, 동, 서)",
-      "courses": ["남", "동", "서"],
+      "courses": [
+        "남",
+        "동",
+        "서"
+      ],
       "holes": {
         "남": [
-          { "hole": 1, "par": 4, "distance": 360, "handicap": 7, "tip": "우측 OB 주의. 페어웨이 좌측을 공략하면 안전합니다. 세컨샷은 그린 앞 벙커 주의.", "imageUrl": "/images/courses/yangji/nam_hole1.png" },
-          { "hole": 2, "par": 5, "distance": 520, "handicap": 3, "tip": "투온 가능한 홀. 우측 워터해저드 주의하며 공격적으로 공략. 롱히터는 2온 도전.", "imageUrl": "/images/courses/yangji/nam_hole2.png" },
-          { "hole": 3, "par": 3, "distance": 165, "handicap": 17, "tip": "그린이 좌측으로 경사져 있어 핀 위치에 따라 클럽 선택 중요. 숏 아이언으로 정확하게.", "imageUrl": "/images/courses/yangji/nam_hole3.png" },
-          { "hole": 4, "par": 5, "distance": 540, "handicap": 1, "tip": "오르막 홀. 3온 전략으로 안전하게 플레이 권장. 그린 주변 경사가 심함.", "imageUrl": "/images/courses/yangji/nam_hole4.png" },
-          { "hole": 5, "par": 3, "distance": 180, "handicap": 15, "tip": "거리가 긴 파3. 바람의 영향을 많이 받으니 클럽 선택 신중히. 그린 앞 벙커 주의.", "imageUrl": "/images/courses/yangji/nam_hole5.png" },
-          { "hole": 6, "par": 4, "distance": 380, "handicap": 5, "tip": "내리막 홀. 드라이버 비거리가 잘 나오니 방향성에 집중. 좌측 벙커 주의.", "imageUrl": "/images/courses/yangji/nam_hole6.png" },
-          { "hole": 7, "par": 3, "distance": 155, "handicap": 18, "tip": "짧은 파3. 핀 위치에 따라 공략 방향 결정. 그린 경사 심함.", "imageUrl": "/images/courses/yangji/nam_hole7.png" },
-          { "hole": 8, "par": 5, "distance": 515, "handicap": 10, "tip": "전략적 롱홀. 레이업 후 정확한 세컨샷으로 버디 찬스.", "imageUrl": "/images/courses/yangji/nam_hole8.png" },
-          { "hole": 9, "par": 4, "distance": 370, "handicap": 9, "tip": "도그렉 좌측. 코너 공략시 세컨샷 거리 단축 가능. 우측 OB 주의.", "imageUrl": "/images/courses/yangji/nam_hole9.png" }
+          {
+            "hole": 1,
+            "par": 4,
+            "distance": 360,
+            "handicap": 7,
+            "tip": "우측 OB 주의. 페어웨이 좌측을 공략하면 안전합니다. 세컨샷은 그린 앞 벙커 주의.",
+            "imageUrl": "/images/courses/yangji/nam_hole1.png"
+          },
+          {
+            "hole": 2,
+            "par": 5,
+            "distance": 520,
+            "handicap": 3,
+            "tip": "투온 가능한 홀. 우측 워터해저드 주의하며 공격적으로 공략. 롱히터는 2온 도전.",
+            "imageUrl": "/images/courses/yangji/nam_hole2.png"
+          },
+          {
+            "hole": 3,
+            "par": 3,
+            "distance": 165,
+            "handicap": 17,
+            "tip": "그린이 좌측으로 경사져 있어 핀 위치에 따라 클럽 선택 중요. 숏 아이언으로 정확하게.",
+            "imageUrl": "/images/courses/yangji/nam_hole3.png"
+          },
+          {
+            "hole": 4,
+            "par": 5,
+            "distance": 540,
+            "handicap": 1,
+            "tip": "오르막 홀. 3온 전략으로 안전하게 플레이 권장. 그린 주변 경사가 심함.",
+            "imageUrl": "/images/courses/yangji/nam_hole4.png"
+          },
+          {
+            "hole": 5,
+            "par": 3,
+            "distance": 180,
+            "handicap": 15,
+            "tip": "거리가 긴 파3. 바람의 영향을 많이 받으니 클럽 선택 신중히. 그린 앞 벙커 주의.",
+            "imageUrl": "/images/courses/yangji/nam_hole5.png"
+          },
+          {
+            "hole": 6,
+            "par": 4,
+            "distance": 380,
+            "handicap": 5,
+            "tip": "내리막 홀. 드라이버 비거리가 잘 나오니 방향성에 집중. 좌측 벙커 주의.",
+            "imageUrl": "/images/courses/yangji/nam_hole6.png"
+          },
+          {
+            "hole": 7,
+            "par": 3,
+            "distance": 155,
+            "handicap": 18,
+            "tip": "짧은 파3. 핀 위치에 따라 공략 방향 결정. 그린 경사 심함.",
+            "imageUrl": "/images/courses/yangji/nam_hole7.png"
+          },
+          {
+            "hole": 8,
+            "par": 5,
+            "distance": 515,
+            "handicap": 10,
+            "tip": "전략적 롱홀. 레이업 후 정확한 세컨샷으로 버디 찬스.",
+            "imageUrl": "/images/courses/yangji/nam_hole8.png"
+          },
+          {
+            "hole": 9,
+            "par": 4,
+            "distance": 370,
+            "handicap": 9,
+            "tip": "도그렉 좌측. 코너 공략시 세컨샷 거리 단축 가능. 우측 OB 주의.",
+            "imageUrl": "/images/courses/yangji/nam_hole9.png"
+          }
         ],
         "동": [
-          { "hole": 1, "par": 3, "distance": 170, "handicap": 16, "tip": "시작홀 파3. 바람 체크 필수. 클럽 한 개 길게.", "imageUrl": "/images/courses/yangji/dong_hole1.png" },
-          { "hole": 2, "par": 4, "distance": 375, "handicap": 6, "tip": "좌측 워터해저드 주의하며 우측 공략.", "imageUrl": "/images/courses/yangji/dong_hole2.png" },
-          { "hole": 3, "par": 4, "distance": 385, "handicap": 8, "tip": "오르막 홀. 티샷은 페어웨이 중앙, 세컨샷은 정확한 거리 컨트롤.", "imageUrl": "/images/courses/yangji/dong_hole3.png" },
-          { "hole": 4, "par": 5, "distance": 530, "handicap": 2, "tip": "롱홀. 2타째 레이업이 안전. 그린 앞 벙커 군락 주의.", "imageUrl": "/images/courses/yangji/dong_hole4.png" },
-          { "hole": 5, "par": 4, "distance": 350, "handicap": 14, "tip": "내리막 도그렉. 드라이버보다 우드나 아이언으로 정확하게.", "imageUrl": "/images/courses/yangji/dong_hole5.png" },
-          { "hole": 6, "par": 5, "distance": 505, "handicap": 4, "tip": "짧은 파5. 공격적인 플레이로 버디 찬스. 우측 OB 주의.", "imageUrl": "/images/courses/yangji/dong_hole6.png" },
-          { "hole": 7, "par": 4, "distance": 395, "handicap": 4, "tip": "긴 파4. 티샷 방향성이 중요. 그린이 좁아 정밀한 어프로치 필요.", "imageUrl": "/images/courses/yangji/dong_hole7.png" },
-          { "hole": 8, "par": 4, "distance": 340, "handicap": 13, "tip": "짧은 파4. 정확한 드라이버 샷 후 숏아이언으로 그린 공략.", "imageUrl": "/images/courses/yangji/dong_hole8.png" },
-          { "hole": 9, "par": 3, "distance": 185, "handicap": 16, "tip": "긴 파3. 바람 영향 큼. 안전하게 그린 중앙 공략.", "imageUrl": "/images/courses/yangji/dong_hole9.png" }
+          {
+            "hole": 1,
+            "par": 3,
+            "distance": 170,
+            "handicap": 16,
+            "tip": "시작홀 파3. 바람 체크 필수. 클럽 한 개 길게.",
+            "imageUrl": "/images/courses/yangji/dong_hole1.png"
+          },
+          {
+            "hole": 2,
+            "par": 4,
+            "distance": 375,
+            "handicap": 6,
+            "tip": "좌측 워터해저드 주의하며 우측 공략.",
+            "imageUrl": "/images/courses/yangji/dong_hole2.png"
+          },
+          {
+            "hole": 3,
+            "par": 4,
+            "distance": 385,
+            "handicap": 8,
+            "tip": "오르막 홀. 티샷은 페어웨이 중앙, 세컨샷은 정확한 거리 컨트롤.",
+            "imageUrl": "/images/courses/yangji/dong_hole3.png"
+          },
+          {
+            "hole": 4,
+            "par": 5,
+            "distance": 530,
+            "handicap": 2,
+            "tip": "롱홀. 2타째 레이업이 안전. 그린 앞 벙커 군락 주의.",
+            "imageUrl": "/images/courses/yangji/dong_hole4.png"
+          },
+          {
+            "hole": 5,
+            "par": 4,
+            "distance": 350,
+            "handicap": 14,
+            "tip": "내리막 도그렉. 드라이버보다 우드나 아이언으로 정확하게.",
+            "imageUrl": "/images/courses/yangji/dong_hole5.png"
+          },
+          {
+            "hole": 6,
+            "par": 5,
+            "distance": 505,
+            "handicap": 4,
+            "tip": "짧은 파5. 공격적인 플레이로 버디 찬스. 우측 OB 주의.",
+            "imageUrl": "/images/courses/yangji/dong_hole6.png"
+          },
+          {
+            "hole": 7,
+            "par": 4,
+            "distance": 395,
+            "handicap": 4,
+            "tip": "긴 파4. 티샷 방향성이 중요. 그린이 좁아 정밀한 어프로치 필요.",
+            "imageUrl": "/images/courses/yangji/dong_hole7.png"
+          },
+          {
+            "hole": 8,
+            "par": 4,
+            "distance": 340,
+            "handicap": 13,
+            "tip": "짧은 파4. 정확한 드라이버 샷 후 숏아이언으로 그린 공략.",
+            "imageUrl": "/images/courses/yangji/dong_hole8.png"
+          },
+          {
+            "hole": 9,
+            "par": 3,
+            "distance": 185,
+            "handicap": 16,
+            "tip": "긴 파3. 바람 영향 큼. 안전하게 그린 중앙 공략.",
+            "imageUrl": "/images/courses/yangji/dong_hole9.png"
+          }
         ],
         "서": [
-          { "hole": 1, "par": 4, "distance": 355, "handicap": 8, "tip": "서코스 시작홀. 우측 경사면 주의. 페어웨이 좌측 공략.", "imageUrl": "/images/courses/yangji/seo_hole1.png" },
-          { "hole": 2, "par": 3, "distance": 175, "handicap": 14, "tip": "내리막 파3. 실제 거리보다 짧게 느껴짐. 한 클럽 짧게.", "imageUrl": "/images/courses/yangji/seo_hole2.png" },
-          { "hole": 3, "par": 5, "distance": 535, "handicap": 6, "tip": "오르막 롱홀. 3온 전략 권장. 그린 뒤 OB 주의.", "imageUrl": "/images/courses/yangji/seo_hole3.png" },
-          { "hole": 4, "par": 4, "distance": 390, "handicap": 2, "tip": "어려운 파4. 정확한 티샷 후 롱아이언 세컨샷. 그린이 좁음.", "imageUrl": "/images/courses/yangji/seo_hole4.png" },
-          { "hole": 5, "par": 4, "distance": 345, "handicap": 12, "tip": "짧은 파4. 드라이버보다 정확성 우선. 그린 주변 벙커 많음.", "imageUrl": "/images/courses/yangji/seo_hole5.png" },
-          { "hole": 6, "par": 4, "distance": 400, "handicap": 11, "tip": "긴 파4. 페어웨이 우측 벙커 피해 좌측으로 티샷.", "imageUrl": "/images/courses/yangji/seo_hole6.png" },
-          { "hole": 7, "par": 4, "distance": 380, "handicap": 10, "tip": "도그렉 우측. 티샷 방향 중요. 세컨샷 거리감 체크.", "imageUrl": "/images/courses/yangji/seo_hole7.png" },
-          { "hole": 8, "par": 3, "distance": 165, "handicap": 17, "tip": "숏 파3. 그린 경사 확인 필수.", "imageUrl": "/images/courses/yangji/seo_hole8.png" },
-          { "hole": 9, "par": 5, "distance": 505, "handicap": 4, "tip": "마무리 파5. 투온이 어려우니 안전하게 3온 전략.", "imageUrl": "/images/courses/yangji/seo_hole9.png" }
+          {
+            "hole": 1,
+            "par": 4,
+            "distance": 355,
+            "handicap": 8,
+            "tip": "서코스 시작홀. 우측 경사면 주의. 페어웨이 좌측 공략.",
+            "imageUrl": "/images/courses/yangji/seo_hole1.png"
+          },
+          {
+            "hole": 2,
+            "par": 3,
+            "distance": 175,
+            "handicap": 14,
+            "tip": "내리막 파3. 실제 거리보다 짧게 느껴짐. 한 클럽 짧게.",
+            "imageUrl": "/images/courses/yangji/seo_hole2.png"
+          },
+          {
+            "hole": 3,
+            "par": 5,
+            "distance": 535,
+            "handicap": 6,
+            "tip": "오르막 롱홀. 3온 전략 권장. 그린 뒤 OB 주의.",
+            "imageUrl": "/images/courses/yangji/seo_hole3.png"
+          },
+          {
+            "hole": 4,
+            "par": 4,
+            "distance": 390,
+            "handicap": 2,
+            "tip": "어려운 파4. 정확한 티샷 후 롱아이언 세컨샷. 그린이 좁음.",
+            "imageUrl": "/images/courses/yangji/seo_hole4.png"
+          },
+          {
+            "hole": 5,
+            "par": 4,
+            "distance": 345,
+            "handicap": 12,
+            "tip": "짧은 파4. 드라이버보다 정확성 우선. 그린 주변 벙커 많음.",
+            "imageUrl": "/images/courses/yangji/seo_hole5.png"
+          },
+          {
+            "hole": 6,
+            "par": 4,
+            "distance": 400,
+            "handicap": 11,
+            "tip": "긴 파4. 페어웨이 우측 벙커 피해 좌측으로 티샷.",
+            "imageUrl": "/images/courses/yangji/seo_hole6.png"
+          },
+          {
+            "hole": 7,
+            "par": 4,
+            "distance": 380,
+            "handicap": 10,
+            "tip": "도그렉 우측. 티샷 방향 중요. 세컨샷 거리감 체크.",
+            "imageUrl": "/images/courses/yangji/seo_hole7.png"
+          },
+          {
+            "hole": 8,
+            "par": 3,
+            "distance": 165,
+            "handicap": 17,
+            "tip": "숏 파3. 그린 경사 확인 필수.",
+            "imageUrl": "/images/courses/yangji/seo_hole8.png"
+          },
+          {
+            "hole": 9,
+            "par": 5,
+            "distance": 505,
+            "handicap": 4,
+            "tip": "마무리 파5. 투온이 어려우니 안전하게 3온 전략.",
+            "imageUrl": "/images/courses/yangji/seo_hole9.png"
+          }
         ]
       }
     },
     "daeyoungHills": {
       "name": "대영힐스CC",
       "info": "충북 충주시 앙성면 | 27홀 (력, 청, 미)",
-      "courses": ["력", "청", "미"],
+      "courses": [
+        "력",
+        "청",
+        "미"
+      ],
       "holes": {
         "력": [
-          { "hole": 1, "par": 4, "distance": 345, "handicap": 9, "tip": "력코스 시작홀. 좌측 OB 주의하며 페어웨이 중앙 공략.", "imageUrl": "/images/courses/daeyoungHills/ryuk_hole1.png" },
-          { "hole": 2, "par": 4, "distance": 286, "handicap": 5, "tip": "짧은 파4. 정확한 샷으로 버디 찬스.", "imageUrl": "/images/courses/daeyoungHills/ryuk_hole2.png" },
-          { "hole": 3, "par": 5, "distance": 485, "handicap": 17, "tip": "롱홀 파5. 레이업 후 정확한 어프로치가 핵심.", "imageUrl": "/images/courses/daeyoungHills/ryuk_hole3.png" },
-          { "hole": 4, "par": 3, "distance": 155, "handicap": 3, "tip": "숏 파3. 그린 주변 벙커 주의.", "imageUrl": "/images/courses/daeyoungHills/ryuk_hole4.png" },
-          { "hole": 5, "par": 4, "distance": 283, "handicap": 11, "tip": "짧은 파4. 정확한 티샷 후 숏아이언으로 그린 공략.", "imageUrl": "/images/courses/daeyoungHills/ryuk_hole5.png" },
-          { "hole": 6, "par": 5, "distance": 405, "handicap": 1, "tip": "짧은 파5. 투온 도전 가능. 우측 OB 주의.", "imageUrl": "/images/courses/daeyoungHills/ryuk_hole6.png" },
-          { "hole": 7, "par": 3, "distance": 144, "handicap": 15, "tip": "숏 파3. 바람 체크 필수. 핀 위치에 따라 클럽 선택.", "imageUrl": "/images/courses/daeyoungHills/ryuk_hole7.png" },
-          { "hole": 8, "par": 4, "distance": 286, "handicap": 7, "tip": "짧은 파4. 정확한 티샷으로 버디 기회.", "imageUrl": "/images/courses/daeyoungHills/ryuk_hole8.png" },
-          { "hole": 9, "par": 4, "distance": 263, "handicap": 13, "tip": "마무리 홀. 짧지만 그린 앞 벙커 주의하며 확실한 피니시.", "imageUrl": "/images/courses/daeyoungHills/ryuk_hole9.png" }
+          {
+            "hole": 1,
+            "par": 4,
+            "distance": 345,
+            "handicap": 9,
+            "tip": "력코스 시작홀. 좌측 OB 주의하며 페어웨이 중앙 공략.",
+            "imageUrl": "/images/courses/daeyoungHills/ryuk_hole1.png"
+          },
+          {
+            "hole": 2,
+            "par": 4,
+            "distance": 286,
+            "handicap": 5,
+            "tip": "짧은 파4. 정확한 샷으로 버디 찬스.",
+            "imageUrl": "/images/courses/daeyoungHills/ryuk_hole2.png"
+          },
+          {
+            "hole": 3,
+            "par": 5,
+            "distance": 485,
+            "handicap": 17,
+            "tip": "롱홀 파5. 레이업 후 정확한 어프로치가 핵심.",
+            "imageUrl": "/images/courses/daeyoungHills/ryuk_hole3.png"
+          },
+          {
+            "hole": 4,
+            "par": 3,
+            "distance": 155,
+            "handicap": 3,
+            "tip": "숏 파3. 그린 주변 벙커 주의.",
+            "imageUrl": "/images/courses/daeyoungHills/ryuk_hole4.png"
+          },
+          {
+            "hole": 5,
+            "par": 4,
+            "distance": 283,
+            "handicap": 11,
+            "tip": "짧은 파4. 정확한 티샷 후 숏아이언으로 그린 공략.",
+            "imageUrl": "/images/courses/daeyoungHills/ryuk_hole5.png"
+          },
+          {
+            "hole": 6,
+            "par": 5,
+            "distance": 405,
+            "handicap": 1,
+            "tip": "짧은 파5. 투온 도전 가능. 우측 OB 주의.",
+            "imageUrl": "/images/courses/daeyoungHills/ryuk_hole6.png"
+          },
+          {
+            "hole": 7,
+            "par": 3,
+            "distance": 144,
+            "handicap": 15,
+            "tip": "숏 파3. 바람 체크 필수. 핀 위치에 따라 클럽 선택.",
+            "imageUrl": "/images/courses/daeyoungHills/ryuk_hole7.png"
+          },
+          {
+            "hole": 8,
+            "par": 4,
+            "distance": 286,
+            "handicap": 7,
+            "tip": "짧은 파4. 정확한 티샷으로 버디 기회.",
+            "imageUrl": "/images/courses/daeyoungHills/ryuk_hole8.png"
+          },
+          {
+            "hole": 9,
+            "par": 4,
+            "distance": 263,
+            "handicap": 13,
+            "tip": "마무리 홀. 짧지만 그린 앞 벙커 주의하며 확실한 피니시.",
+            "imageUrl": "/images/courses/daeyoungHills/ryuk_hole9.png"
+          }
         ],
         "청": [
-          { "hole": 1, "par": 5, "distance": 530, "handicap": 7, "tip": "청코스 시작홀. 긴 파5. 레이업 후 안전하게 3온 공략.", "imageUrl": "/images/courses/daeyoungHills/chung_hole1.png" },
-          { "hole": 2, "par": 3, "distance": 113, "handicap": 15, "tip": "짧은 파3. 핀 위치에 따라 클럽 선택. 바람 체크 필수.", "imageUrl": "/images/courses/daeyoungHills/chung_hole2.png" },
-          { "hole": 3, "par": 4, "distance": 377, "handicap": 3, "tip": "미들 파4. 정확한 티샷 후 그린 공략.", "imageUrl": "/images/courses/daeyoungHills/chung_hole3.png" },
-          { "hole": 4, "par": 5, "distance": 472, "handicap": 5, "tip": "짧은 파5. 투온 도전 가능. 그린 주변 벙커 주의.", "imageUrl": "/images/courses/daeyoungHills/chung_hole4.png" },
-          { "hole": 5, "par": 4, "distance": 359, "handicap": 13, "tip": "미들 파4. 정확한 티샷이 관건.", "imageUrl": "/images/courses/daeyoungHills/chung_hole5.png" },
-          { "hole": 6, "par": 4, "distance": 343, "handicap": 1, "tip": "짧은 파4. 버디 찬스 홀. 그린 경사 확인.", "imageUrl": "/images/courses/daeyoungHills/chung_hole6.png" },
-          { "hole": 7, "par": 3, "distance": 124, "handicap": 17, "tip": "짧은 파3. 정확한 거리 컨트롤이 핵심.", "imageUrl": "/images/courses/daeyoungHills/chung_hole7.png" },
-          { "hole": 8, "par": 4, "distance": 314, "handicap": 9, "tip": "짧은 파4. 정확한 샷으로 버디 기회.", "imageUrl": "/images/courses/daeyoungHills/chung_hole8.png" },
-          { "hole": 9, "par": 4, "distance": 362, "handicap": 11, "tip": "마무리 홀. 안정적인 파 세이브로 코스 마무리.", "imageUrl": "/images/courses/daeyoungHills/chung_hole9.png" }
+          {
+            "hole": 1,
+            "par": 5,
+            "distance": 530,
+            "handicap": 7,
+            "tip": "청코스 시작홀. 긴 파5. 레이업 후 안전하게 3온 공략.",
+            "imageUrl": "/images/courses/daeyoungHills/chung_hole1.png"
+          },
+          {
+            "hole": 2,
+            "par": 3,
+            "distance": 113,
+            "handicap": 15,
+            "tip": "짧은 파3. 핀 위치에 따라 클럽 선택. 바람 체크 필수.",
+            "imageUrl": "/images/courses/daeyoungHills/chung_hole2.png"
+          },
+          {
+            "hole": 3,
+            "par": 4,
+            "distance": 377,
+            "handicap": 3,
+            "tip": "미들 파4. 정확한 티샷 후 그린 공략.",
+            "imageUrl": "/images/courses/daeyoungHills/chung_hole3.png"
+          },
+          {
+            "hole": 4,
+            "par": 5,
+            "distance": 472,
+            "handicap": 5,
+            "tip": "짧은 파5. 투온 도전 가능. 그린 주변 벙커 주의.",
+            "imageUrl": "/images/courses/daeyoungHills/chung_hole4.png"
+          },
+          {
+            "hole": 5,
+            "par": 4,
+            "distance": 359,
+            "handicap": 13,
+            "tip": "미들 파4. 정확한 티샷이 관건.",
+            "imageUrl": "/images/courses/daeyoungHills/chung_hole5.png"
+          },
+          {
+            "hole": 6,
+            "par": 4,
+            "distance": 343,
+            "handicap": 1,
+            "tip": "짧은 파4. 버디 찬스 홀. 그린 경사 확인.",
+            "imageUrl": "/images/courses/daeyoungHills/chung_hole6.png"
+          },
+          {
+            "hole": 7,
+            "par": 3,
+            "distance": 124,
+            "handicap": 17,
+            "tip": "짧은 파3. 정확한 거리 컨트롤이 핵심.",
+            "imageUrl": "/images/courses/daeyoungHills/chung_hole7.png"
+          },
+          {
+            "hole": 8,
+            "par": 4,
+            "distance": 314,
+            "handicap": 9,
+            "tip": "짧은 파4. 정확한 샷으로 버디 기회.",
+            "imageUrl": "/images/courses/daeyoungHills/chung_hole8.png"
+          },
+          {
+            "hole": 9,
+            "par": 4,
+            "distance": 362,
+            "handicap": 11,
+            "tip": "마무리 홀. 안정적인 파 세이브로 코스 마무리.",
+            "imageUrl": "/images/courses/daeyoungHills/chung_hole9.png"
+          }
         ],
         "미": [
-          { "hole": 1, "par": 4, "distance": 420, "handicap": 10, "tip": "미코스 시작홀. 긴 파4. 정확한 티샷 필수.", "imageUrl": "/images/courses/daeyoungHills/mi_hole1.png" },
-          { "hole": 2, "par": 4, "distance": 363, "handicap": 6, "tip": "미들 파4. 페어웨이 중앙 공략.", "imageUrl": "/images/courses/daeyoungHills/mi_hole2.png" },
-          { "hole": 3, "par": 4, "distance": 332, "handicap": 18, "tip": "짧은 파4. 버디 찬스 홀.", "imageUrl": "/images/courses/daeyoungHills/mi_hole3.png" },
-          { "hole": 4, "par": 3, "distance": 155, "handicap": 2, "tip": "숏 파3. 그린 경사 확인 후 핀 공략.", "imageUrl": "/images/courses/daeyoungHills/mi_hole4.png" },
-          { "hole": 5, "par": 4, "distance": 344, "handicap": 14, "tip": "미들 파4. 정확한 티샷이 관건.", "imageUrl": "/images/courses/daeyoungHills/mi_hole5.png" },
-          { "hole": 6, "par": 5, "distance": 514, "handicap": 4, "tip": "롱홀 파5. 레이업 후 안전하게 3온.", "imageUrl": "/images/courses/daeyoungHills/mi_hole6.png" },
-          { "hole": 7, "par": 3, "distance": 115, "handicap": 16, "tip": "가장 짧은 파3. 정확한 거리 컨트롤.", "imageUrl": "/images/courses/daeyoungHills/mi_hole7.png" },
-          { "hole": 8, "par": 5, "distance": 529, "handicap": 8, "tip": "긴 파5. 레이업 후 정확한 어프로치.", "imageUrl": "/images/courses/daeyoungHills/mi_hole8.png" },
-          { "hole": 9, "par": 4, "distance": 453, "handicap": 12, "tip": "마무리 홀. 긴 파4. 안정적인 파 세이브로 마무리.", "imageUrl": "/images/courses/daeyoungHills/mi_hole9.png" }
+          {
+            "hole": 1,
+            "par": 4,
+            "distance": 420,
+            "handicap": 10,
+            "tip": "미코스 시작홀. 긴 파4. 정확한 티샷 필수.",
+            "imageUrl": "/images/courses/daeyoungHills/mi_hole1.png"
+          },
+          {
+            "hole": 2,
+            "par": 4,
+            "distance": 363,
+            "handicap": 6,
+            "tip": "미들 파4. 페어웨이 중앙 공략.",
+            "imageUrl": "/images/courses/daeyoungHills/mi_hole2.png"
+          },
+          {
+            "hole": 3,
+            "par": 4,
+            "distance": 332,
+            "handicap": 18,
+            "tip": "짧은 파4. 버디 찬스 홀.",
+            "imageUrl": "/images/courses/daeyoungHills/mi_hole3.png"
+          },
+          {
+            "hole": 4,
+            "par": 3,
+            "distance": 155,
+            "handicap": 2,
+            "tip": "숏 파3. 그린 경사 확인 후 핀 공략.",
+            "imageUrl": "/images/courses/daeyoungHills/mi_hole4.png"
+          },
+          {
+            "hole": 5,
+            "par": 4,
+            "distance": 344,
+            "handicap": 14,
+            "tip": "미들 파4. 정확한 티샷이 관건.",
+            "imageUrl": "/images/courses/daeyoungHills/mi_hole5.png"
+          },
+          {
+            "hole": 6,
+            "par": 5,
+            "distance": 514,
+            "handicap": 4,
+            "tip": "롱홀 파5. 레이업 후 안전하게 3온.",
+            "imageUrl": "/images/courses/daeyoungHills/mi_hole6.png"
+          },
+          {
+            "hole": 7,
+            "par": 3,
+            "distance": 115,
+            "handicap": 16,
+            "tip": "가장 짧은 파3. 정확한 거리 컨트롤.",
+            "imageUrl": "/images/courses/daeyoungHills/mi_hole7.png"
+          },
+          {
+            "hole": 8,
+            "par": 5,
+            "distance": 529,
+            "handicap": 8,
+            "tip": "긴 파5. 레이업 후 정확한 어프로치.",
+            "imageUrl": "/images/courses/daeyoungHills/mi_hole8.png"
+          },
+          {
+            "hole": 9,
+            "par": 4,
+            "distance": 453,
+            "handicap": 12,
+            "tip": "마무리 홀. 긴 파4. 안정적인 파 세이브로 마무리.",
+            "imageUrl": "/images/courses/daeyoungHills/mi_hole9.png"
+          }
         ]
       }
     },
     "daeyoungBase": {
       "name": "대영베이스CC",
       "info": "충북 충주시 앙성면 | 18홀 (인, 아웃)",
-      "courses": ["인", "아웃"],
+      "courses": [
+        "인",
+        "아웃"
+      ],
       "holes": {
         "인": [
-          { "hole": 1, "par": 4, "distance": 354, "handicap": 8, "tip": "인코스 시작홀. 미들 파4. 정확한 티샷으로 버디 찬스.", "imageUrl": "/images/courses/daeyoungBase/in_hole1.png" },
-          { "hole": 2, "par": 5, "distance": 467, "handicap": 16, "tip": "짧은 파5. 투온 도전 가능. 그린 주변 벙커 주의.", "imageUrl": "/images/courses/daeyoungBase/in_hole2.png" },
-          { "hole": 3, "par": 3, "distance": 150, "handicap": 4, "tip": "숏 파3. 바람 체크 후 클럽 선택.", "imageUrl": "/images/courses/daeyoungBase/in_hole3.png" },
-          { "hole": 4, "par": 5, "distance": 492, "handicap": 6, "tip": "롱홀 파5. 레이업 후 안전하게 3온.", "imageUrl": "/images/courses/daeyoungBase/in_hole4.png" },
-          { "hole": 5, "par": 4, "distance": 478, "handicap": 12, "tip": "긴 파4. 정확한 티샷과 롱아이언 세컨샷 필요.", "imageUrl": "/images/courses/daeyoungBase/in_hole5.png" },
-          { "hole": 6, "par": 4, "distance": 321, "handicap": 14, "tip": "짧은 파4. 버디 찬스 홀. 그린 경사 확인.", "imageUrl": "/images/courses/daeyoungBase/in_hole6.png" },
-          { "hole": 7, "par": 3, "distance": 129, "handicap": 2, "tip": "가장 짧은 파3. 정확한 거리 컨트롤이 핵심.", "imageUrl": "/images/courses/daeyoungBase/in_hole7.png" },
-          { "hole": 8, "par": 4, "distance": 367, "handicap": 10, "tip": "미들 파4. 페어웨이 중앙 공략.", "imageUrl": "/images/courses/daeyoungBase/in_hole8.png" },
-          { "hole": 9, "par": 4, "distance": 315, "handicap": 18, "tip": "마무리 홀. 짧은 파4. 안정적인 파 세이브.", "imageUrl": "/images/courses/daeyoungBase/in_hole9.png" }
+          {
+            "hole": 1,
+            "par": 4,
+            "distance": 354,
+            "handicap": 8,
+            "tip": "인코스 시작홀. 미들 파4. 정확한 티샷으로 버디 찬스.",
+            "imageUrl": "/images/courses/daeyoungBase/in_hole1.png"
+          },
+          {
+            "hole": 2,
+            "par": 5,
+            "distance": 467,
+            "handicap": 16,
+            "tip": "짧은 파5. 투온 도전 가능. 그린 주변 벙커 주의.",
+            "imageUrl": "/images/courses/daeyoungBase/in_hole2.png"
+          },
+          {
+            "hole": 3,
+            "par": 3,
+            "distance": 150,
+            "handicap": 4,
+            "tip": "숏 파3. 바람 체크 후 클럽 선택.",
+            "imageUrl": "/images/courses/daeyoungBase/in_hole3.png"
+          },
+          {
+            "hole": 4,
+            "par": 5,
+            "distance": 492,
+            "handicap": 6,
+            "tip": "롱홀 파5. 레이업 후 안전하게 3온.",
+            "imageUrl": "/images/courses/daeyoungBase/in_hole4.png"
+          },
+          {
+            "hole": 5,
+            "par": 4,
+            "distance": 478,
+            "handicap": 12,
+            "tip": "긴 파4. 정확한 티샷과 롱아이언 세컨샷 필요.",
+            "imageUrl": "/images/courses/daeyoungBase/in_hole5.png"
+          },
+          {
+            "hole": 6,
+            "par": 4,
+            "distance": 321,
+            "handicap": 14,
+            "tip": "짧은 파4. 버디 찬스 홀. 그린 경사 확인.",
+            "imageUrl": "/images/courses/daeyoungBase/in_hole6.png"
+          },
+          {
+            "hole": 7,
+            "par": 3,
+            "distance": 129,
+            "handicap": 2,
+            "tip": "가장 짧은 파3. 정확한 거리 컨트롤이 핵심.",
+            "imageUrl": "/images/courses/daeyoungBase/in_hole7.png"
+          },
+          {
+            "hole": 8,
+            "par": 4,
+            "distance": 367,
+            "handicap": 10,
+            "tip": "미들 파4. 페어웨이 중앙 공략.",
+            "imageUrl": "/images/courses/daeyoungBase/in_hole8.png"
+          },
+          {
+            "hole": 9,
+            "par": 4,
+            "distance": 315,
+            "handicap": 18,
+            "tip": "마무리 홀. 짧은 파4. 안정적인 파 세이브.",
+            "imageUrl": "/images/courses/daeyoungBase/in_hole9.png"
+          }
         ],
         "아웃": [
-          { "hole": 1, "par": 5, "distance": 555, "handicap": 9, "tip": "아웃코스 시작홀. 긴 파5. 레이업 후 안전하게 3온.", "imageUrl": "/images/courses/daeyoungBase/out_hole1.png" },
-          { "hole": 2, "par": 4, "distance": 278, "handicap": 5, "tip": "짧은 파4. 정확한 샷으로 버디 찬스.", "imageUrl": "/images/courses/daeyoungBase/out_hole2.png" },
-          { "hole": 3, "par": 3, "distance": 125, "handicap": 17, "tip": "짧은 파3. 핀 위치에 따라 클럽 선택.", "imageUrl": "/images/courses/daeyoungBase/out_hole3.png" },
-          { "hole": 4, "par": 4, "distance": 355, "handicap": 3, "tip": "미들 파4. 페어웨이 중앙 공략.", "imageUrl": "/images/courses/daeyoungBase/out_hole4.png" },
-          { "hole": 5, "par": 4, "distance": 358, "handicap": 11, "tip": "미들 파4. 정확한 티샷이 관건.", "imageUrl": "/images/courses/daeyoungBase/out_hole5.png" },
-          { "hole": 6, "par": 4, "distance": 313, "handicap": 1, "tip": "짧은 파4. 버디 찬스 홀. 그린 경사 확인.", "imageUrl": "/images/courses/daeyoungBase/out_hole6.png" },
-          { "hole": 7, "par": 4, "distance": 334, "handicap": 15, "tip": "짧은 파4. 정확한 샷으로 버디 기회.", "imageUrl": "/images/courses/daeyoungBase/out_hole7.png" },
-          { "hole": 8, "par": 3, "distance": 153, "handicap": 7, "tip": "숏 파3. 바람 체크 필수. 그린 경사 확인.", "imageUrl": "/images/courses/daeyoungBase/out_hole8.png" },
-          { "hole": 9, "par": 5, "distance": 511, "handicap": 13, "tip": "마무리 파5. 레이업 후 정확한 어프로치.", "imageUrl": "/images/courses/daeyoungBase/out_hole9.png" }
+          {
+            "hole": 1,
+            "par": 5,
+            "distance": 555,
+            "handicap": 9,
+            "tip": "아웃코스 시작홀. 긴 파5. 레이업 후 안전하게 3온.",
+            "imageUrl": "/images/courses/daeyoungBase/out_hole1.png"
+          },
+          {
+            "hole": 2,
+            "par": 4,
+            "distance": 278,
+            "handicap": 5,
+            "tip": "짧은 파4. 정확한 샷으로 버디 찬스.",
+            "imageUrl": "/images/courses/daeyoungBase/out_hole2.png"
+          },
+          {
+            "hole": 3,
+            "par": 3,
+            "distance": 125,
+            "handicap": 17,
+            "tip": "짧은 파3. 핀 위치에 따라 클럽 선택.",
+            "imageUrl": "/images/courses/daeyoungBase/out_hole3.png"
+          },
+          {
+            "hole": 4,
+            "par": 4,
+            "distance": 355,
+            "handicap": 3,
+            "tip": "미들 파4. 페어웨이 중앙 공략.",
+            "imageUrl": "/images/courses/daeyoungBase/out_hole4.png"
+          },
+          {
+            "hole": 5,
+            "par": 4,
+            "distance": 358,
+            "handicap": 11,
+            "tip": "미들 파4. 정확한 티샷이 관건.",
+            "imageUrl": "/images/courses/daeyoungBase/out_hole5.png"
+          },
+          {
+            "hole": 6,
+            "par": 4,
+            "distance": 313,
+            "handicap": 1,
+            "tip": "짧은 파4. 버디 찬스 홀. 그린 경사 확인.",
+            "imageUrl": "/images/courses/daeyoungBase/out_hole6.png"
+          },
+          {
+            "hole": 7,
+            "par": 4,
+            "distance": 334,
+            "handicap": 15,
+            "tip": "짧은 파4. 정확한 샷으로 버디 기회.",
+            "imageUrl": "/images/courses/daeyoungBase/out_hole7.png"
+          },
+          {
+            "hole": 8,
+            "par": 3,
+            "distance": 153,
+            "handicap": 7,
+            "tip": "숏 파3. 바람 체크 필수. 그린 경사 확인.",
+            "imageUrl": "/images/courses/daeyoungBase/out_hole8.png"
+          },
+          {
+            "hole": 9,
+            "par": 5,
+            "distance": 511,
+            "handicap": 13,
+            "tip": "마무리 파5. 레이업 후 정확한 어프로치.",
+            "imageUrl": "/images/courses/daeyoungBase/out_hole9.png"
+          }
         ]
       }
     }
   },
   "_meta": {
     "lastId": {
-      "members": 76,
+      "members": 82,
       "golf_courses": 3,
       "income_categories": 5,
       "expense_categories": 9,

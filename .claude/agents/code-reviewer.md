@@ -73,7 +73,13 @@ N2골프_자금관리/
 ```javascript
 {
   // 회원 정보
-  "members": [{ id, name, contact, join_date, status, is_admin, password }],
+  "members": [{
+    id, name, internal_phone, department, position, role,
+    email, join_date, status, is_admin, password_hash,
+    avg_score, recent_score
+  }],
+  // - position: 직위 (부장, 차장, 과장 등)
+  // - role: 역할 (회장, 총무, 부회장, 감사 또는 null)
 
   // 재무 데이터
   "income": [{ id, date, member_id, category, amount, description }],
@@ -467,6 +473,40 @@ if (response.ok) {
 ---
 
 ## 최근 수정 이력
+
+### 2024-12-29: 회원 데이터 스키마 확장 (position, role 필드 추가)
+**변경 내용**:
+- `members` 테이블에 `position`(직위), `role`(역할) 필드 추가
+- 회원 등록/수정 라우트에서 새 필드 처리 (`routes/members.js`)
+- 회원 목록/상세/폼 뷰에 새 필드 표시 (`views/members/*.ejs`)
+
+**수정 파일**:
+- `routes/members.js`:
+  - POST `/new`: position, role 필드 등록 처리
+  - POST `/:id/edit`: position, role 필드 수정 처리
+- `views/members/list.ejs`: 직위 컬럼 추가, 역할 뱃지 표시
+- `views/members/detail.ejs`: 직위, 역할 정보 표시
+- `views/members/form.ejs`: 직위 입력란, 역할 선택 드롭다운 추가
+
+**코드 패턴**:
+```javascript
+// 회원 등록 시 position, role 처리
+const { name, internal_phone, department, position, role, email, join_date } = req.body;
+db.insert('members', {
+  position: position?.trim() || '',
+  role: role?.trim() || null,  // 역할은 null 허용
+  ...
+});
+```
+
+```html
+<!-- 역할 뱃지 표시 패턴 -->
+<% if (member.role) { %>
+<span class="badge bg-primary"><%= member.role %></span>
+<% } %>
+```
+
+---
 
 ### 2024-12-29: 에러 핸들러 user 변수 누락 수정
 **문제**: `error.ejs` 템플릿에서 `user` 변수 참조 시 `user is not defined` 에러 발생

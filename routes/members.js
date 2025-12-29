@@ -86,7 +86,7 @@ router.get('/api/active', requireAuth, requireAdmin, (req, res) => {
 
 // 회원 등록 처리
 router.post('/new', requireAuth, requireAdmin, (req, res) => {
-  const { name, internal_phone, department, email, join_date } = req.body;
+  const { name, internal_phone, department, position, role, email, join_date } = req.body;
 
   // 입력값 검증
   const nameResult = validateName(name);
@@ -143,6 +143,8 @@ router.post('/new', requireAuth, requireAdmin, (req, res) => {
     name: nameResult.value,
     internal_phone: phoneResult.value,
     department: department?.trim() || '',
+    position: position?.trim() || '',
+    role: role?.trim() || null,
     email: emailResult.value,
     join_date: join_date || new Date().toISOString().split('T')[0],
     password_hash: passwordHash,
@@ -294,7 +296,7 @@ router.post('/:id/edit', requireAuth, requireAdmin, (req, res) => {
   }
 
   const memberId = idResult.value;
-  const { name, internal_phone, department, email, status } = req.body;
+  const { name, internal_phone, department, position, role, email, status } = req.body;
 
   // 입력값 검증
   const nameResult = validateName(name);
@@ -338,6 +340,8 @@ router.post('/:id/edit', requireAuth, requireAdmin, (req, res) => {
     name: nameResult.value,
     internal_phone: internal_phone?.trim() || '',
     department: department?.trim() || '',
+    position: position?.trim() || '',
+    role: role?.trim() || null,
     email: emailResult.value,
     status: statusResult.value
   });

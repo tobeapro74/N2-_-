@@ -191,7 +191,15 @@
                 </td>
                 <td>
                   <% if (user && user.is_admin && r.status !== 'cancelled') { %>
-                  <select class="form-select form-select-sm team-select" data-reservation-id="<%= r.id %>" style="width: 70px;">
+                  <select class="form-select form-select-sm team-select"
+                          data-reservation-id="<%= r.id %>"
+                          data-swap-partner-id="<%= r.swap_partner_id || '' %>"
+                          data-swap-original-team="<%= r.swap_original_team || '' %>"
+                          data-member-name="<%= r.member_name %>"
+                          style="width: 80px;">
+                    <% if (r.swap_partner_id) { %>
+                    <option value="revert">원복</option>
+                    <% } %>
                     <option value="">-</option>
                     <% for (let t = 1; t <= 4; t++) { %>
                     <option value="<%= t %>" <%= r.team_number === t ? 'selected' : '' %>><%= t %>팀</option>
@@ -452,16 +460,147 @@ function confirmSwap(movedReservationId, fromTeam) {
     });
 }
 
+// 원복 API 호출
+function revertSwap(reservationId) {
+  return fetch('/reservations/admin/revert-swap', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRF-Token': csrfToken
+    },
+    body: JSON.stringify({
+      reservation_id: reservationId,
+      _csrf: csrfToken
+    })
+  })
+  .then(res => res.json());
+}
+
+// 원복 확인 모달 표시
+function showRevertModal(reservationId, memberName, swapPartnerName, originalTeam, partnerOriginalTeam) {
+  const modalHtml = `
+    <div class="modal fade" id="revertModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header bg-info text-white">
+            <h5 class="modal-title"><i class="bi bi-arrow-counterclockwise"></i> 팀 원복 확인</h5>
+          </div>
+          <div class="modal-body">
+            <div class="alert alert-info mb-3">
+              <i class="bi bi-info-circle"></i>
+              아래 두 멤버가 원래 팀으로 원복됩니다.
+            </div>
+            <div class="card mb-2">
+              <div class="card-body py-2">
+                <div class="d-flex justify-content-between align-items-center">
+                  <span><strong>${memberName}</strong></span>
+                  <span class="badge bg-primary">${originalTeam}팀으로 원복</span>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-body py-2">
+                <div class="d-flex justify-content-between align-items-center">
+                  <span><strong>${swapPartnerName}</strong></span>
+                  <span class="badge bg-primary">${partnerOriginalTeam}팀으로 원복</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeRevertModal()">취소</button>
+            <button type="button" class="btn btn-info" onclick="confirmRevert(${reservationId})">
+              <i class="bi bi-check-lg"></i> 원복 확인
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // 기존 모달 제거
+  const existingModal = document.getElementById('revertModal');
+  if (existingModal) existingModal.remove();
+
+  // 모달 추가 및 표시
+  document.body.insertAdjacentHTML('beforeend', modalHtml);
+  const modal = new bootstrap.Modal(document.getElementById('revertModal'));
+  modal.show();
+}
+
+// 원복 모달 닫기
+function closeRevertModal() {
+  const modalEl = document.getElementById('revertModal');
+  const modal = bootstrap.Modal.getInstance(modalEl);
+  if (modal) modal.hide();
+
+  // 드롭다운 값 복원
+  document.querySelectorAll('.team-select').forEach(select => {
+    select.value = select.dataset.currentTeam || '';
+  });
+}
+
+// 원복 확인
+async function confirmRevert(reservationId) {
+  const result = await revertSwap(reservationId);
+
+  if (result.success) {
+    const modalEl = document.getElementById('revertModal');
+    const modal = bootstrap.Modal.getInstance(modalEl);
+    if (modal) modal.hide();
+
+    alert(result.message);
+    location.reload();
+  } else {
+    alert(result.error || '오류가 발생했습니다.');
+  }
+}
+
 // 팀 선택 변경 이벤트
 document.querySelectorAll('.team-select').forEach(select => {
   select.addEventListener('change', async function() {
     const reservationId = parseInt(this.dataset.reservationId);
-    const newTeamNumber = parseInt(this.value);
+    const selectedValue = this.value;
     const oldTeamNumber = parseInt(this.dataset.currentTeam) || 0;
     const selectElement = this;
     const row = this.closest('tr');
     const teeTimeInput = row.querySelector('.tee-time-input');
 
+    // 원복 선택 시
+    if (selectedValue === 'revert') {
+      const memberName = this.dataset.memberName;
+      const swapPartnerId = this.dataset.swapPartnerId;
+      const originalTeam = this.dataset.swapOriginalTeam;
+
+      // 팀 균형 정보에서 교환 상대 정보 조회
+      const balanceData = await getTeamBalance();
+      if (!balanceData.success) {
+        alert('팀 정보를 불러올 수 없습니다.');
+        this.value = oldTeamNumber || '';
+        return;
+      }
+
+      // 교환 상대 찾기
+      let partnerInfo = null;
+      for (const teamNum in balanceData.teamMembers) {
+        const member = balanceData.teamMembers[teamNum].find(m => m.id === parseInt(swapPartnerId));
+        if (member) {
+          partnerInfo = member;
+          break;
+        }
+      }
+
+      if (!partnerInfo) {
+        alert('교환 상대 정보를 찾을 수 없습니다.');
+        this.value = oldTeamNumber || '';
+        return;
+      }
+
+      showRevertModal(reservationId, memberName, partnerInfo.member_name, originalTeam, partnerInfo.swap_original_team);
+      return;
+    }
+
+    const newTeamNumber = parseInt(selectedValue);
     if (!newTeamNumber) return;
 
     // 먼저 팀 균형 정보 조회

@@ -454,11 +454,28 @@ router.get('/admin/team-balance/:scheduleId', requireAuth, requireAdmin, async (
       }
       teamCounts[teamNum]++;
       const member = members.find(m => m.id === r.member_id) || {};
+
+      // 교환 상대 멤버 정보 조회
+      let swapPartnerName = null;
+      let swapPartnerTeam = null;
+      if (r.swap_partner_id) {
+        const partnerRes = reservations.find(pr => pr.id === r.swap_partner_id);
+        if (partnerRes) {
+          const partnerMember = members.find(m => m.id === partnerRes.member_id) || {};
+          swapPartnerName = partnerMember.name;
+          swapPartnerTeam = partnerRes.team_number;
+        }
+      }
+
       teamMembers[teamNum].push({
         id: r.id,
         member_id: r.member_id,
         member_name: member.name,
-        tee_time: r.tee_time
+        tee_time: r.tee_time,
+        swap_partner_id: r.swap_partner_id || null,
+        swap_original_team: r.swap_original_team || null,
+        swap_partner_name: swapPartnerName,
+        swap_partner_team: swapPartnerTeam
       });
     });
 
@@ -503,11 +520,24 @@ router.post('/admin/swap-team', requireAuth, requireAdmin, async (req, res) => {
     const schedule = db.findById('schedules', res1.schedule_id);
     const teeTimes = schedule && schedule.tee_times ? schedule.tee_times.split(',').map(t => t.trim()) : [];
 
+    // 교환 전 팀 정보 저장
+    const res2OldTeam = res2.team_number;
+
     // 팀 교환 - 명시적으로 전달된 팀 번호 사용
     const teeTimeFrom = teeTimes[fromTeam - 1] || res1.tee_time;
 
     // res1(이동한 멤버)은 이미 toTeam으로 변경됨, res2를 fromTeam으로 변경
-    await db.update('reservations', resId2, { team_number: fromTeam, tee_time: teeTimeFrom });
+    // 교환 이력 저장 (swap_partner_id: 교환 상대방 예약 ID)
+    await db.update('reservations', resId1, {
+      swap_partner_id: resId2,
+      swap_original_team: fromTeam // res1의 원래 팀 (이동 전)
+    });
+    await db.update('reservations', resId2, {
+      team_number: fromTeam,
+      tee_time: teeTimeFrom,
+      swap_partner_id: resId1,
+      swap_original_team: res2OldTeam // res2의 원래 팀
+    });
 
     // 캐시 새로고침
     if (db.refreshCache) {
@@ -521,6 +551,83 @@ router.post('/admin/swap-team', requireAuth, requireAdmin, async (req, res) => {
   } catch (error) {
     console.error('팀 교환 오류:', error);
     res.status(500).json({ error: '팀 교환 중 오류가 발생했습니다.' });
+  }
+});
+
+// 관리자: 팀 원복 (교환 취소)
+router.post('/admin/revert-swap', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const { reservation_id } = req.body;
+    const reservationId = parseInt(reservation_id);
+
+    // 캐시 새로고침
+    if (db.refreshCache) {
+      await db.refreshCache('reservations');
+      await db.refreshCache('schedules');
+    }
+
+    const reservation = db.findById('reservations', reservationId);
+    if (!reservation) {
+      return res.status(404).json({ error: '예약을 찾을 수 없습니다.' });
+    }
+
+    // 교환 이력 확인
+    if (!reservation.swap_partner_id) {
+      return res.status(400).json({ error: '교환 이력이 없습니다.' });
+    }
+
+    const partnerReservation = db.findById('reservations', reservation.swap_partner_id);
+    if (!partnerReservation) {
+      return res.status(404).json({ error: '교환 상대 예약을 찾을 수 없습니다.' });
+    }
+
+    // 일정 정보로 티타임 가져오기
+    const schedule = db.findById('schedules', reservation.schedule_id);
+    const teeTimes = schedule && schedule.tee_times ? schedule.tee_times.split(',').map(t => t.trim()) : [];
+
+    // 원래 팀으로 원복
+    const myOriginalTeam = reservation.swap_original_team;
+    const partnerOriginalTeam = partnerReservation.swap_original_team;
+
+    const myTeeTime = teeTimes[myOriginalTeam - 1] || reservation.tee_time;
+    const partnerTeeTime = teeTimes[partnerOriginalTeam - 1] || partnerReservation.tee_time;
+
+    // 두 멤버 모두 원래 팀으로 복구하고 교환 이력 삭제
+    await db.update('reservations', reservationId, {
+      team_number: myOriginalTeam,
+      tee_time: myTeeTime,
+      swap_partner_id: null,
+      swap_original_team: null
+    });
+
+    await db.update('reservations', reservation.swap_partner_id, {
+      team_number: partnerOriginalTeam,
+      tee_time: partnerTeeTime,
+      swap_partner_id: null,
+      swap_original_team: null
+    });
+
+    // 캐시 새로고침
+    if (db.refreshCache) {
+      await db.refreshCache('reservations');
+    }
+
+    // 회원 정보 조회
+    const members = db.getTable('members');
+    const myMember = members.find(m => m.id === reservation.member_id) || {};
+    const partnerMember = members.find(m => m.id === partnerReservation.member_id) || {};
+
+    res.json({
+      success: true,
+      message: '팀이 원복되었습니다.',
+      reverted: [
+        { name: myMember.name, team: myOriginalTeam },
+        { name: partnerMember.name, team: partnerOriginalTeam }
+      ]
+    });
+  } catch (error) {
+    console.error('팀 원복 오류:', error);
+    res.status(500).json({ error: '팀 원복 중 오류가 발생했습니다.' });
   }
 });
 

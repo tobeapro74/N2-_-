@@ -454,9 +454,10 @@ router.get('/admin/team-balance/:scheduleId', requireAuth, requireAdmin, async (
 // 관리자: 팀 멤버 교환
 router.post('/admin/swap-team', requireAuth, requireAdmin, async (req, res) => {
   try {
-    const { reservation_id_1, reservation_id_2 } = req.body;
+    const { reservation_id_1, reservation_id_2, from_team } = req.body;
     const resId1 = parseInt(reservation_id_1);
     const resId2 = parseInt(reservation_id_2);
+    const fromTeam = parseInt(from_team);
 
     // 캐시 새로고침
     if (db.refreshCache) {
@@ -475,14 +476,11 @@ router.post('/admin/swap-team', requireAuth, requireAdmin, async (req, res) => {
     const schedule = db.findById('schedules', res1.schedule_id);
     const teeTimes = schedule && schedule.tee_times ? schedule.tee_times.split(',').map(t => t.trim()) : [];
 
-    // 팀 교환
-    const team1 = res1.team_number;
-    const team2 = res2.team_number;
-    const teeTime1 = teeTimes[team1 - 1] || res1.tee_time;
-    const teeTime2 = teeTimes[team2 - 1] || res2.tee_time;
+    // 팀 교환 - 명시적으로 전달된 팀 번호 사용
+    const teeTimeFrom = teeTimes[fromTeam - 1] || res1.tee_time;
 
-    await db.update('reservations', resId1, { team_number: team2, tee_time: teeTime2 });
-    await db.update('reservations', resId2, { team_number: team1, tee_time: teeTime1 });
+    // res1(이동한 멤버)은 이미 toTeam으로 변경됨, res2를 fromTeam으로 변경
+    await db.update('reservations', resId2, { team_number: fromTeam, tee_time: teeTimeFrom });
 
     // 캐시 새로고침
     if (db.refreshCache) {

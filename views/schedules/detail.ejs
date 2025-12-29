@@ -350,7 +350,7 @@ function getTeamBalance() {
 }
 
 // 팀 멤버 교환
-function swapTeamMembers(reservationId1, reservationId2) {
+function swapTeamMembers(reservationId1, reservationId2, fromTeam) {
   return fetch('/reservations/admin/swap-team', {
     method: 'POST',
     headers: {
@@ -360,6 +360,7 @@ function swapTeamMembers(reservationId1, reservationId2) {
     body: JSON.stringify({
       reservation_id_1: reservationId1,
       reservation_id_2: reservationId2,
+      from_team: fromTeam,
       _csrf: csrfToken
     })
   })
@@ -401,7 +402,7 @@ function showSwapModal(fromTeam, toTeam, movedReservationId, teamMembers) {
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="location.reload()">취소 (원복)</button>
-            <button type="button" class="btn btn-primary" onclick="confirmSwap(${movedReservationId})">교환</button>
+            <button type="button" class="btn btn-primary" onclick="confirmSwap(${movedReservationId}, ${fromTeam})">교환</button>
           </div>
         </div>
       </div>
@@ -419,7 +420,7 @@ function showSwapModal(fromTeam, toTeam, movedReservationId, teamMembers) {
 }
 
 // 교환 확인
-function confirmSwap(movedReservationId) {
+function confirmSwap(movedReservationId, fromTeam) {
   const selectEl = document.getElementById('swapMemberSelect');
   const swapReservationId = selectEl.value;
 
@@ -428,7 +429,7 @@ function confirmSwap(movedReservationId) {
     return;
   }
 
-  swapTeamMembers(movedReservationId, parseInt(swapReservationId))
+  swapTeamMembers(movedReservationId, parseInt(swapReservationId), fromTeam)
     .then(data => {
       if (data.success) {
         alert(data.message);

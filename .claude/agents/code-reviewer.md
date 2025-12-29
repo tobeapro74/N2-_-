@@ -532,6 +532,147 @@ db.insert('members', {
 
 ---
 
+### 2024-12-29: Vercel 서버리스 환경 cookie-session 호환성 수정
+**문제**: Vercel 서버리스 환경에서 모바일 Safari 로그인 시 500 에러 발생
+
+**원인**:
+1. `cookie-session` 라이브러리는 `req.session.destroy()` 메서드를 지원하지 않음
+2. 세션 객체에 대한 optional chaining 미적용으로 null 참조 에러 발생
+
+**수정 파일**:
+- `routes/auth.js` (로그아웃 처리)
+- `app.js` (CSRF 및 에러 핸들러)
+
+**수정 내용**:
+```javascript
+// routes/auth.js - 로그아웃 처리
+// 수정 전
+router.get('/logout', (req, res) => {
+  req.session.destroy();  // cookie-session에서 지원 안 됨
+  res.redirect('/auth/login');
+});
+
+// 수정 후
+router.get('/logout', (req, res) => {
+  if (req.session && req.session.user) {
+    logger.audit('로그아웃', req.session.user, { ip: req.ip });
+  }
+  // cookie-session 호환: destroy() 대신 null 할당
+  if (req.session) {
+    req.session = null;
+  }
+  res.redirect('/auth/login');
+});
+```
+
+```javascript
+// app.js - 세션 접근 시 optional chaining
+// 수정 전
+const sessionToken = req.session.csrfToken;
+res.locals.user = req.session.user || null;
+
+// 수정 후
+const sessionToken = req.session?.csrfToken;
+res.locals.user = req.session?.user || null;
+```
+
+**영향 범위**:
+- CSRF 토큰 검증 미들웨어
+- 전역 변수 설정 미들웨어
+- 404/500 에러 핸들러
+- 로그아웃 라우트
+
+**교훈**:
+- `express-session`과 `cookie-session`은 API가 다름
+- 서버리스 환경에서는 `cookie-session` 사용 시 세션 파기는 `null` 할당으로 처리
+- 세션 객체 접근 시 항상 optional chaining(`?.`) 사용 권장
+
+---
+
+### 2024-12-29: iOS PWA 아이콘 PNG 변환
+**문제**: iOS Safari에서 "홈 화면에 추가" 시 아이콘이 표시되지 않음
+
+**원인**: iOS는 `apple-touch-icon`으로 SVG 형식을 지원하지 않음. PNG만 지원.
+
+**수정 파일**:
+- `public/icons/apple-touch-icon.png` (신규 생성)
+- `public/icons/icon-192x192.png` (신규 생성)
+- `public/icons/icon-512x512.png` (신규 생성)
+- `views/partials/header.ejs`
+- `public/manifest.json`
+
+**수정 내용**:
+```bash
+# SVG를 PNG로 변환 (librsvg 사용)
+rsvg-convert -w 180 -h 180 icon-192x192.svg > apple-touch-icon.png
+rsvg-convert -w 192 -h 192 icon-192x192.svg > icon-192x192.png
+rsvg-convert -w 512 -h 512 icon-512x512.svg > icon-512x512.png
+```
+
+```html
+<!-- views/partials/header.ejs -->
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png">
+```
+
+```json
+// public/manifest.json - PNG 아이콘 추가
+{
+  "icons": [
+    { "src": "/icons/icon-192x192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512x512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/apple-touch-icon.png", "sizes": "180x180", "type": "image/png", "purpose": "any" }
+  ]
+}
+```
+
+**교훈**:
+- iOS PWA 아이콘은 반드시 PNG 형식 사용
+- `apple-touch-icon`은 180x180px 권장
+- SVG는 `maskable` purpose로만 사용 가능
+
+---
+
+### 2024-12-29: 실시간 교통 소요시간 baseTime 값 수정
+**문제**: 홈 화면 교통 현황 위젯에서 대영CC 기본 소요시간이 실제보다 짧게 표시됨
+
+**원인**: `views/index.ejs`의 `trafficRoutes` 객체에 하드코딩된 `baseTime` 값이 실제 소요시간과 불일치
+
+**수정 파일**: `views/index.ejs`
+
+**수정 내용**:
+```javascript
+// 수정 전
+daeyoungHills: {
+  routes: [
+    { departure: '여의도역', baseTime: 90, ... },
+    { departure: '잠실역', baseTime: 80, ... }
+  ]
+}
+
+// 수정 후
+daeyoungHills: {
+  routes: [
+    { departure: '여의도역', baseTime: 120, ... },
+    { departure: '잠실역', baseTime: 110, ... }
+  ]
+}
+
+// 양지파인CC도 조정
+yangji: {
+  routes: [
+    { departure: '여의도역', baseTime: 70, ... },  // 50 → 70
+    { departure: '잠실역', baseTime: 60, ... }     // 40 → 60
+  ]
+}
+```
+
+**교훈**:
+- 교통 정보 기본값은 `routes/traffic.js`와 `views/index.ejs` 두 곳에서 관리됨
+- API 실패 시 프론트엔드 baseTime이 표시되므로 두 곳의 값 동기화 필요
+
+---
+
 ### 2024-12-29: 에러 핸들러 user 변수 누락 수정
 **문제**: `error.ejs` 템플릿에서 `user` 변수 참조 시 `user is not defined` 에러 발생
 

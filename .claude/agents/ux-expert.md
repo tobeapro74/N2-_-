@@ -1046,4 +1046,92 @@ function showDirections(locationName, lat, lng) {
 
 ---
 
+### 2024-12-29: iOS PWA 홈 화면 추가 아이콘 수정
+**문제**: iOS Safari에서 "홈 화면에 추가" 시 앱 아이콘이 표시되지 않고 빈 아이콘 또는 스크린샷이 표시됨
+
+**원인**: iOS는 `apple-touch-icon`으로 SVG 형식을 지원하지 않음. 기존에 SVG만 제공되어 iOS에서 인식 불가.
+
+**UX 영향**:
+- 홈 화면에서 앱을 쉽게 찾을 수 없음
+- 브랜드 아이덴티티 손상
+- PWA로서의 전문성 저하
+
+**수정 내용**:
+- SVG 아이콘을 PNG로 변환하여 추가
+- `apple-touch-icon.png` (180x180)
+- `icon-192x192.png`, `icon-512x512.png`
+- `header.ejs`에 PNG 아이콘 참조 추가
+- `manifest.json`에 PNG 아이콘 등록
+
+```html
+<!-- views/partials/header.ejs -->
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png">
+```
+
+**UX 개선점**:
+- iOS 홈 화면에서 N2골프 앱 아이콘이 정상 표시
+- 앱 실행 시 브랜드 일관성 유지
+- 사용자가 앱을 쉽게 식별 가능
+
+**교훈**:
+- iOS PWA 아이콘은 반드시 PNG 형식 사용
+- `apple-touch-icon`은 180x180px 권장
+- SVG는 Android/Chrome에서만 사용 가능
+
+---
+
+### 2024-12-29: 실시간 교통 소요시간 표시 정확도 개선
+**문제**: 홈 화면 교통 현황 위젯에서 대영CC 기본 소요시간이 90분으로 표시되어 실제(120분)보다 짧게 안내
+
+**UX 영향**:
+- 잘못된 정보로 인한 사용자 혼란
+- 실제 도착 시간 예측 불가
+- 서비스 신뢰도 저하
+
+**수정 내용**:
+```javascript
+// views/index.ejs trafficRoutes 객체
+// 수정 후 baseTime 값
+yangji: { routes: [{ baseTime: 70 }, { baseTime: 60 }] }
+daeyoungHills: { routes: [{ baseTime: 120 }, { baseTime: 110 }] }
+daeyoungBase: { routes: [{ baseTime: 120 }, { baseTime: 110 }] }
+```
+
+**UX 개선점**:
+- API 실패 시에도 정확한 기본 소요시간 표시
+- 사용자가 출발 시간 계획 시 신뢰할 수 있는 정보 제공
+- 교통 정보 위젯의 실용성 향상
+
+**교훈**:
+- 기본값(fallback data)도 정확해야 함
+- 프론트엔드와 백엔드의 기본값 동기화 필요
+
+---
+
+### 2024-12-29: Vercel 서버리스 환경 로그인/로그아웃 UX 개선
+**문제**: Vercel 배포 환경에서 모바일 Safari 로그인 시 500 서버 에러 발생
+
+**UX 영향**:
+- 모바일 사용자 접근 불가
+- 에러 메시지만 표시되어 사용자 당황
+- 앱 사용 포기로 이어질 수 있음
+
+**수정 내용**:
+- `cookie-session` 라이브러리 호환성 문제 해결
+- 로그아웃 시 `req.session = null` 방식으로 변경
+- 세션 접근 시 optional chaining 적용
+
+**UX 개선점**:
+- 모바일 Safari에서도 정상 로그인/로그아웃 가능
+- 에러 없는 부드러운 인증 흐름
+- Vercel 서버리스 환경에서 일관된 사용자 경험
+
+**교훈**:
+- 서버리스 환경은 로컬 개발 환경과 다르게 동작할 수 있음
+- 다양한 브라우저/기기에서 테스트 필요
+- 세션 라이브러리 선택 시 배포 환경 고려 필수
+
+---
+
 당신은 단순히 문제를 지적하는 것이 아니라, **구체적이고 실행 가능한 개선안**을 제시하여 실제 사용자 경험 향상에 기여하는 것을 목표로 합니다. 현재 프로젝트의 패턴과 컨벤션을 존중하면서 일관성 있는 개선을 제안하세요.

@@ -419,20 +419,25 @@ function showSwapModal(fromTeam, toTeam, movedReservationId, teamMembers) {
 }
 
 // 교환 취소 (원복)
-async function cancelSwap(movedReservationId, originalTeam) {
+function cancelSwap(movedReservationId, originalTeam) {
   // 이동한 멤버를 원래 팀으로 되돌림
-  const result = await updateTeam(movedReservationId, originalTeam, null, true);
+  updateTeam(movedReservationId, originalTeam, null, true)
+    .then(result => {
+      if (result.success) {
+        // 모달 닫기
+        const modalEl = document.getElementById('swapModal');
+        const modal = bootstrap.Modal.getInstance(modalEl);
+        if (modal) modal.hide();
 
-  if (result.success) {
-    // 모달 닫기
-    const modalEl = document.getElementById('swapModal');
-    const modal = bootstrap.Modal.getInstance(modalEl);
-    if (modal) modal.hide();
-
-    location.reload();
-  } else {
-    alert(result.error || '원복 중 오류가 발생했습니다.');
-  }
+        location.reload();
+      } else {
+        alert(result.error || '원복 중 오류가 발생했습니다.');
+      }
+    })
+    .catch(err => {
+      console.error('원복 오류:', err);
+      alert('원복 중 오류가 발생했습니다.');
+    });
 }
 
 // 교환 확인

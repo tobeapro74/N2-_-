@@ -235,6 +235,8 @@
 <script>
 // CSRF 토큰
 const csrfToken = '<%= csrfToken %>';
+const scheduleId = <%= schedule.id %>;
+const teeTimes = '<%= schedule.tee_times || "" %>'.split(',').map(t => t.trim()).filter(t => t);
 
 function applyReservation(scheduleId) {
   const teeTimeSelect = document.getElementById('teeTimeSelect');
@@ -322,9 +324,9 @@ function deleteReservation(reservationId, memberName) {
   });
 }
 
-// 팀 변경 함수
-function updateTeam(reservationId, teamNumber, teeTime) {
-  fetch('/reservations/admin/update-team', {
+// 팀 변경 함수 (티타임 자동 연동 포함)
+function updateTeam(reservationId, teamNumber, teeTime, autoTeeTime = false) {
+  return fetch('/reservations/admin/update-team', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -334,38 +336,189 @@ function updateTeam(reservationId, teamNumber, teeTime) {
       reservation_id: reservationId,
       team_number: teamNumber,
       tee_time: teeTime,
+      auto_tee_time: autoTeeTime,
       _csrf: csrfToken
     })
   })
-  .then(res => res.json())
-  .then(data => {
-    if (data.success) {
-      // 성공 시 시각적 피드백
-      const element = event.target;
-      element.classList.add('border-success');
-      setTimeout(() => element.classList.remove('border-success'), 1000);
-    } else {
-      alert(data.error || '오류가 발생했습니다.');
-    }
-  });
+  .then(res => res.json());
+}
+
+// 팀 균형 정보 조회
+function getTeamBalance() {
+  return fetch(`/reservations/admin/team-balance/${scheduleId}`)
+    .then(res => res.json());
+}
+
+// 팀 멤버 교환
+function swapTeamMembers(reservationId1, reservationId2) {
+  return fetch('/reservations/admin/swap-team', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRF-Token': csrfToken
+    },
+    body: JSON.stringify({
+      reservation_id_1: reservationId1,
+      reservation_id_2: reservationId2,
+      _csrf: csrfToken
+    })
+  })
+  .then(res => res.json());
+}
+
+// 팀 교환 모달 표시
+function showSwapModal(fromTeam, toTeam, movedReservationId, teamMembers) {
+  const toTeamMembers = teamMembers[toTeam] || [];
+
+  if (toTeamMembers.length === 0) {
+    alert(`${toTeam}팀에 교환할 멤버가 없습니다.`);
+    return;
+  }
+
+  let memberOptions = toTeamMembers
+    .filter(m => m.id !== movedReservationId)
+    .map(m => `<option value="${m.id}">${m.member_name}</option>`)
+    .join('');
+
+  const modalHtml = `
+    <div class="modal fade" id="swapModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">팀 멤버 교환</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div class="alert alert-warning">
+              <i class="bi bi-exclamation-triangle"></i>
+              ${toTeam}팀이 5명이 되어 팀 균형이 맞지 않습니다.<br>
+              ${toTeam}팀에서 ${fromTeam}팀으로 이동할 멤버를 선택해주세요.
+            </div>
+            <select class="form-select" id="swapMemberSelect">
+              <option value="">-- 멤버 선택 --</option>
+              ${memberOptions}
+            </select>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="location.reload()">취소 (원복)</button>
+            <button type="button" class="btn btn-primary" onclick="confirmSwap(${movedReservationId})">교환</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // 기존 모달 제거
+  const existingModal = document.getElementById('swapModal');
+  if (existingModal) existingModal.remove();
+
+  // 모달 추가 및 표시
+  document.body.insertAdjacentHTML('beforeend', modalHtml);
+  const modal = new bootstrap.Modal(document.getElementById('swapModal'));
+  modal.show();
+}
+
+// 교환 확인
+function confirmSwap(movedReservationId) {
+  const selectEl = document.getElementById('swapMemberSelect');
+  const swapReservationId = selectEl.value;
+
+  if (!swapReservationId) {
+    alert('교환할 멤버를 선택해주세요.');
+    return;
+  }
+
+  swapTeamMembers(movedReservationId, parseInt(swapReservationId))
+    .then(data => {
+      if (data.success) {
+        alert(data.message);
+        location.reload();
+      } else {
+        alert(data.error || '오류가 발생했습니다.');
+      }
+    });
 }
 
 // 팀 선택 변경 이벤트
 document.querySelectorAll('.team-select').forEach(select => {
-  select.addEventListener('change', function() {
-    const reservationId = this.dataset.reservationId;
-    const teamNumber = this.value;
-    updateTeam(reservationId, teamNumber, null);
+  select.addEventListener('change', async function() {
+    const reservationId = parseInt(this.dataset.reservationId);
+    const newTeamNumber = parseInt(this.value);
+    const oldTeamNumber = parseInt(this.dataset.currentTeam) || 0;
+    const selectElement = this;
+    const row = this.closest('tr');
+    const teeTimeInput = row.querySelector('.tee-time-input');
+
+    if (!newTeamNumber) return;
+
+    // 먼저 팀 균형 정보 조회
+    const balanceData = await getTeamBalance();
+
+    if (!balanceData.success) {
+      alert('팀 정보를 불러올 수 없습니다.');
+      this.value = oldTeamNumber || '';
+      return;
+    }
+
+    const { teamCounts, teamMembers, maxPerTeam } = balanceData;
+
+    // 이동 후 대상 팀의 인원 계산 (현재 인원 + 1, 단 같은 팀 내 이동이면 제외)
+    const currentTargetCount = teamCounts[newTeamNumber] || 0;
+    const willExceed = oldTeamNumber !== newTeamNumber && currentTargetCount >= maxPerTeam;
+
+    // 팀 변경 실행 (티타임 자동 연동)
+    const result = await updateTeam(reservationId, newTeamNumber, null, true);
+
+    if (!result.success) {
+      alert(result.error || '오류가 발생했습니다.');
+      this.value = oldTeamNumber || '';
+      return;
+    }
+
+    // 티타임 UI 업데이트
+    if (result.tee_time && teeTimeInput) {
+      teeTimeInput.value = result.tee_time;
+    }
+
+    // 현재 팀 번호 업데이트
+    this.dataset.currentTeam = newTeamNumber;
+
+    // 성공 피드백
+    selectElement.classList.add('border-success');
+    setTimeout(() => selectElement.classList.remove('border-success'), 1000);
+
+    // 팀 균형 검사 - 5명이 되면 교환 모달 표시
+    if (willExceed) {
+      // 최신 팀 정보 다시 조회
+      const updatedBalance = await getTeamBalance();
+      if (updatedBalance.success) {
+        showSwapModal(oldTeamNumber, newTeamNumber, reservationId, updatedBalance.teamMembers);
+      }
+    }
   });
 });
 
 // 티타임 변경 이벤트
 document.querySelectorAll('.tee-time-input').forEach(input => {
-  input.addEventListener('change', function() {
+  input.addEventListener('change', async function() {
     const reservationId = this.dataset.reservationId;
     const teeTime = this.value;
-    updateTeam(reservationId, null, teeTime);
+    const inputElement = this;
+
+    const result = await updateTeam(reservationId, null, teeTime);
+
+    if (result.success) {
+      inputElement.classList.add('border-success');
+      setTimeout(() => inputElement.classList.remove('border-success'), 1000);
+    } else {
+      alert(result.error || '오류가 발생했습니다.');
+    }
   });
+});
+
+// 초기화: 현재 팀 번호 저장
+document.querySelectorAll('.team-select').forEach(select => {
+  select.dataset.currentTeam = select.value;
 });
 </script>
 

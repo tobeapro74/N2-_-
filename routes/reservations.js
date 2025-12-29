@@ -333,13 +333,14 @@ router.post('/admin/book-for', requireAuth, requireAdmin, async (req, res) => {
 // 관리자: 팀 변경
 router.post('/admin/update-team', requireAuth, requireAdmin, async (req, res) => {
   try {
-    const { reservation_id, team_number, tee_time } = req.body;
+    const { reservation_id, team_number, tee_time, auto_tee_time } = req.body;
     const reservationId = parseInt(reservation_id);
     const teamNum = parseInt(team_number);
 
     // 캐시 새로고침
     if (db.refreshCache) {
       await db.refreshCache('reservations');
+      await db.refreshCache('schedules');
     }
 
     const reservation = db.findById('reservations', reservationId);
@@ -349,10 +350,26 @@ router.post('/admin/update-team', requireAuth, requireAdmin, async (req, res) =>
 
     // 팀 번호와 티타임 업데이트
     const updateData = {};
+    let autoAssignedTeeTime = null;
+
     if (!isNaN(teamNum) && teamNum > 0) {
       updateData.team_number = teamNum;
+
+      // 팀 변경 시 티타임 자동 연동
+      if (auto_tee_time) {
+        const schedule = db.findById('schedules', reservation.schedule_id);
+        if (schedule && schedule.tee_times) {
+          const teeTimes = schedule.tee_times.split(',').map(t => t.trim());
+          const teeTimeIndex = teamNum - 1;
+          if (teeTimeIndex >= 0 && teeTimeIndex < teeTimes.length) {
+            autoAssignedTeeTime = teeTimes[teeTimeIndex];
+            updateData.tee_time = autoAssignedTeeTime;
+          }
+        }
+      }
     }
-    if (tee_time) {
+
+    if (tee_time && !auto_tee_time) {
       updateData.tee_time = tee_time;
     }
 
@@ -367,10 +384,118 @@ router.post('/admin/update-team', requireAuth, requireAdmin, async (req, res) =>
       await db.refreshCache('reservations');
     }
 
-    res.json({ success: true, message: '팀 배정이 변경되었습니다.' });
+    res.json({
+      success: true,
+      message: '팀 배정이 변경되었습니다.',
+      tee_time: autoAssignedTeeTime
+    });
   } catch (error) {
     console.error('팀 변경 오류:', error);
     res.status(500).json({ error: '팀 변경 중 오류가 발생했습니다.' });
+  }
+});
+
+// 관리자: 팀 균형 정보 조회
+router.get('/admin/team-balance/:scheduleId', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const scheduleId = parseInt(req.params.scheduleId);
+
+    // 캐시 새로고침
+    if (db.refreshCache) {
+      await db.refreshCache('reservations');
+      await db.refreshCache('schedules');
+    }
+
+    const schedule = db.findById('schedules', scheduleId);
+    if (!schedule) {
+      return res.status(404).json({ error: '일정을 찾을 수 없습니다.' });
+    }
+
+    const reservations = db.getTable('reservations')
+      .filter(r => r.schedule_id === scheduleId && ['pending', 'confirmed'].includes(r.status));
+    const members = db.getTable('members');
+
+    // 팀별 멤버 수 계산
+    const teamCounts = {};
+    const teamMembers = {};
+
+    reservations.forEach(r => {
+      const teamNum = r.team_number || 0;
+      if (!teamCounts[teamNum]) {
+        teamCounts[teamNum] = 0;
+        teamMembers[teamNum] = [];
+      }
+      teamCounts[teamNum]++;
+      const member = members.find(m => m.id === r.member_id) || {};
+      teamMembers[teamNum].push({
+        id: r.id,
+        member_id: r.member_id,
+        member_name: member.name,
+        tee_time: r.tee_time
+      });
+    });
+
+    // 티타임 정보
+    const teeTimes = schedule.tee_times ? schedule.tee_times.split(',').map(t => t.trim()) : [];
+
+    res.json({
+      success: true,
+      teamCounts,
+      teamMembers,
+      teeTimes,
+      maxPerTeam: 4
+    });
+  } catch (error) {
+    console.error('팀 균형 조회 오류:', error);
+    res.status(500).json({ error: '팀 균형 정보 조회 중 오류가 발생했습니다.' });
+  }
+});
+
+// 관리자: 팀 멤버 교환
+router.post('/admin/swap-team', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const { reservation_id_1, reservation_id_2 } = req.body;
+    const resId1 = parseInt(reservation_id_1);
+    const resId2 = parseInt(reservation_id_2);
+
+    // 캐시 새로고침
+    if (db.refreshCache) {
+      await db.refreshCache('reservations');
+      await db.refreshCache('schedules');
+    }
+
+    const res1 = db.findById('reservations', resId1);
+    const res2 = db.findById('reservations', resId2);
+
+    if (!res1 || !res2) {
+      return res.status(404).json({ error: '예약을 찾을 수 없습니다.' });
+    }
+
+    // 일정 정보로 티타임 가져오기
+    const schedule = db.findById('schedules', res1.schedule_id);
+    const teeTimes = schedule && schedule.tee_times ? schedule.tee_times.split(',').map(t => t.trim()) : [];
+
+    // 팀 교환
+    const team1 = res1.team_number;
+    const team2 = res2.team_number;
+    const teeTime1 = teeTimes[team1 - 1] || res1.tee_time;
+    const teeTime2 = teeTimes[team2 - 1] || res2.tee_time;
+
+    await db.update('reservations', resId1, { team_number: team2, tee_time: teeTime2 });
+    await db.update('reservations', resId2, { team_number: team1, tee_time: teeTime1 });
+
+    // 캐시 새로고침
+    if (db.refreshCache) {
+      await db.refreshCache('reservations');
+    }
+
+    res.json({
+      success: true,
+      message: '팀 멤버가 교환되었습니다.'
+    });
+  } catch (error) {
+    console.error('팀 교환 오류:', error);
+    res.status(500).json({ error: '팀 교환 중 오류가 발생했습니다.' });
   }
 });
 

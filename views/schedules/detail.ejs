@@ -400,8 +400,8 @@ function showSwapModal(fromTeam, toTeam, movedReservationId, teamMembers) {
             </select>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" onclick="cancelSwap(${movedReservationId}, ${fromTeam})">취소 (원복)</button>
-            <button type="button" class="btn btn-primary" onclick="confirmSwap(${movedReservationId}, ${fromTeam})">교환</button>
+            <button type="button" class="btn btn-secondary" onclick="cancelSwap(${movedReservationId}, ${fromTeam}); return false;">취소 (원복)</button>
+            <button type="button" class="btn btn-primary" onclick="confirmSwap(${movedReservationId}, ${fromTeam}); return false;">교환</button>
           </div>
         </div>
       </div>
@@ -420,24 +420,44 @@ function showSwapModal(fromTeam, toTeam, movedReservationId, teamMembers) {
 
 // 교환 취소 (원복)
 function cancelSwap(movedReservationId, originalTeam) {
-  // 이동한 멤버를 원래 팀으로 되돌림
-  updateTeam(movedReservationId, originalTeam, null, true)
-    .then(result => {
-      if (result.success) {
-        // 모달 닫기
-        const modalEl = document.getElementById('swapModal');
-        const modal = bootstrap.Modal.getInstance(modalEl);
-        if (modal) modal.hide();
+  console.log('cancelSwap 호출:', movedReservationId, originalTeam);
 
-        location.reload();
-      } else {
-        alert(result.error || '원복 중 오류가 발생했습니다.');
-      }
+  // 이동한 멤버를 원래 팀으로 되돌림
+  fetch('/reservations/admin/update-team', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRF-Token': csrfToken
+    },
+    body: JSON.stringify({
+      reservation_id: movedReservationId,
+      team_number: originalTeam,
+      auto_tee_time: true,
+      _csrf: csrfToken
     })
-    .catch(err => {
-      console.error('원복 오류:', err);
-      alert('원복 중 오류가 발생했습니다.');
-    });
+  })
+  .then(res => {
+    console.log('API 응답 상태:', res.status);
+    return res.json();
+  })
+  .then(result => {
+    console.log('API 응답:', result);
+    if (result.success) {
+      // 모달 닫기
+      const modalEl = document.getElementById('swapModal');
+      const modal = bootstrap.Modal.getInstance(modalEl);
+      if (modal) modal.hide();
+
+      alert('원복되었습니다. 페이지를 새로고침합니다.');
+      location.reload();
+    } else {
+      alert(result.error || '원복 중 오류가 발생했습니다.');
+    }
+  })
+  .catch(err => {
+    console.error('원복 오류:', err);
+    alert('원복 중 오류가 발생했습니다: ' + err.message);
+  });
 }
 
 // 교환 확인

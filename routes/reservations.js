@@ -83,9 +83,9 @@ router.post('/apply', requireAuth, async (req, res) => {
 
     const golfCourse = db.findById('golf_courses', schedule.golf_course_id) || {};
 
-    // 중복 신청 확인
+    // 중복 신청 확인 (취소된 예약은 제외)
     const existing = db.getTable('reservations').find(
-      r => r.schedule_id === scheduleId && r.member_id === memberId
+      r => r.schedule_id === scheduleId && r.member_id === memberId && r.status !== 'cancelled'
     );
 
     if (existing) {
@@ -112,13 +112,23 @@ router.post('/apply', requireAuth, async (req, res) => {
       }
     }
 
+    // 현재 예약 수 확인 (신청 전)
+    const currentCount = db.getTable('reservations')
+      .filter(r => r.schedule_id === scheduleId && ['pending', 'confirmed'].includes(r.status))
+      .length;
+
+    const maxMembers = schedule.max_members || golfCourse.max_members || 12;
+
+    // 모집인원 초과 시 대기자로 등록
+    const reservationStatus = currentCount >= maxMembers ? 'waitlist' : 'pending';
+
     // 예약 생성 (비동기)
     await db.insert('reservations', {
       schedule_id: scheduleId,
       member_id: memberId,
       priority,
       consecutive_count: consecutiveCount,
-      status: 'pending',
+      status: reservationStatus,
       applied_at: new Date().toISOString()
     });
 
@@ -127,18 +137,16 @@ router.post('/apply', requireAuth, async (req, res) => {
       await db.refreshCache('reservations');
     }
 
-    // 현재 예약 수 확인
-    const currentCount = db.getTable('reservations')
-      .filter(r => r.schedule_id === scheduleId && ['pending', 'confirmed'].includes(r.status))
-      .length;
-
-    const maxMembers = golfCourse.max_members || 12;
+    const statusMessage = reservationStatus === 'waitlist'
+      ? '대기자로 등록되었습니다.'
+      : '예약 신청이 완료되었습니다.';
 
     res.json({
       success: true,
-      message: '예약 신청이 완료되었습니다.',
-      position: currentCount,
-      isWaitlist: currentCount > maxMembers
+      message: statusMessage,
+      position: currentCount + 1,
+      isWaitlist: reservationStatus === 'waitlist',
+      status: reservationStatus
     });
   } catch (error) {
     console.error('예약 신청 오류:', error);

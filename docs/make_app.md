@@ -47,6 +47,7 @@
 - Next.js 14 (App Router)
 - TypeScript
 - Tailwind CSS
+- shadcn/ui (UI 컴포넌트)
 - MongoDB Atlas (데이터베이스)
 - NextAuth.js (인증)
 
@@ -83,6 +84,23 @@
 ```bash
 npx create-next-app@latest 프로젝트명 --typescript --tailwind --eslint --app --src-dir
 cd 프로젝트명
+
+# shadcn/ui 초기화 (필수)
+npx shadcn@latest init
+```
+
+#### shadcn/ui 컴포넌트 설치
+
+```bash
+# 자주 사용하는 컴포넌트 설치 예시
+npx shadcn@latest add button
+npx shadcn@latest add card
+npx shadcn@latest add input
+npx shadcn@latest add form
+npx shadcn@latest add table
+npx shadcn@latest add dialog
+npx shadcn@latest add dropdown-menu
+npx shadcn@latest add toast
 ```
 
 #### Node.js + Express 프로젝트 생성
@@ -110,9 +128,12 @@ npm install express ejs express-session bcryptjs mongodb dotenv
 │   │   │   └── auth/
 │   │   └── (routes)/           # 페이지 그룹
 │   ├── components/             # React 컴포넌트
+│   │   └── ui/                 # shadcn/ui 컴포넌트 (자동 생성)
 │   ├── lib/                    # 유틸리티 함수
+│   │   └── utils.ts            # shadcn/ui 유틸리티 (cn 함수)
 │   └── styles/                 # 스타일 파일
 ├── public/                     # 정적 파일
+├── components.json             # shadcn/ui 설정
 ├── .env.local                  # 환경 변수
 ├── next.config.js              # Next.js 설정
 └── package.json
@@ -396,7 +417,86 @@ scripts/migrate-to-mongodb.js 파일로 생성하고,
 
 ## 6. 개발 진행
 
-### 6.1 기능 개발 프롬프트 패턴
+### 6.1 UI 프레임워크 (shadcn/ui)
+
+개발 시 UI 컴포넌트는 **shadcn/ui**를 사용합니다. shadcn/ui는 Radix UI 기반의 재사용 가능한 컴포넌트 라이브러리입니다.
+
+#### shadcn/ui 특징
+
+- 복사-붙여넣기 방식으로 컴포넌트 소유
+- Tailwind CSS 기반 스타일링
+- Radix UI 기반 접근성 지원
+- 완전한 커스터마이징 가능
+
+#### shadcn/ui 초기 설정
+
+```bash
+# 프로젝트에서 shadcn/ui 초기화
+npx shadcn@latest init
+
+# 초기화 시 선택 옵션:
+# - TypeScript: Yes
+# - Style: Default
+# - Base color: Slate (또는 원하는 색상)
+# - CSS variables: Yes
+# - tailwind.config.js 위치: 기본값
+# - components.json 위치: 기본값
+# - 컴포넌트 경로: @/components
+# - 유틸리티 경로: @/lib/utils
+```
+
+#### 컴포넌트 설치 및 사용
+
+```bash
+# 버튼 컴포넌트 설치
+npx shadcn@latest add button
+
+# 사용 예시 (TSX)
+import { Button } from "@/components/ui/button"
+
+export function MyComponent() {
+  return (
+    <Button variant="default">클릭</Button>
+    <Button variant="destructive">삭제</Button>
+    <Button variant="outline">취소</Button>
+  )
+}
+```
+
+#### 자주 사용하는 컴포넌트 목록
+
+| 컴포넌트 | 용도 | 설치 명령어 |
+|---------|------|------------|
+| Button | 버튼 | `npx shadcn@latest add button` |
+| Card | 카드 레이아웃 | `npx shadcn@latest add card` |
+| Input | 입력 필드 | `npx shadcn@latest add input` |
+| Form | 폼 (react-hook-form 통합) | `npx shadcn@latest add form` |
+| Table | 테이블 | `npx shadcn@latest add table` |
+| Dialog | 모달/다이얼로그 | `npx shadcn@latest add dialog` |
+| Dropdown Menu | 드롭다운 메뉴 | `npx shadcn@latest add dropdown-menu` |
+| Toast | 알림 메시지 | `npx shadcn@latest add toast` |
+| Select | 선택 박스 | `npx shadcn@latest add select` |
+| Tabs | 탭 인터페이스 | `npx shadcn@latest add tabs` |
+| Badge | 배지/태그 | `npx shadcn@latest add badge` |
+| Avatar | 프로필 이미지 | `npx shadcn@latest add avatar` |
+
+#### UI 개발 프롬프트 예시
+
+```
+[페이지명] UI를 shadcn/ui로 구현해줘.
+
+사용할 컴포넌트:
+- Card: 메인 컨테이너
+- Table: 데이터 목록
+- Button: 액션 버튼
+- Dialog: 상세보기 모달
+
+필요한 컴포넌트가 없으면 먼저 설치해줘.
+```
+
+---
+
+### 6.2 기능 개발 프롬프트 패턴
 
 #### 새로운 기능 추가
 

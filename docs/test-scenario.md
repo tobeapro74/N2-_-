@@ -4,6 +4,32 @@
 
 ---
 
+## 개발 환경 및 UI 프레임워크
+
+### 기술 스택
+
+| 구분 | 기술 | 비고 |
+|------|------|------|
+| 프론트엔드 (Next.js) | shadcn/ui | Radix UI 기반 컴포넌트 |
+| 프론트엔드 (Express) | Bootstrap 5 | EJS 템플릿 |
+| 스타일링 | Tailwind CSS | shadcn/ui와 함께 사용 |
+
+### shadcn/ui 컴포넌트 테스트
+
+Next.js 프로젝트에서는 UI 개발 시 **shadcn/ui**를 사용합니다.
+
+```bash
+# 초기화
+npx shadcn@latest init
+
+# 컴포넌트 설치
+npx shadcn@latest add button
+npx shadcn@latest add card
+npx shadcn@latest add table
+```
+
+---
+
 ## 일정 관리
 
 ### TC-SCH-001: 일정 목록 정렬 순서 확인
@@ -177,4 +203,4 @@
 
 ---
 
-*마지막 업데이트: 2024-12-29 19:10*
+*마지막 업데이트: 2024-12-29 19:20*

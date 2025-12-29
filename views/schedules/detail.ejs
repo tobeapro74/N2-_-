@@ -28,40 +28,11 @@
   border-color: #212529 !important;
 }
 
-/* iOS Safari 티타임 input 중간정렬 */
+/* 티타임 input 스타일 */
 .tee-time-input {
   text-align: center !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  line-height: 28px !important;
-  padding: 0 !important;
-}
-/* iOS Safari 전용 */
-@supports (-webkit-touch-callout: none) {
-  .tee-time-input {
-    padding-top: 0 !important;
-    padding-bottom: 0 !important;
-    line-height: normal !important;
-  }
-}
-.tee-time-input::-webkit-date-and-time-value {
-  text-align: center !important;
-  margin: auto !important;
-  padding: 0 !important;
-}
-.tee-time-input::-webkit-datetime-edit {
-  text-align: center !important;
-  padding: 0 !important;
-  line-height: 28px !important;
-}
-.tee-time-input::-webkit-datetime-edit-fields-wrapper {
-  padding: 0 !important;
-}
-.tee-time-input::-webkit-inner-spin-button,
-.tee-time-input::-webkit-calendar-picker-indicator {
-  margin: 0 !important;
-  padding: 0 !important;
+  font-size: 0.75rem !important;
+  padding: 2px 4px !important;
 }
 </style>
 
@@ -309,7 +280,7 @@
                 </td>
                 <td>
                   <% if (user && user.is_admin && !isInactive) { %>
-                  <input type="time" class="form-control form-control-sm tee-time-input" data-reservation-id="<%= r.id %>" value="<%= r.tee_time || '' %>" style="width: 80px; height: 28px; font-size: 0.7rem; min-height: unset; -webkit-appearance: none;">
+                  <input type="text" class="form-control form-control-sm tee-time-input" data-reservation-id="<%= r.id %>" value="<%= r.tee_time || '' %>" placeholder="00:00" maxlength="5" pattern="[0-9]{2}:[0-9]{2}" style="width: 55px; height: 28px;">
                   <% } else { %>
                   <small><%= r.tee_time || '-' %></small>
                   <% } %>
@@ -776,10 +747,26 @@ document.querySelectorAll('.team-select').forEach(select => {
 
 // 티타임 변경 이벤트
 document.querySelectorAll('.tee-time-input').forEach(input => {
+  // 숫자와 콜론만 입력 허용
+  input.addEventListener('input', function(e) {
+    let value = this.value.replace(/[^0-9]/g, '');
+    if (value.length >= 2) {
+      value = value.slice(0, 2) + ':' + value.slice(2, 4);
+    }
+    this.value = value.slice(0, 5);
+  });
+
   input.addEventListener('change', async function() {
     const reservationId = this.dataset.reservationId;
     const teeTime = this.value;
     const inputElement = this;
+
+    // 시간 형식 검증 (HH:MM)
+    const timePattern = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
+    if (teeTime && !timePattern.test(teeTime)) {
+      alert('올바른 시간 형식을 입력하세요 (예: 06:00)');
+      return;
+    }
 
     const result = await updateTeam(reservationId, null, teeTime);
 

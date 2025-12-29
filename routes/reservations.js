@@ -706,6 +706,84 @@ router.post('/admin/update-status', requireAuth, requireAdmin, async (req, res) 
   }
 });
 
+// 관리자: 예약 물리적 삭제 (DB에서 완전 삭제)
+router.post('/admin/hard-delete', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const { reservation_id } = req.body;
+    const reservationId = parseInt(reservation_id);
+
+    // 캐시 새로고침
+    if (db.refreshCache) {
+      await db.refreshCache('reservations');
+    }
+
+    const reservation = db.findById('reservations', reservationId);
+    if (!reservation) {
+      return res.status(404).json({ error: '예약을 찾을 수 없습니다.' });
+    }
+
+    // 실제 삭제
+    await db.delete('reservations', reservationId);
+
+    // 캐시 새로고침
+    if (db.refreshCache) {
+      await db.refreshCache('reservations');
+    }
+
+    res.json({ success: true, message: '예약이 완전히 삭제되었습니다.' });
+  } catch (error) {
+    console.error('예약 물리적 삭제 오류:', error);
+    res.status(500).json({ error: '예약 삭제 중 오류가 발생했습니다.' });
+  }
+});
+
+// 관리자: 관리자 예약 전체 삭제
+router.delete('/admin/clear-admin-reservations', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    // 캐시 새로고침
+    if (db.refreshCache) {
+      await db.refreshCache('reservations');
+      await db.refreshCache('members');
+    }
+
+    // 관리자 회원 ID 찾기
+    const adminMembers = db.getTable('members').filter(m => m.is_admin === true || m.is_admin === 1);
+    const adminIds = adminMembers.map(m => m.id);
+
+    if (adminIds.length === 0) {
+      return res.json({ success: true, message: '관리자 회원이 없습니다.', deleted: 0 });
+    }
+
+    // 관리자 예약 찾기
+    const adminReservations = db.getTable('reservations').filter(r => adminIds.includes(r.member_id));
+
+    if (adminReservations.length === 0) {
+      return res.json({ success: true, message: '삭제할 관리자 예약이 없습니다.', deleted: 0 });
+    }
+
+    // 각 예약 삭제
+    let deletedCount = 0;
+    for (const r of adminReservations) {
+      await db.delete('reservations', r.id);
+      deletedCount++;
+    }
+
+    // 캐시 새로고침
+    if (db.refreshCache) {
+      await db.refreshCache('reservations');
+    }
+
+    res.json({
+      success: true,
+      message: `관리자 예약 ${deletedCount}건이 삭제되었습니다.`,
+      deleted: deletedCount
+    });
+  } catch (error) {
+    console.error('관리자 예약 삭제 오류:', error);
+    res.status(500).json({ error: '관리자 예약 삭제 중 오류가 발생했습니다.' });
+  }
+});
+
 // 예약 가능한 일정 목록
 router.get('/available', requireAuth, async (req, res) => {
   try {

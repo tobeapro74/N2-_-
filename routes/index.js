@@ -82,6 +82,15 @@ router.get('/', (req, res) => {
   // 코스 가이드 데이터 (홀 정보 포함)
   const courseHoles = db.getTable('course_holes') || {};
 
+  // 신규 회원 (가입 10일 이내) - 비로그인 시 환영 배너용
+  const tenDaysAgo = new Date();
+  tenDaysAgo.setDate(tenDaysAgo.getDate() - 10);
+  const tenDaysAgoStr = tenDaysAgo.toISOString().split('T')[0];
+
+  const newMembers = members
+    .filter(m => m.join_date && m.join_date >= tenDaysAgoStr)
+    .map(m => ({ name: m.name, join_date: m.join_date }));
+
   // 로그인한 사용자의 개인 통계
   let userStats = null;
   if (req.session.user) {
@@ -131,7 +140,8 @@ router.get('/', (req, res) => {
     upcomingSchedules,
     recentTransactions,
     userStats,
-    courseHoles
+    courseHoles,
+    newMembers
   });
 });
 

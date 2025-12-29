@@ -69,12 +69,29 @@
 <!-- 메인 배너 (비로그인 시) -->
 <div class="row mb-3">
   <div class="col-12">
+    <% if (typeof newMembers !== 'undefined' && newMembers.length > 0) { %>
+    <!-- 신규 회원 환영 배너 (가입 10일 이내) -->
+    <div id="welcomeBannerCarousel" class="bg-primary bg-gradient text-white rounded-2 py-2 px-3">
+      <div class="welcome-banner-container" style="min-height: 28px; position: relative; overflow: hidden;">
+        <% newMembers.forEach((member, idx) => { %>
+        <div class="welcome-banner-slide <%= idx === 0 ? 'active' : '' %>" data-index="<%= idx %>" style="position: absolute; top: 0; left: 0; right: 0; opacity: <%= idx === 0 ? 1 : 0 %>; transition: opacity 0.5s ease;">
+          <div class="d-flex align-items-center justify-content-center">
+            <i class="bi bi-stars me-2 home-banner-icon"></i>
+            <span class="home-banner-text welcome-message" data-name="<%= member.name %>"></span>
+          </div>
+        </div>
+        <% }) %>
+      </div>
+    </div>
+    <% } else { %>
+    <!-- 기본 배너 -->
     <div class="bg-success bg-gradient text-white rounded-2 py-2 px-3">
       <div class="d-flex align-items-center justify-content-center">
         <i class="bi bi-trophy me-2 home-banner-icon"></i>
         <span class="home-banner-text">우리 모두가 주인공인 즐거운 라운드, N2골프</span>
       </div>
     </div>
+    <% } %>
   </div>
 </div>
 <% } %>
@@ -1494,6 +1511,51 @@ function refreshTrafficInfo() {
   }
 }
 
+// 신규 회원 환영 메시지 (3개 - 하루에 하나씩 교체)
+const welcomeMessages = [
+  '{name}님, N2골프 가족이 되신 것을 환영합니다!',
+  '{name}님의 첫 버디를 N2골프와 함께해요!',
+  '{name}님, 함께 라운딩 할 날이 벌써 기대됩니다!'
+];
+
+// 오늘 날짜 기반으로 메시지 인덱스 결정 (하루에 하나씩)
+function getWelcomeMessageIndex() {
+  const today = new Date();
+  const dayOfYear = Math.floor((today - new Date(today.getFullYear(), 0, 0)) / (1000 * 60 * 60 * 24));
+  return dayOfYear % welcomeMessages.length;
+}
+
+// 환영 배너 초기화 및 슬라이드 회전
+function initWelcomeBanner() {
+  const slides = document.querySelectorAll('.welcome-banner-slide');
+  if (slides.length === 0) return;
+
+  const messageIndex = getWelcomeMessageIndex();
+
+  // 각 슬라이드에 환영 메시지 설정
+  slides.forEach(slide => {
+    const messageEl = slide.querySelector('.welcome-message');
+    const memberName = messageEl.dataset.name;
+    const message = welcomeMessages[messageIndex].replace('{name}', memberName);
+    messageEl.textContent = message;
+  });
+
+  // 여러 명일 경우 10초마다 슬라이드 전환
+  if (slides.length > 1) {
+    let currentIndex = 0;
+    setInterval(() => {
+      // 현재 슬라이드 숨기기
+      slides[currentIndex].style.opacity = '0';
+
+      // 다음 슬라이드로 이동
+      currentIndex = (currentIndex + 1) % slides.length;
+
+      // 다음 슬라이드 표시
+      slides[currentIndex].style.opacity = '1';
+    }, 10000); // 10초마다 전환
+  }
+}
+
 // 페이지 로드 시 날씨 위젯 로드
 document.addEventListener('DOMContentLoaded', function() {
   if (document.getElementById('weatherCards')) {
@@ -1501,6 +1563,10 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   if (document.getElementById('trafficCards')) {
     loadTrafficWidget();
+  }
+  // 신규 회원 환영 배너 초기화
+  if (document.getElementById('welcomeBannerCarousel')) {
+    initWelcomeBanner();
   }
 });
 </script>

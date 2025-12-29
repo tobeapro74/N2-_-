@@ -97,7 +97,7 @@
             <i class="bi bi-check-circle"></i> 다시 신청
           </button>
           <% } %>
-        <% } else if (user) { %>
+        <% } else if (user && !user.is_admin) { %>
         <% const teeTimes = schedule.tee_times ? schedule.tee_times.split(',').map(t => t.trim()) : []; %>
         <% if (teeTimes.length > 0) { %>
         <div class="mb-2">

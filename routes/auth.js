@@ -14,55 +14,63 @@ router.get('/login', requireGuest, (req, res) => {
 
 // 로그인 처리
 router.post('/login', requireGuest, async (req, res) => {
-  const { name, password } = req.body;
+  try {
+    const { name, password } = req.body;
 
-  // 입력값 검증
-  const nameResult = validateName(name);
-  if (!nameResult.valid) {
-    return res.render('auth/login', {
-      title: '로그인',
-      error: nameResult.error
+    // 입력값 검증
+    const nameResult = validateName(name);
+    if (!nameResult.valid) {
+      return res.render('auth/login', {
+        title: '로그인',
+        error: nameResult.error
+      });
+    }
+
+    // 캐시 새로고침 (MongoDB 환경에서 최신 비밀번호 반영)
+    if (db.refreshCache) {
+      await db.refreshCache('members');
+    }
+
+    const members = db.getTable('members');
+    const member = members.find(m => m.name === name && m.status === 'active');
+
+    if (!member) {
+      logger.security('로그인 실패 - 존재하지 않는 사용자', { name, ip: req.ip });
+      return res.render('auth/login', {
+        title: '로그인',
+        error: '이름 또는 비밀번호가 일치하지 않습니다.'
+      });
+    }
+
+    const isValid = bcrypt.compareSync(password, member.password_hash || '');
+    if (!isValid) {
+      logger.security('로그인 실패 - 비밀번호 불일치', { name, ip: req.ip });
+      return res.render('auth/login', {
+        title: '로그인',
+        error: '이름 또는 비밀번호가 일치하지 않습니다.'
+      });
+    }
+
+    req.session.user = {
+      id: member.id,
+      name: member.name,
+      internal_phone: member.internal_phone,
+      is_admin: member.is_admin
+    };
+
+    logger.audit('로그인 성공', req.session.user, { ip: req.ip });
+
+    // 원래 요청 URL로 리다이렉트
+    const returnTo = req.session.returnTo || '/';
+    delete req.session.returnTo;
+    res.redirect(returnTo);
+  } catch (error) {
+    console.error('로그인 오류:', error);
+    res.status(500).render('error', {
+      title: '오류',
+      message: '로그인 처리 중 오류가 발생했습니다.'
     });
   }
-
-  // 캐시 새로고침 (MongoDB 환경에서 최신 비밀번호 반영)
-  if (db.refreshCache) {
-    await db.refreshCache('members');
-  }
-
-  const members = db.getTable('members');
-  const member = members.find(m => m.name === name && m.status === 'active');
-
-  if (!member) {
-    logger.security('로그인 실패 - 존재하지 않는 사용자', { name, ip: req.ip });
-    return res.render('auth/login', {
-      title: '로그인',
-      error: '이름 또는 비밀번호가 일치하지 않습니다.'
-    });
-  }
-
-  const isValid = bcrypt.compareSync(password, member.password_hash || '');
-  if (!isValid) {
-    logger.security('로그인 실패 - 비밀번호 불일치', { name, ip: req.ip });
-    return res.render('auth/login', {
-      title: '로그인',
-      error: '이름 또는 비밀번호가 일치하지 않습니다.'
-    });
-  }
-
-  req.session.user = {
-    id: member.id,
-    name: member.name,
-    internal_phone: member.internal_phone,
-    is_admin: member.is_admin
-  };
-
-  logger.audit('로그인 성공', req.session.user, { ip: req.ip });
-
-  // 원래 요청 URL로 리다이렉트
-  const returnTo = req.session.returnTo || '/';
-  delete req.session.returnTo;
-  res.redirect(returnTo);
 });
 
 // 로그아웃

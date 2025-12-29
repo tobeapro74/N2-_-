@@ -3,11 +3,22 @@ const router = express.Router();
 const db = require('../models/database');
 
 // 메인 대시보드
-router.get('/', (req, res) => {
-  // 총 입금/출금 계산
-  const incomes = db.getTable('incomes');
-  const expenses = db.getTable('expenses');
-  const members = db.getTable('members').filter(m => !m.is_admin);
+router.get('/', async (req, res) => {
+  try {
+    // MongoDB 캐시 새로고침
+    if (db.refreshCache) {
+      await db.refreshCache('incomes');
+      await db.refreshCache('expenses');
+      await db.refreshCache('members');
+      await db.refreshCache('schedules');
+      await db.refreshCache('reservations');
+      await db.refreshCache('golf_courses');
+    }
+
+    // 총 입금/출금 계산
+    const incomes = db.getTable('incomes');
+    const expenses = db.getTable('expenses');
+    const members = db.getTable('members').filter(m => !m.is_admin);
 
   const totalIncome = incomes.reduce((sum, i) => sum + (i.amount || 0), 0);
   const totalExpense = expenses.reduce((sum, e) => sum + (e.amount || 0), 0);
@@ -129,20 +140,27 @@ router.get('/', (req, res) => {
     };
   }
 
-  res.render('index', {
-    title: 'N2골프 - 대시보드',
-    balance,
-    totalIncome,
-    totalExpense,
-    memberStats,
-    monthlyIncome,
-    monthlyExpense,
-    upcomingSchedules,
-    recentTransactions,
-    userStats,
-    courseHoles,
-    newMembers
-  });
+    res.render('index', {
+      title: 'N2골프 - 대시보드',
+      balance,
+      totalIncome,
+      totalExpense,
+      memberStats,
+      monthlyIncome,
+      monthlyExpense,
+      upcomingSchedules,
+      recentTransactions,
+      userStats,
+      courseHoles,
+      newMembers
+    });
+  } catch (error) {
+    console.error('대시보드 로드 오류:', error);
+    res.status(500).render('error', {
+      title: '오류',
+      message: '대시보드를 불러오는 중 오류가 발생했습니다.'
+    });
+  }
 });
 
 module.exports = router;

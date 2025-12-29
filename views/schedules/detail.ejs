@@ -196,7 +196,7 @@
                           data-swap-partner-id="<%= r.swap_partner_id || '' %>"
                           data-swap-original-team="<%= r.swap_original_team || '' %>"
                           data-member-name="<%= r.member_name %>"
-                          style="width: 80px;">
+                          style="width: 65px; font-size: 0.75rem; padding: 0.15rem 0.3rem;">
                     <% if (r.swap_partner_id) { %>
                     <option value="revert">원복</option>
                     <% } %>
@@ -206,14 +206,14 @@
                     <% } %>
                   </select>
                   <% } else { %>
-                  <%= r.team_number ? r.team_number + '팀' : '-' %>
+                  <small><%= r.team_number ? r.team_number + '팀' : '-' %></small>
                   <% } %>
                 </td>
                 <td>
                   <% if (user && user.is_admin && r.status !== 'cancelled') { %>
-                  <input type="time" class="form-control form-control-sm tee-time-input" data-reservation-id="<%= r.id %>" value="<%= r.tee_time || '' %>" style="width: 100px;">
+                  <input type="time" class="form-control form-control-sm tee-time-input" data-reservation-id="<%= r.id %>" value="<%= r.tee_time || '' %>" style="width: 85px; font-size: 0.75rem; padding: 0.15rem 0.3rem;">
                   <% } else { %>
-                  <%= r.tee_time || '-' %>
+                  <small><%= r.tee_time || '-' %></small>
                   <% } %>
                 </td>
                 <% if (user && user.is_admin) { %>

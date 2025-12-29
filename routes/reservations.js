@@ -75,6 +75,12 @@ router.post('/apply', requireAuth, async (req, res) => {
       return res.status(403).json({ error: '관리자 계정은 예약 신청이 불가능합니다.' });
     }
 
+    // 캐시 새로고침 (중복 체크 전에 최신 데이터 확보)
+    if (db.refreshCache) {
+      await db.refreshCache('reservations');
+      await db.refreshCache('schedules');
+    }
+
     // 일정 확인
     const schedule = db.findById('schedules', scheduleId);
     if (!schedule || schedule.status !== 'open') {
@@ -320,6 +326,36 @@ router.post('/admin/book-for', requireAuth, requireAdmin, async (req, res) => {
   } catch (error) {
     console.error('대리 예약 오류:', error);
     res.status(500).json({ error: '예약 등록 중 오류가 발생했습니다.' });
+  }
+});
+
+// 관리자: 예약 삭제
+router.post('/admin/delete', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const { reservation_id } = req.body;
+    const reservationId = parseInt(reservation_id);
+
+    // 캐시 새로고침
+    if (db.refreshCache) {
+      await db.refreshCache('reservations');
+    }
+
+    const reservation = db.findById('reservations', reservationId);
+    if (!reservation) {
+      return res.status(404).json({ error: '예약을 찾을 수 없습니다.' });
+    }
+
+    await db.delete('reservations', reservationId);
+
+    // 캐시 새로고침
+    if (db.refreshCache) {
+      await db.refreshCache('reservations');
+    }
+
+    res.json({ success: true, message: '예약이 삭제되었습니다.' });
+  } catch (error) {
+    console.error('예약 삭제 오류:', error);
+    res.status(500).json({ error: '예약 삭제 중 오류가 발생했습니다.' });
   }
 });
 

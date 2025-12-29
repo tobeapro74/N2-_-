@@ -131,6 +131,9 @@
                 <th>상태</th>
                 <th>팀</th>
                 <th>티타임</th>
+                <% if (user && user.is_admin) { %>
+                <th>관리</th>
+                <% } %>
               </tr>
             </thead>
             <tbody>
@@ -162,6 +165,13 @@
                 </td>
                 <td><%= r.team_number ? r.team_number + '팀' : '-' %></td>
                 <td><%= r.tee_time || '-' %></td>
+                <% if (user && user.is_admin) { %>
+                <td>
+                  <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteReservation(<%= r.id %>, '<%= r.member_name %>')" title="예약 삭제">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </td>
+                <% } %>
               </tr>
               <% }) %>
             </tbody>
@@ -238,6 +248,28 @@ function assignTeams(scheduleId) {
         alert(data.error || '오류가 발생했습니다.');
       }
     });
+}
+
+function deleteReservation(reservationId, memberName) {
+  if (!confirm(`${memberName}님의 예약을 삭제하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다.`)) return;
+
+  fetch('/reservations/admin/delete', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRF-Token': csrfToken
+    },
+    body: JSON.stringify({ reservation_id: reservationId, _csrf: csrfToken })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      alert(data.message);
+      location.reload();
+    } else {
+      alert(data.error || '오류가 발생했습니다.');
+    }
+  });
 }
 </script>
 

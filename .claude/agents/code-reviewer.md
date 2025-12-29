@@ -508,6 +508,30 @@ db.insert('members', {
 
 ---
 
+### 2024-12-29: 홈 화면 레이아웃 수정 (다가오는 일정 전체 너비)
+**문제**: 데스크톱에서 "다가오는 일정" 섹션이 50% 너비로만 표시됨
+
+**원인**: `views/index.ejs` 라인 168에서 `col-md-6` 클래스 사용. 인접한 "최근 입출금" 섹션이 조건부로 숨겨져 있어도 그리드 레이아웃은 50%만 차지.
+
+**수정 내용** (`views/index.ejs`):
+```html
+<!-- 라인 168: col-md-6 → col-12 변경 -->
+<div class="col-12">
+  <div class="card h-100">
+    <div class="card-header bg-white py-2">
+      <h6 class="home-section-title-bold">다가오는 일정</h6>
+    </div>
+    ...
+  </div>
+</div>
+```
+
+**리뷰 포인트**:
+- Bootstrap 그리드에서 조건부 렌더링된 요소가 있을 때 남은 요소의 컬럼 클래스 확인 필요
+- `<% if (false) { %>`로 숨겨진 코드는 향후 삭제 또는 기능 활성화 계획 검토 권장
+
+---
+
 ### 2024-12-29: 에러 핸들러 user 변수 누락 수정
 **문제**: `error.ejs` 템플릿에서 `user` 변수 참조 시 `user is not defined` 에러 발생
 

@@ -329,6 +329,50 @@ router.post('/admin/book-for', requireAuth, requireAdmin, async (req, res) => {
   }
 });
 
+// 관리자: 팀 변경
+router.post('/admin/update-team', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const { reservation_id, team_number, tee_time } = req.body;
+    const reservationId = parseInt(reservation_id);
+    const teamNum = parseInt(team_number);
+
+    // 캐시 새로고침
+    if (db.refreshCache) {
+      await db.refreshCache('reservations');
+    }
+
+    const reservation = db.findById('reservations', reservationId);
+    if (!reservation) {
+      return res.status(404).json({ error: '예약을 찾을 수 없습니다.' });
+    }
+
+    // 팀 번호와 티타임 업데이트
+    const updateData = {};
+    if (!isNaN(teamNum) && teamNum > 0) {
+      updateData.team_number = teamNum;
+    }
+    if (tee_time) {
+      updateData.tee_time = tee_time;
+    }
+
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({ error: '변경할 내용이 없습니다.' });
+    }
+
+    await db.update('reservations', reservationId, updateData);
+
+    // 캐시 새로고침
+    if (db.refreshCache) {
+      await db.refreshCache('reservations');
+    }
+
+    res.json({ success: true, message: '팀 배정이 변경되었습니다.' });
+  } catch (error) {
+    console.error('팀 변경 오류:', error);
+    res.status(500).json({ error: '팀 변경 중 오류가 발생했습니다.' });
+  }
+});
+
 // 관리자: 예약 삭제
 router.post('/admin/delete', requireAuth, requireAdmin, async (req, res) => {
   try {

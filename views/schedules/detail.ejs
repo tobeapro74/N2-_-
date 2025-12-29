@@ -163,8 +163,25 @@
                   <span class="badge bg-warning">신청</span>
                   <% } %>
                 </td>
-                <td><%= r.team_number ? r.team_number + '팀' : '-' %></td>
-                <td><%= r.tee_time || '-' %></td>
+                <td>
+                  <% if (user && user.is_admin && r.status !== 'cancelled') { %>
+                  <select class="form-select form-select-sm team-select" data-reservation-id="<%= r.id %>" style="width: 70px;">
+                    <option value="">-</option>
+                    <% for (let t = 1; t <= 4; t++) { %>
+                    <option value="<%= t %>" <%= r.team_number === t ? 'selected' : '' %>><%= t %>팀</option>
+                    <% } %>
+                  </select>
+                  <% } else { %>
+                  <%= r.team_number ? r.team_number + '팀' : '-' %>
+                  <% } %>
+                </td>
+                <td>
+                  <% if (user && user.is_admin && r.status !== 'cancelled') { %>
+                  <input type="time" class="form-control form-control-sm tee-time-input" data-reservation-id="<%= r.id %>" value="<%= r.tee_time || '' %>" style="width: 100px;">
+                  <% } else { %>
+                  <%= r.tee_time || '-' %>
+                  <% } %>
+                </td>
                 <% if (user && user.is_admin) { %>
                 <td>
                   <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteReservation(<%= r.id %>, '<%= r.member_name %>')" title="예약 삭제">
@@ -271,6 +288,52 @@ function deleteReservation(reservationId, memberName) {
     }
   });
 }
+
+// 팀 변경 함수
+function updateTeam(reservationId, teamNumber, teeTime) {
+  fetch('/reservations/admin/update-team', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRF-Token': csrfToken
+    },
+    body: JSON.stringify({
+      reservation_id: reservationId,
+      team_number: teamNumber,
+      tee_time: teeTime,
+      _csrf: csrfToken
+    })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      // 성공 시 시각적 피드백
+      const element = event.target;
+      element.classList.add('border-success');
+      setTimeout(() => element.classList.remove('border-success'), 1000);
+    } else {
+      alert(data.error || '오류가 발생했습니다.');
+    }
+  });
+}
+
+// 팀 선택 변경 이벤트
+document.querySelectorAll('.team-select').forEach(select => {
+  select.addEventListener('change', function() {
+    const reservationId = this.dataset.reservationId;
+    const teamNumber = this.value;
+    updateTeam(reservationId, teamNumber, null);
+  });
+});
+
+// 티타임 변경 이벤트
+document.querySelectorAll('.tee-time-input').forEach(input => {
+  input.addEventListener('change', function() {
+    const reservationId = this.dataset.reservationId;
+    const teeTime = this.value;
+    updateTeam(reservationId, null, teeTime);
+  });
+});
 </script>
 
 <%- include('../partials/footer') %>

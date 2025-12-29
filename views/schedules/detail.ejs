@@ -189,6 +189,7 @@
                 <th>티타임</th>
                 <% if (user && user.is_admin) { %>
                 <th>관리</th>
+                <th>완전삭제</th>
                 <% } %>
               </tr>
             </thead>
@@ -287,6 +288,11 @@
                   <span class="text-muted">-</span>
                   <% } %>
                 </td>
+                <td>
+                  <button type="button" class="btn btn-sm btn-danger" onclick="hardDeleteReservation(<%= r.id %>, '<%= r.member_name %>')" title="DB에서 완전 삭제">
+                    <i class="bi bi-x-circle-fill"></i>
+                  </button>
+                </td>
                 <% } %>
               </tr>
               <% }) %>
@@ -384,6 +390,32 @@ function deleteReservation(reservationId, memberName) {
   if (!confirm(`${memberName}님의 예약을 삭제하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다.`)) return;
 
   fetch('/reservations/admin/delete', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRF-Token': csrfToken
+    },
+    body: JSON.stringify({ reservation_id: reservationId, _csrf: csrfToken })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      alert(data.message);
+      location.reload();
+    } else {
+      alert(data.error || '오류가 발생했습니다.');
+    }
+  });
+}
+
+// 예약 완전 삭제 (DB에서 물리적 삭제)
+function hardDeleteReservation(reservationId, memberName) {
+  if (!confirm(`⚠️ 경고: ${memberName}님의 예약을 완전히 삭제합니다.\n\n이 작업은 데이터베이스에서 완전히 삭제되며, 복구가 불가능합니다.\n\n정말 삭제하시겠습니까?`)) return;
+
+  // 이중 확인
+  if (!confirm(`다시 한번 확인합니다.\n\n"${memberName}" 예약을 완전 삭제하시겠습니까?`)) return;
+
+  fetch('/reservations/admin/hard-delete', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

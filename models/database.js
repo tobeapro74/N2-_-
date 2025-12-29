@@ -247,17 +247,25 @@ class Database {
     try {
       const collection = await this.getCollection(table);
       const updateData = { ...updates, updated_at: new Date().toISOString() };
+      const numericId = parseInt(id);
+
+      console.log(`[MongoDB] 업데이트 시도: ${table}, id=${id} (numeric: ${numericId})`, updateData);
 
       const result = await collection.updateOne(
-        { $or: [{ id: parseInt(id) }, { id: String(id) }] },
+        { id: numericId },
         { $set: updateData }
       );
 
-      // 캐시 업데이트
+      console.log(`[MongoDB] 업데이트 결과: matched=${result.matchedCount}, modified=${result.modifiedCount}`);
+
+      // 캐시 업데이트 - 숫자 타입으로 비교
       if (this.mongoCache[table]) {
-        const idx = this.mongoCache[table].findIndex(r => r.id === id || r.id === parseInt(id));
+        const idx = this.mongoCache[table].findIndex(r => r.id === numericId);
         if (idx !== -1) {
           Object.assign(this.mongoCache[table][idx], updateData);
+          console.log(`[MongoDB] 캐시 업데이트 완료: idx=${idx}`);
+        } else {
+          console.log(`[MongoDB] 캐시에서 레코드를 찾지 못함: id=${numericId}`);
         }
       }
 

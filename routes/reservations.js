@@ -381,6 +381,15 @@ router.post('/admin/update-team', requireAuth, requireAdmin, async (req, res) =>
     const updateResult = await db.update('reservations', reservationId, updateData);
     console.log('팀 변경 결과:', updateResult);
 
+    // 업데이트 실패 시 에러 반환
+    if (!updateResult) {
+      return res.status(500).json({
+        error: 'MongoDB 업데이트에 실패했습니다.',
+        reservationId,
+        updateData
+      });
+    }
+
     // 캐시 새로고침 (강제)
     if (db.refreshCache) {
       await db.refreshCache('reservations');
@@ -389,6 +398,17 @@ router.post('/admin/update-team', requireAuth, requireAdmin, async (req, res) =>
     // 변경 확인
     const updated = db.findById('reservations', reservationId);
     console.log('변경 후 데이터:', { id: updated?.id, team_number: updated?.team_number, tee_time: updated?.tee_time });
+
+    // 실제로 변경되었는지 확인
+    const requestedTeam = updateData.team_number;
+    if (requestedTeam && updated?.team_number !== requestedTeam) {
+      return res.status(500).json({
+        error: `팀 변경이 반영되지 않았습니다. 요청: ${requestedTeam}, 현재: ${updated?.team_number}`,
+        reservationId,
+        requested: requestedTeam,
+        actual: updated?.team_number
+      });
+    }
 
     res.json({
       success: true,

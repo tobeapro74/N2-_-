@@ -400,8 +400,8 @@ function showSwapModal(fromTeam, toTeam, movedReservationId, teamMembers) {
             </select>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" onclick="cancelSwap(${movedReservationId}, ${fromTeam}); return false;">취소 (원복)</button>
-            <button type="button" class="btn btn-primary" onclick="confirmSwap(${movedReservationId}, ${fromTeam}); return false;">교환</button>
+            <button type="button" class="btn btn-secondary" onclick="cancelSwap(${movedReservationId}, ${toTeam}); return false;">교환 없이 진행</button>
+            <button type="button" class="btn btn-primary" onclick="confirmSwap(${movedReservationId}, ${fromTeam}); return false;">멤버 교환</button>
           </div>
         </div>
       </div>
@@ -418,52 +418,17 @@ function showSwapModal(fromTeam, toTeam, movedReservationId, teamMembers) {
   modal.show();
 }
 
-// 교환 취소 (원복)
-function cancelSwap(movedReservationId, originalTeam) {
-  console.log('cancelSwap 호출:', movedReservationId, originalTeam);
+// 교환 취소 (팀 이동 유지, 교환 없이 진행)
+function cancelSwap(movedReservationId, targetTeam) {
+  console.log('cancelSwap 호출 - 교환 없이 진행:', movedReservationId, '-> 팀:', targetTeam);
 
-  // 이동한 멤버를 원래 팀으로 되돌림
-  fetch('/reservations/admin/update-team', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-CSRF-Token': csrfToken
-    },
-    body: JSON.stringify({
-      reservation_id: movedReservationId,
-      team_number: originalTeam,
-      auto_tee_time: true,
-      _csrf: csrfToken
-    })
-  })
-  .then(res => {
-    console.log('API 응답 상태:', res.status);
-    return res.json();
-  })
-  .then(result => {
-    console.log('API 응답:', result);
-    if (result.success) {
-      // 모달 닫기
-      const modalEl = document.getElementById('swapModal');
-      const modal = bootstrap.Modal.getInstance(modalEl);
-      if (modal) modal.hide();
+  // 이미 targetTeam으로 이동된 상태이므로, 모달만 닫고 새로고침
+  const modalEl = document.getElementById('swapModal');
+  const modal = bootstrap.Modal.getInstance(modalEl);
+  if (modal) modal.hide();
 
-      // 실제 변경된 팀 확인
-      const actualTeam = result.updated_team;
-      if (actualTeam !== originalTeam) {
-        alert(`원복 요청은 성공했으나, 실제 팀이 ${actualTeam}입니다. 다시 시도해주세요.`);
-      } else {
-        alert(`원복되었습니다. (팀: ${actualTeam})`);
-      }
-      location.reload();
-    } else {
-      alert(result.error || '원복 중 오류가 발생했습니다.');
-    }
-  })
-  .catch(err => {
-    console.error('원복 오류:', err);
-    alert('원복 중 오류가 발생했습니다: ' + err.message);
-  });
+  alert(`${targetTeam}팀으로 이동되었습니다. (교환 없이 진행)`);
+  location.reload();
 }
 
 // 교환 확인

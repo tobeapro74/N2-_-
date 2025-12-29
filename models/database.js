@@ -1,6 +1,9 @@
 const fs = require('fs');
 const path = require('path');
 
+// Vercel 환경 감지
+const isVercel = process.env.VERCEL === '1';
+
 const dbPath = path.join(__dirname, '..', 'data', 'n2golf.json');
 
 // 초기 데이터베이스 구조
@@ -38,29 +41,33 @@ function loadDB() {
     if (fs.existsSync(dbPath)) {
       const data = fs.readFileSync(dbPath, 'utf8');
       const parsed = JSON.parse(data);
-      // 정상 로드 시 백업 생성
-      try {
-        fs.writeFileSync(backupPath, data);
-      } catch (backupError) {
-        console.error('백업 생성 오류:', backupError);
+      // Vercel 환경이 아닐 때만 백업 생성 (Vercel은 읽기 전용 파일 시스템)
+      if (!isVercel) {
+        try {
+          fs.writeFileSync(backupPath, data);
+        } catch (backupError) {
+          console.error('백업 생성 오류:', backupError);
+        }
       }
       return parsed;
     }
   } catch (error) {
     console.error('DB 로드 오류:', error);
-    // 메인 파일 로드 실패 시 백업에서 복구 시도
-    try {
-      if (fs.existsSync(backupPath)) {
-        console.log('백업 파일에서 복구 시도...');
-        const backupData = fs.readFileSync(backupPath, 'utf8');
-        const parsed = JSON.parse(backupData);
-        // 복구된 데이터를 메인 파일에 저장
-        fs.writeFileSync(dbPath, backupData);
-        console.log('백업에서 복구 완료');
-        return parsed;
+    // Vercel 환경이 아닐 때만 백업에서 복구 시도
+    if (!isVercel) {
+      try {
+        if (fs.existsSync(backupPath)) {
+          console.log('백업 파일에서 복구 시도...');
+          const backupData = fs.readFileSync(backupPath, 'utf8');
+          const parsed = JSON.parse(backupData);
+          // 복구된 데이터를 메인 파일에 저장
+          fs.writeFileSync(dbPath, backupData);
+          console.log('백업에서 복구 완료');
+          return parsed;
+        }
+      } catch (recoveryError) {
+        console.error('백업 복구 실패:', recoveryError);
       }
-    } catch (recoveryError) {
-      console.error('백업 복구 실패:', recoveryError);
     }
   }
   return { ...initialData };
@@ -68,6 +75,12 @@ function loadDB() {
 
 // 데이터베이스 저장
 function saveDB(data) {
+  // Vercel 환경에서는 파일 시스템이 읽기 전용이므로 저장 건너뛰기
+  if (isVercel) {
+    console.log('Vercel 환경: 파일 저장 건너뛰기 (읽기 전용 파일 시스템)');
+    return;
+  }
+
   try {
     const jsonData = JSON.stringify(data, null, 2);
     // 임시 파일에 먼저 저장 (원자적 쓰기)

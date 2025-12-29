@@ -15,5 +15,10 @@
       "src": "/(.*)",
       "dest": "/app.js"
     }
-  ]
+  ],
+  "functions": {
+    "app.js": {
+      "includeFiles": "data/**,views/**,config/**,models/**,routes/**,middleware/**,utils/**,public/**"
+    }
+  }
 }

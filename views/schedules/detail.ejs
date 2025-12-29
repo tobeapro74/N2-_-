@@ -273,7 +273,7 @@
                 </td>
                 <td>
                   <% if (user && user.is_admin && !isInactive) { %>
-                  <input type="time" class="form-control form-control-sm tee-time-input" data-reservation-id="<%= r.id %>" value="<%= r.tee_time || '' %>" style="width: 75px; height: 28px; font-size: 0.7rem; padding: 0.1rem 0.2rem; min-height: unset; -webkit-appearance: none;">
+                  <input type="time" class="form-control form-control-sm tee-time-input" data-reservation-id="<%= r.id %>" value="<%= r.tee_time || '' %>" style="width: 75px; height: 28px; font-size: 0.7rem; padding: 0.1rem 0.2rem; min-height: unset; -webkit-appearance: none; text-align: center;">
                   <% } else { %>
                   <small><%= r.tee_time || '-' %></small>
                   <% } %>

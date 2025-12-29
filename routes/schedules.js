@@ -382,27 +382,135 @@ router.post('/:id/assign-teams', requireAuth, requireAdmin, async (req, res) => 
       return res.status(404).json({ error: '일정을 찾을 수 없습니다.' });
     }
 
+    // 활성 상태(pending, confirmed)인 예약만 필터링
     const reservations = db.getTable('reservations')
       .filter(r => r.schedule_id === scheduleId && ['pending', 'confirmed'].includes(r.status))
       .sort((a, b) => {
+        // 우선순위 정렬: priority 낮은 순 → 신청시간 빠른 순
         if (a.priority !== b.priority) return a.priority - b.priority;
         return (a.applied_at || '').localeCompare(b.applied_at || '');
       });
 
-    const teeTimes = schedule.tee_times ? schedule.tee_times.split(',') : ['06:00', '06:08', '06:16'];
+    const teeTimes = schedule.tee_times ? schedule.tee_times.split(',').map(t => t.trim()) : ['06:00', '06:08', '06:16'];
     const maxMembers = schedule.max_members || 12;
+    const maxPerTeam = 4;
 
-    for (let index = 0; index < reservations.length; index++) {
-      const r = reservations[index];
-      const teamNumber = Math.floor(index / 4) + 1;
-      const teeTime = teeTimes[Math.floor(index / 4)] || teeTimes[teeTimes.length - 1];
-      const status = index < maxMembers ? 'confirmed' : 'waitlist';
+    // 각 티타임(팀)별 현재 배정 인원 추적
+    const teamSlots = {};
+    teeTimes.forEach((time, idx) => {
+      teamSlots[idx + 1] = { teeTime: time, count: 0, members: [] };
+    });
 
-      await db.update('reservations', r.id, {
-        team_number: teamNumber,
-        tee_time: teeTime,
-        status
+    // 희망 티타임별로 예약자 그룹화
+    const preferredGroups = {};
+    teeTimes.forEach(time => {
+      preferredGroups[time] = [];
+    });
+    preferredGroups['none'] = []; // 희망 티타임 없는 경우
+
+    reservations.forEach(r => {
+      const preferred = r.preferred_tee_time;
+      if (preferred && preferredGroups[preferred]) {
+        preferredGroups[preferred].push(r);
+      } else {
+        preferredGroups['none'].push(r);
+      }
+    });
+
+    // 배정 결과 저장
+    const assignments = [];
+
+    // 1단계: 희망 티타임에 맞춰 배정 (각 티타임 4명까지)
+    teeTimes.forEach((time, teamIdx) => {
+      const teamNumber = teamIdx + 1;
+      const preferred = preferredGroups[time] || [];
+
+      preferred.forEach(r => {
+        // 해당 티타임에 자리가 있으면 배정
+        if (teamSlots[teamNumber].count < maxPerTeam) {
+          assignments.push({
+            reservation: r,
+            teamNumber,
+            teeTime: time,
+            assigned: true
+          });
+          teamSlots[teamNumber].count++;
+        } else {
+          // 자리가 없으면 나중에 다음 티타임으로 밀기 위해 표시
+          assignments.push({
+            reservation: r,
+            preferredTeam: teamNumber,
+            teeTime: null,
+            assigned: false
+          });
+        }
       });
+    });
+
+    // 희망 티타임 없는 예약자도 미배정으로 추가
+    preferredGroups['none'].forEach(r => {
+      assignments.push({
+        reservation: r,
+        preferredTeam: null,
+        teeTime: null,
+        assigned: false
+      });
+    });
+
+    // 2단계: 미배정된 예약자를 다음 빈 팀으로 밀기
+    // 희망 티타임 기준으로 정렬 (늦게 신청한 사람이 먼저 밀림)
+    const unassigned = assignments
+      .filter(a => !a.assigned)
+      .sort((a, b) => {
+        // 희망 티타임이 있는 경우 해당 티타임 순서대로
+        const aTeam = a.preferredTeam || 1;
+        const bTeam = b.preferredTeam || 1;
+        if (aTeam !== bTeam) return aTeam - bTeam;
+        // 같은 희망 티타임이면 늦게 신청한 사람이 뒤로
+        return (a.reservation.applied_at || '').localeCompare(b.reservation.applied_at || '');
+      });
+
+    unassigned.forEach(item => {
+      // 희망 티타임부터 시작하여 빈 자리 찾기
+      const startTeam = item.preferredTeam || 1;
+
+      // 희망 티타임 이후의 팀부터 검색
+      for (let teamNum = startTeam; teamNum <= teeTimes.length; teamNum++) {
+        if (teamSlots[teamNum].count < maxPerTeam) {
+          item.teamNumber = teamNum;
+          item.teeTime = teeTimes[teamNum - 1];
+          item.assigned = true;
+          teamSlots[teamNum].count++;
+          break;
+        }
+      }
+
+      // 희망 티타임 이후에 자리가 없으면 처음부터 검색
+      if (!item.assigned) {
+        for (let teamNum = 1; teamNum < startTeam; teamNum++) {
+          if (teamSlots[teamNum].count < maxPerTeam) {
+            item.teamNumber = teamNum;
+            item.teeTime = teeTimes[teamNum - 1];
+            item.assigned = true;
+            teamSlots[teamNum].count++;
+            break;
+          }
+        }
+      }
+    });
+
+    // 3단계: DB 업데이트
+    let confirmedCount = 0;
+    for (const item of assignments) {
+      if (item.assigned) {
+        const status = confirmedCount < maxMembers ? 'confirmed' : 'waitlist';
+        await db.update('reservations', item.reservation.id, {
+          team_number: item.teamNumber,
+          tee_time: item.teeTime,
+          status
+        });
+        confirmedCount++;
+      }
     }
 
     // 캐시 새로고침
@@ -410,7 +518,7 @@ router.post('/:id/assign-teams', requireAuth, requireAdmin, async (req, res) => 
       await db.refreshCache('reservations');
     }
 
-    res.json({ success: true, message: `${reservations.length}명의 팀이 배정되었습니다.` });
+    res.json({ success: true, message: `${reservations.length}명의 팀이 배정되었습니다. (희망 티타임 우선 적용)` });
   } catch (error) {
     console.error('팀 배정 오류:', error);
     res.status(500).json({ error: '팀 배정 중 오류가 발생했습니다.' });

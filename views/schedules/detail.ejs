@@ -382,12 +382,11 @@ function showSwapModal(fromTeam, toTeam, movedReservationId, teamMembers) {
     .join('');
 
   const modalHtml = `
-    <div class="modal fade" id="swapModal" tabindex="-1">
+    <div class="modal fade" id="swapModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title">팀 멤버 교환</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
           </div>
           <div class="modal-body">
             <div class="alert alert-warning">
@@ -401,7 +400,7 @@ function showSwapModal(fromTeam, toTeam, movedReservationId, teamMembers) {
             </select>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="location.reload()">취소 (원복)</button>
+            <button type="button" class="btn btn-secondary" onclick="cancelSwap(${movedReservationId}, ${fromTeam})">취소 (원복)</button>
             <button type="button" class="btn btn-primary" onclick="confirmSwap(${movedReservationId}, ${fromTeam})">교환</button>
           </div>
         </div>
@@ -417,6 +416,23 @@ function showSwapModal(fromTeam, toTeam, movedReservationId, teamMembers) {
   document.body.insertAdjacentHTML('beforeend', modalHtml);
   const modal = new bootstrap.Modal(document.getElementById('swapModal'));
   modal.show();
+}
+
+// 교환 취소 (원복)
+async function cancelSwap(movedReservationId, originalTeam) {
+  // 이동한 멤버를 원래 팀으로 되돌림
+  const result = await updateTeam(movedReservationId, originalTeam, null, true);
+
+  if (result.success) {
+    // 모달 닫기
+    const modalEl = document.getElementById('swapModal');
+    const modal = bootstrap.Modal.getInstance(modalEl);
+    if (modal) modal.hide();
+
+    location.reload();
+  } else {
+    alert(result.error || '원복 중 오류가 발생했습니다.');
+  }
 }
 
 // 교환 확인

@@ -85,7 +85,7 @@ router.get('/api/active', requireAuth, requireAdmin, (req, res) => {
 });
 
 // 회원 등록 처리
-router.post('/new', requireAuth, requireAdmin, (req, res) => {
+router.post('/new', requireAuth, requireAdmin, async (req, res) => {
   const { name, internal_phone, department, position, role, email, join_date } = req.body;
 
   // 입력값 검증
@@ -139,64 +139,93 @@ router.post('/new', requireAuth, requireAdmin, (req, res) => {
   // 기본 비밀번호 설정 (1234)
   const passwordHash = bcrypt.hashSync('1234', config.security.bcryptRounds);
 
-  const newId = db.insert('members', {
-    name: nameResult.value,
-    internal_phone: phoneResult.value,
-    department: department?.trim() || '',
-    position: position?.trim() || '',
-    role: role?.trim() || null,
-    email: emailResult.value,
-    join_date: join_date || new Date().toISOString().split('T')[0],
-    password_hash: passwordHash,
-    status: 'active',
-    is_admin: false
-  });
+  try {
+    const newId = await db.insert('members', {
+      name: nameResult.value,
+      internal_phone: phoneResult.value,
+      department: department?.trim() || '',
+      position: position?.trim() || '',
+      role: role?.trim() || null,
+      email: emailResult.value,
+      join_date: join_date || new Date().toISOString().split('T')[0],
+      password_hash: passwordHash,
+      status: 'active',
+      is_admin: false
+    });
 
-  logger.audit('회원 등록', req.session.user, { newMemberId: newId, name });
+    // 캐시 새로고침
+    if (db.refreshCache) {
+      await db.refreshCache('members');
+    }
 
-  res.redirect('/members');
+    logger.audit('회원 등록', req.session.user, { newMemberId: newId, name });
+
+    res.redirect('/members');
+  } catch (error) {
+    console.error('회원 등록 오류:', error);
+    res.status(500).render('error', {
+      title: '오류',
+      message: '회원 등록 중 오류가 발생했습니다.'
+    });
+  }
 });
 
 // 타수 입력/수정 API - /:id 라우트보다 먼저 정의
-router.post('/reservation/:reservationId/score', requireAuth, requireAdmin, (req, res) => {
-  const idResult = validateId(req.params.reservationId, '예약 ID');
-  if (!idResult.valid) {
-    return res.status(400).json({ error: idResult.error });
+router.post('/reservation/:reservationId/score', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const idResult = validateId(req.params.reservationId, '예약 ID');
+    if (!idResult.valid) {
+      return res.status(400).json({ error: idResult.error });
+    }
+
+    // 캐시 새로고침
+    if (db.refreshCache) {
+      await db.refreshCache('reservations');
+    }
+
+    const reservation = db.findById('reservations', idResult.value);
+    if (!reservation) {
+      return res.status(404).json({ error: '예약 정보를 찾을 수 없습니다.' });
+    }
+
+    const { score } = req.body;
+
+    // 타수 유효성 검사 (null 허용)
+    if (score !== null && (isNaN(score) || score < 50 || score > 200)) {
+      return res.status(400).json({ error: '타수는 50~200 사이의 숫자를 입력해주세요.' });
+    }
+
+    await db.update('reservations', idResult.value, { score: score });
+
+    // 회원 평균 타수 업데이트
+    const memberReservations = db.getTable('reservations')
+      .filter(r => r.member_id === reservation.member_id && r.score);
+
+    if (memberReservations.length > 0) {
+      const totalScore = memberReservations.reduce((sum, r) => sum + r.score, 0);
+      const avgScore = Math.round(totalScore / memberReservations.length);
+      await db.update('members', reservation.member_id, { avg_score: avgScore, recent_score: score });
+    }
+
+    // 캐시 새로고침
+    if (db.refreshCache) {
+      await db.refreshCache('reservations');
+      await db.refreshCache('members');
+    }
+
+    const member = db.findById('members', reservation.member_id);
+    logger.audit('타수 입력', req.session.user, {
+      reservationId: idResult.value,
+      memberId: reservation.member_id,
+      memberName: member?.name,
+      score
+    });
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('타수 입력 오류:', error);
+    res.status(500).json({ error: '타수 입력 중 오류가 발생했습니다.' });
   }
-
-  const reservation = db.findById('reservations', idResult.value);
-  if (!reservation) {
-    return res.status(404).json({ error: '예약 정보를 찾을 수 없습니다.' });
-  }
-
-  const { score } = req.body;
-
-  // 타수 유효성 검사 (null 허용)
-  if (score !== null && (isNaN(score) || score < 50 || score > 200)) {
-    return res.status(400).json({ error: '타수는 50~200 사이의 숫자를 입력해주세요.' });
-  }
-
-  db.update('reservations', idResult.value, { score: score });
-
-  // 회원 평균 타수 업데이트
-  const memberReservations = db.getTable('reservations')
-    .filter(r => r.member_id === reservation.member_id && r.score);
-
-  if (memberReservations.length > 0) {
-    const totalScore = memberReservations.reduce((sum, r) => sum + r.score, 0);
-    const avgScore = Math.round(totalScore / memberReservations.length);
-    db.update('members', reservation.member_id, { avg_score: avgScore, recent_score: score });
-  }
-
-  const member = db.findById('members', reservation.member_id);
-  logger.audit('타수 입력', req.session.user, {
-    reservationId: idResult.value,
-    memberId: reservation.member_id,
-    memberName: member?.name,
-    score
-  });
-
-  res.json({ success: true });
 });
 
 // 회원 상세
@@ -286,7 +315,7 @@ router.get('/:id/edit', requireAuth, requireAdmin, (req, res) => {
 });
 
 // 회원 수정 처리
-router.post('/:id/edit', requireAuth, requireAdmin, (req, res) => {
+router.post('/:id/edit', requireAuth, requireAdmin, async (req, res) => {
   const idResult = validateId(req.params.id, '회원 ID');
   if (!idResult.valid) {
     return res.status(400).render('error', {
@@ -336,58 +365,94 @@ router.post('/:id/edit', requireAuth, requireAdmin, (req, res) => {
     });
   }
 
-  db.update('members', memberId, {
-    name: nameResult.value,
-    internal_phone: internal_phone?.trim() || '',
-    department: department?.trim() || '',
-    position: position?.trim() || '',
-    role: role?.trim() || null,
-    email: emailResult.value,
-    status: statusResult.value
-  });
+  try {
+    await db.update('members', memberId, {
+      name: nameResult.value,
+      internal_phone: internal_phone?.trim() || '',
+      department: department?.trim() || '',
+      position: position?.trim() || '',
+      role: role?.trim() || null,
+      email: emailResult.value,
+      status: statusResult.value
+    });
 
-  logger.audit('회원 정보 수정', req.session.user, { memberId, name });
+    // 캐시 새로고침
+    if (db.refreshCache) {
+      await db.refreshCache('members');
+    }
 
-  res.redirect(`/members/${memberId}`);
+    logger.audit('회원 정보 수정', req.session.user, { memberId, name });
+
+    res.redirect(`/members/${memberId}`);
+  } catch (error) {
+    console.error('회원 수정 오류:', error);
+    res.status(500).render('error', {
+      title: '오류',
+      message: '회원 정보 수정 중 오류가 발생했습니다.'
+    });
+  }
 });
 
 // 비밀번호 초기화
-router.post('/:id/reset-password', requireAuth, requireAdmin, (req, res) => {
-  const idResult = validateId(req.params.id, '회원 ID');
-  if (!idResult.valid) {
-    return res.status(400).json({ error: idResult.error });
+router.post('/:id/reset-password', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const idResult = validateId(req.params.id, '회원 ID');
+    if (!idResult.valid) {
+      return res.status(400).json({ error: idResult.error });
+    }
+
+    const member = db.findById('members', idResult.value);
+
+    if (!member) {
+      return res.status(404).json({ error: '회원을 찾을 수 없습니다.' });
+    }
+
+    const passwordHash = bcrypt.hashSync('1234', config.security.bcryptRounds);
+    await db.update('members', idResult.value, { password_hash: passwordHash });
+
+    // 캐시 새로고침
+    if (db.refreshCache) {
+      await db.refreshCache('members');
+    }
+
+    logger.audit('비밀번호 초기화', req.session.user, { memberId: idResult.value, memberName: member.name });
+
+    res.json({ success: true, message: '비밀번호가 1234로 초기화되었습니다.' });
+  } catch (error) {
+    console.error('비밀번호 초기화 오류:', error);
+    res.status(500).json({ error: '비밀번호 초기화 중 오류가 발생했습니다.' });
   }
-
-  const member = db.findById('members', idResult.value);
-
-  if (!member) {
-    return res.status(404).json({ error: '회원을 찾을 수 없습니다.' });
-  }
-
-  const passwordHash = bcrypt.hashSync('1234', config.security.bcryptRounds);
-  db.update('members', idResult.value, { password_hash: passwordHash });
-
-  logger.audit('비밀번호 초기화', req.session.user, { memberId: idResult.value, memberName: member.name });
-
-  res.json({ success: true, message: '비밀번호가 1234로 초기화되었습니다.' });
 });
 
 // 회원 삭제 (비활성화)
-router.post('/:id/delete', requireAuth, requireAdmin, (req, res) => {
-  const idResult = validateId(req.params.id, '회원 ID');
-  if (!idResult.valid) {
-    return res.status(400).render('error', {
-      title: '잘못된 요청',
-      message: idResult.error
+router.post('/:id/delete', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const idResult = validateId(req.params.id, '회원 ID');
+    if (!idResult.valid) {
+      return res.status(400).render('error', {
+        title: '잘못된 요청',
+        message: idResult.error
+      });
+    }
+
+    const member = db.findById('members', idResult.value);
+    await db.update('members', idResult.value, { status: 'inactive' });
+
+    // 캐시 새로고침
+    if (db.refreshCache) {
+      await db.refreshCache('members');
+    }
+
+    logger.audit('회원 비활성화', req.session.user, { memberId: idResult.value, memberName: member?.name });
+
+    res.redirect('/members');
+  } catch (error) {
+    console.error('회원 비활성화 오류:', error);
+    res.status(500).render('error', {
+      title: '오류',
+      message: '회원 비활성화 중 오류가 발생했습니다.'
     });
   }
-
-  const member = db.findById('members', idResult.value);
-  db.update('members', idResult.value, { status: 'inactive' });
-
-  logger.audit('회원 비활성화', req.session.user, { memberId: idResult.value, memberName: member?.name });
-
-  res.redirect('/members');
 });
 
 module.exports = router;

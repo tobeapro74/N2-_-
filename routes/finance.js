@@ -135,7 +135,7 @@ router.get('/income/new', requireAuth, requireAdmin, (req, res) => {
 });
 
 // 입금 등록 처리
-router.post('/income/new', requireAuth, requireAdmin, (req, res) => {
+router.post('/income/new', requireAuth, requireAdmin, async (req, res) => {
   const { category_id, member_id, amount, description, income_date } = req.body;
 
   // 입력값 검증
@@ -177,18 +177,31 @@ router.post('/income/new', requireAuth, requireAdmin, (req, res) => {
     });
   }
 
-  const newId = db.insert('incomes', {
-    category_id: categoryResult.value,
-    member_id: member_id ? parseInt(member_id) : null,
-    amount: amountResult.value,
-    description: descResult.value,
-    income_date: dateResult.value,
-    created_by: req.session.user.id
-  });
+  try {
+    const newId = await db.insert('incomes', {
+      category_id: categoryResult.value,
+      member_id: member_id ? parseInt(member_id) : null,
+      amount: amountResult.value,
+      description: descResult.value,
+      income_date: dateResult.value,
+      created_by: req.session.user.id
+    });
 
-  logger.audit('입금 등록', req.session.user, { incomeId: newId, amount: amountResult.value });
+    // 캐시 새로고침
+    if (db.refreshCache) {
+      await db.refreshCache('incomes');
+    }
 
-  res.redirect('/finance/income');
+    logger.audit('입금 등록', req.session.user, { incomeId: newId, amount: amountResult.value });
+
+    res.redirect('/finance/income');
+  } catch (error) {
+    console.error('입금 등록 오류:', error);
+    res.status(500).render('error', {
+      title: '오류',
+      message: '입금 등록 중 오류가 발생했습니다.'
+    });
+  }
 });
 
 // 입금 수정 페이지
@@ -217,7 +230,7 @@ router.get('/income/:id/edit', requireAuth, requireAdmin, (req, res) => {
 });
 
 // 입금 수정 처리
-router.post('/income/:id/edit', requireAuth, requireAdmin, (req, res) => {
+router.post('/income/:id/edit', requireAuth, requireAdmin, async (req, res) => {
   const idResult = validateId(req.params.id, '입금 ID');
   if (!idResult.valid) {
     return res.status(400).render('error', { title: '오류', message: idResult.error });
@@ -243,32 +256,58 @@ router.post('/income/:id/edit', requireAuth, requireAdmin, (req, res) => {
     });
   }
 
-  db.update('incomes', idResult.value, {
-    category_id: categoryResult.value,
-    member_id: member_id ? parseInt(member_id) : null,
-    amount: amountResult.value,
-    description: description?.trim() || '',
-    income_date: dateResult.value
-  });
+  try {
+    await db.update('incomes', idResult.value, {
+      category_id: categoryResult.value,
+      member_id: member_id ? parseInt(member_id) : null,
+      amount: amountResult.value,
+      description: description?.trim() || '',
+      income_date: dateResult.value
+    });
 
-  logger.audit('입금 수정', req.session.user, { incomeId: idResult.value, amount: amountResult.value });
+    // 캐시 새로고침
+    if (db.refreshCache) {
+      await db.refreshCache('incomes');
+    }
 
-  res.redirect('/finance/income');
+    logger.audit('입금 수정', req.session.user, { incomeId: idResult.value, amount: amountResult.value });
+
+    res.redirect('/finance/income');
+  } catch (error) {
+    console.error('입금 수정 오류:', error);
+    res.status(500).render('error', {
+      title: '오류',
+      message: '입금 수정 중 오류가 발생했습니다.'
+    });
+  }
 });
 
 // 입금 삭제
-router.post('/income/:id/delete', requireAuth, requireAdmin, (req, res) => {
-  const idResult = validateId(req.params.id, '입금 ID');
-  if (!idResult.valid) {
-    return res.status(400).render('error', { title: '오류', message: idResult.error });
+router.post('/income/:id/delete', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const idResult = validateId(req.params.id, '입금 ID');
+    if (!idResult.valid) {
+      return res.status(400).render('error', { title: '오류', message: idResult.error });
+    }
+
+    const income = db.findById('incomes', idResult.value);
+    await db.delete('incomes', idResult.value);
+
+    // 캐시 새로고침
+    if (db.refreshCache) {
+      await db.refreshCache('incomes');
+    }
+
+    logger.audit('입금 삭제', req.session.user, { incomeId: idResult.value, amount: income?.amount });
+
+    res.redirect('/finance/income');
+  } catch (error) {
+    console.error('입금 삭제 오류:', error);
+    res.status(500).render('error', {
+      title: '오류',
+      message: '입금 삭제 중 오류가 발생했습니다.'
+    });
   }
-
-  const income = db.findById('incomes', idResult.value);
-  db.delete('incomes', idResult.value);
-
-  logger.audit('입금 삭제', req.session.user, { incomeId: idResult.value, amount: income?.amount });
-
-  res.redirect('/finance/income');
 });
 
 // 출금 내역
@@ -321,7 +360,7 @@ router.get('/expense/new', requireAuth, requireAdmin, (req, res) => {
 });
 
 // 출금 등록 처리
-router.post('/expense/new', requireAuth, requireAdmin, (req, res) => {
+router.post('/expense/new', requireAuth, requireAdmin, async (req, res) => {
   const { category_id, amount, description, expense_date } = req.body;
 
   // 입력값 검증
@@ -358,17 +397,30 @@ router.post('/expense/new', requireAuth, requireAdmin, (req, res) => {
     });
   }
 
-  const newId = db.insert('expenses', {
-    category_id: categoryResult.value,
-    amount: amountResult.value,
-    description: description?.trim() || '',
-    expense_date: dateResult.value,
-    created_by: req.session.user.id
-  });
+  try {
+    const newId = await db.insert('expenses', {
+      category_id: categoryResult.value,
+      amount: amountResult.value,
+      description: description?.trim() || '',
+      expense_date: dateResult.value,
+      created_by: req.session.user.id
+    });
 
-  logger.audit('출금 등록', req.session.user, { expenseId: newId, amount: amountResult.value });
+    // 캐시 새로고침
+    if (db.refreshCache) {
+      await db.refreshCache('expenses');
+    }
 
-  res.redirect('/finance/expense');
+    logger.audit('출금 등록', req.session.user, { expenseId: newId, amount: amountResult.value });
+
+    res.redirect('/finance/expense');
+  } catch (error) {
+    console.error('출금 등록 오류:', error);
+    res.status(500).render('error', {
+      title: '오류',
+      message: '출금 등록 중 오류가 발생했습니다.'
+    });
+  }
 });
 
 // 출금 수정 페이지
@@ -395,7 +447,7 @@ router.get('/expense/:id/edit', requireAuth, requireAdmin, (req, res) => {
 });
 
 // 출금 수정 처리
-router.post('/expense/:id/edit', requireAuth, requireAdmin, (req, res) => {
+router.post('/expense/:id/edit', requireAuth, requireAdmin, async (req, res) => {
   const idResult = validateId(req.params.id, '출금 ID');
   if (!idResult.valid) {
     return res.status(400).render('error', { title: '오류', message: idResult.error });
@@ -419,31 +471,57 @@ router.post('/expense/:id/edit', requireAuth, requireAdmin, (req, res) => {
     });
   }
 
-  db.update('expenses', idResult.value, {
-    category_id: categoryResult.value,
-    amount: amountResult.value,
-    description: description?.trim() || '',
-    expense_date: dateResult.value
-  });
+  try {
+    await db.update('expenses', idResult.value, {
+      category_id: categoryResult.value,
+      amount: amountResult.value,
+      description: description?.trim() || '',
+      expense_date: dateResult.value
+    });
 
-  logger.audit('출금 수정', req.session.user, { expenseId: idResult.value, amount: amountResult.value });
+    // 캐시 새로고침
+    if (db.refreshCache) {
+      await db.refreshCache('expenses');
+    }
 
-  res.redirect('/finance/expense');
+    logger.audit('출금 수정', req.session.user, { expenseId: idResult.value, amount: amountResult.value });
+
+    res.redirect('/finance/expense');
+  } catch (error) {
+    console.error('출금 수정 오류:', error);
+    res.status(500).render('error', {
+      title: '오류',
+      message: '출금 수정 중 오류가 발생했습니다.'
+    });
+  }
 });
 
 // 출금 삭제
-router.post('/expense/:id/delete', requireAuth, requireAdmin, (req, res) => {
-  const idResult = validateId(req.params.id, '출금 ID');
-  if (!idResult.valid) {
-    return res.status(400).render('error', { title: '오류', message: idResult.error });
+router.post('/expense/:id/delete', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const idResult = validateId(req.params.id, '출금 ID');
+    if (!idResult.valid) {
+      return res.status(400).render('error', { title: '오류', message: idResult.error });
+    }
+
+    const expense = db.findById('expenses', idResult.value);
+    await db.delete('expenses', idResult.value);
+
+    // 캐시 새로고침
+    if (db.refreshCache) {
+      await db.refreshCache('expenses');
+    }
+
+    logger.audit('출금 삭제', req.session.user, { expenseId: idResult.value, amount: expense?.amount });
+
+    res.redirect('/finance/expense');
+  } catch (error) {
+    console.error('출금 삭제 오류:', error);
+    res.status(500).render('error', {
+      title: '오류',
+      message: '출금 삭제 중 오류가 발생했습니다.'
+    });
   }
-
-  const expense = db.findById('expenses', idResult.value);
-  db.delete('expenses', idResult.value);
-
-  logger.audit('출금 삭제', req.session.user, { expenseId: idResult.value, amount: expense?.amount });
-
-  res.redirect('/finance/expense');
 });
 
 // 회비 관리
@@ -469,77 +547,93 @@ router.get('/fees', requireAuth, (req, res) => {
 });
 
 // 회비 납부 처리
-router.post('/fees/pay', requireAuth, requireAdmin, (req, res) => {
-  const { member_id, year, month, amount } = req.body;
+router.post('/fees/pay', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const { member_id, year, month, amount } = req.body;
 
-  // 입력값 검증
-  const memberIdResult = validateId(member_id, '회원');
-  const amountResult = validateAmount(amount);
+    // 입력값 검증
+    const memberIdResult = validateId(member_id, '회원');
+    const amountResult = validateAmount(amount);
 
-  if (!memberIdResult.valid) {
-    return res.status(400).json({ error: memberIdResult.error });
-  }
+    if (!memberIdResult.valid) {
+      return res.status(400).json({ error: memberIdResult.error });
+    }
 
-  if (!amountResult.valid) {
-    return res.status(400).json({ error: amountResult.error });
-  }
+    if (!amountResult.valid) {
+      return res.status(400).json({ error: amountResult.error });
+    }
 
-  const yearInt = parseInt(year);
-  const monthInt = parseInt(month);
+    const yearInt = parseInt(year);
+    const monthInt = parseInt(month);
 
-  if (isNaN(yearInt) || yearInt < 2020 || yearInt > 2100) {
-    return res.status(400).json({ error: '유효하지 않은 연도입니다.' });
-  }
+    if (isNaN(yearInt) || yearInt < 2020 || yearInt > 2100) {
+      return res.status(400).json({ error: '유효하지 않은 연도입니다.' });
+    }
 
-  if (isNaN(monthInt) || monthInt < 1 || monthInt > 12) {
-    return res.status(400).json({ error: '유효하지 않은 월입니다.' });
-  }
+    if (isNaN(monthInt) || monthInt < 1 || monthInt > 12) {
+      return res.status(400).json({ error: '유효하지 않은 월입니다.' });
+    }
 
-  // 기존 기록 확인
-  const fees = db.getTable('membership_fees');
-  const existing = fees.find(f => f.member_id === memberIdResult.value && f.year === yearInt && f.month === monthInt);
+    // 캐시 새로고침
+    if (db.refreshCache) {
+      await db.refreshCache('membership_fees');
+    }
 
-  if (existing) {
-    db.update('membership_fees', existing.id, {
-      status: 'paid',
-      amount: amountResult.value,
-      paid_date: new Date().toISOString().split('T')[0]
-    });
-  } else {
-    db.insert('membership_fees', {
-      member_id: memberIdResult.value,
+    // 기존 기록 확인
+    const fees = db.getTable('membership_fees');
+    const existing = fees.find(f => f.member_id === memberIdResult.value && f.year === yearInt && f.month === monthInt);
+
+    if (existing) {
+      await db.update('membership_fees', existing.id, {
+        status: 'paid',
+        amount: amountResult.value,
+        paid_date: new Date().toISOString().split('T')[0]
+      });
+    } else {
+      await db.insert('membership_fees', {
+        member_id: memberIdResult.value,
+        year: yearInt,
+        month: monthInt,
+        amount: amountResult.value,
+        status: 'paid',
+        paid_date: new Date().toISOString().split('T')[0]
+      });
+    }
+
+    // 입금 내역에도 추가
+    const member = db.findById('members', memberIdResult.value);
+    const feeCategory = db.getTable('income_categories').find(c => c.name === '회비');
+
+    if (feeCategory) {
+      await db.insert('incomes', {
+        category_id: feeCategory.id,
+        member_id: memberIdResult.value,
+        amount: amountResult.value,
+        description: `${member.name} ${yearInt}년 ${monthInt}월 회비`,
+        income_date: new Date().toISOString().split('T')[0],
+        created_by: req.session.user.id
+      });
+    }
+
+    // 캐시 새로고침
+    if (db.refreshCache) {
+      await db.refreshCache('membership_fees');
+      await db.refreshCache('incomes');
+    }
+
+    logger.audit('회비 납부 처리', req.session.user, {
+      memberId: memberIdResult.value,
+      memberName: member?.name,
       year: yearInt,
       month: monthInt,
-      amount: amountResult.value,
-      status: 'paid',
-      paid_date: new Date().toISOString().split('T')[0]
+      amount: amountResult.value
     });
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('회비 납부 오류:', error);
+    res.status(500).json({ error: '회비 납부 처리 중 오류가 발생했습니다.' });
   }
-
-  // 입금 내역에도 추가
-  const member = db.findById('members', memberIdResult.value);
-  const feeCategory = db.getTable('income_categories').find(c => c.name === '회비');
-
-  if (feeCategory) {
-    db.insert('incomes', {
-      category_id: feeCategory.id,
-      member_id: memberIdResult.value,
-      amount: amountResult.value,
-      description: `${member.name} ${yearInt}년 ${monthInt}월 회비`,
-      income_date: new Date().toISOString().split('T')[0],
-      created_by: req.session.user.id
-    });
-  }
-
-  logger.audit('회비 납부 처리', req.session.user, {
-    memberId: memberIdResult.value,
-    memberName: member?.name,
-    year: yearInt,
-    month: monthInt,
-    amount: amountResult.value
-  });
-
-  res.json({ success: true });
 });
 
 module.exports = router;

@@ -887,6 +887,37 @@ CLAUDE.md 파일을 만들어서 이 프로젝트의 코딩 규칙을 정의해�
 
 ---
 
+---
+
+## 부록 B: API 엔드포인트 목록 (N2골프 예시)
+
+### 예약 관리 API
+
+| 메서드 | 엔드포인트 | 설명 | 권한 |
+|--------|-----------|------|------|
+| POST | /reservations/apply | 예약 신청 | 회원 |
+| POST | /reservations/cancel | 예약 취소 | 회원 |
+| POST | /reservations/admin/delete | 예약 소프트 삭제 | 관리자 |
+| POST | /reservations/admin/hard-delete | 예약 완전 삭제 | 관리자 |
+| POST | /reservations/admin/update-status | 예약 상태 변경 | 관리자 |
+| POST | /reservations/admin/update-team | 팀/티타임 변경 | 관리자 |
+| GET | /reservations/admin/team-balance/:scheduleId | 팀 균형 정보 조회 | 관리자 |
+| POST | /reservations/admin/swap-team | 팀 멤버 교환 | 관리자 |
+| POST | /reservations/admin/revert-swap | 팀 교환 원복 | 관리자 |
+| DELETE | /reservations/admin/clear-admin-reservations | 관리자 예약 전체 삭제 | 관리자 |
+
+### 일정 관리 API
+
+| 메서드 | 엔드포인트 | 설명 | 권한 |
+|--------|-----------|------|------|
+| GET | /schedules | 일정 목록 | 공개 |
+| GET | /schedules/:id | 일정 상세 | 공개 |
+| POST | /schedules/create | 일정 생성 | 관리자 |
+| POST | /schedules/:id/edit | 일정 수정 | 관리자 |
+| POST | /schedules/:id/assign-teams | 팀 배정 | 관리자 |
+
+---
+
 *이 문서는 N2골프 자금관리 프로젝트 개발 경험을 바탕으로 작성되었습니다.*
 
-*마지막 업데이트: 2024-12-29*
+*마지막 업데이트: 2024-12-29 23:30*

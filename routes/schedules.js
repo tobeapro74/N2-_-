@@ -559,8 +559,10 @@ router.post('/:id/comments', requireAuth, async (req, res) => {
     // 이미지 URL이 있으면 추가
     if (image_url) {
       commentData.image_url = image_url;
+      console.log('댓글에 이미지 첨부:', image_url.substring(0, 100) + '...');
     }
 
+    console.log('댓글 데이터 저장:', { ...commentData, image_url: commentData.image_url ? '있음' : '없음' });
     const newId = await db.insert('schedule_comments', commentData);
 
     // 캐시 새로고침

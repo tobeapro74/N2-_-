@@ -216,6 +216,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
       if (data.success) {
         selectedImageUrl = data.imageUrl;
+        console.log('이미지 업로드 완료:', { imageUrl: selectedImageUrl, storageType: data.storageType });
         // 업로드 성공 표시 (체크 아이콘)
         imageLabel.innerHTML = '<i class="bi bi-check-circle-fill text-success"></i>';
       } else {
@@ -532,6 +533,7 @@ document.addEventListener('DOMContentLoaded', function() {
     submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
 
     try {
+      console.log('댓글 작성 요청:', { content, image_url: selectedImageUrl });
       const response = await fetch(`/schedules/${scheduleId}/comments`, {
         method: 'POST',
         headers: {

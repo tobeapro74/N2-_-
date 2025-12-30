@@ -993,18 +993,39 @@ router.post('/url-preview', requireAuth, async (req, res) => {
       });
     }
 
-    // 틱톡 URL 특별 처리 (서버에서 봇 차단)
+    // 틱톡 URL 특별 처리 (oEmbed API 사용)
     // 지원 형식: tiktok.com/@user/video/123, tiktok.com/t/ABC, vm.tiktok.com/ABC
-    const tiktokMatch = targetUrl.match(/(?:tiktok\.com\/@([^\/]+)\/video\/(\d+)|tiktok\.com\/t\/|vm\.tiktok\.com\/|tiktok\.com)/);
+    const tiktokMatch = targetUrl.match(/(?:tiktok\.com|vm\.tiktok\.com)/);
     if (tiktokMatch) {
-      const username = tiktokMatch[1] || '';
+      try {
+        // oEmbed API로 실제 썸네일 가져오기
+        const oembedUrl = `https://www.tiktok.com/oembed?url=${encodeURIComponent(targetUrl)}`;
+        const oembedResponse = await fetch(oembedUrl, {
+          headers: { 'User-Agent': 'Mozilla/5.0' }
+        });
+        if (oembedResponse.ok) {
+          const oembedData = await oembedResponse.json();
+          return res.json({
+            success: true,
+            data: {
+              url: targetUrl,
+              title: oembedData.title || 'TikTok 동영상',
+              description: `@${oembedData.author_unique_id || oembedData.author_name || ''}의 TikTok`,
+              image: oembedData.thumbnail_url || 'https://upload.wikimedia.org/wikipedia/en/thumb/a/a9/TikTok_logo.svg/200px-TikTok_logo.svg.png',
+              siteName: 'TikTok'
+            }
+          });
+        }
+      } catch (e) {
+        // oEmbed 실패 시 기본 로고 사용
+      }
       return res.json({
         success: true,
         data: {
           url: targetUrl,
           title: 'TikTok 동영상',
-          description: username ? `@${username}의 TikTok` : 'TikTok에서 공유된 동영상',
-          image: 'https://lf16-tiktok-web.ttwstatic.com/obj/tiktok-web/tiktok/webapp/main/webapp-desktop/8152caf0c8e8bc67ae0d.png',
+          description: 'TikTok에서 공유된 동영상',
+          image: 'https://upload.wikimedia.org/wikipedia/en/thumb/a/a9/TikTok_logo.svg/200px-TikTok_logo.svg.png',
           siteName: 'TikTok'
         }
       });
@@ -1041,7 +1062,8 @@ router.post('/url-preview', requireAuth, async (req, res) => {
     }
 
     // 쓰레드(Threads) URL 특별 처리 (서버에서 봇 차단)
-    const threadsMatch = targetUrl.match(/threads\.net\/@([^\/]+)\/post\/([A-Za-z0-9_-]+)/);
+    // 지원 형식: threads.net/@user/post/ID, threads.net/@user
+    const threadsMatch = targetUrl.match(/threads\.net\/@([^\/]+)/);
     if (threadsMatch) {
       return res.json({
         success: true,
@@ -1049,7 +1071,7 @@ router.post('/url-preview', requireAuth, async (req, res) => {
           url: targetUrl,
           title: 'Threads 게시물',
           description: `@${threadsMatch[1]}의 Threads`,
-          image: 'https://static.cdninstagram.com/rsrc.php/v3/yS/r/ajlEU-wEDyo.png',
+          image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9d/Threads_%28app%29_logo.svg/200px-Threads_%28app%29_logo.svg.png',
           siteName: 'Threads'
         }
       });

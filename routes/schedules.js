@@ -586,7 +586,9 @@ router.put('/comments/:commentId', requireAuth, async (req, res) => {
       return res.status(400).json({ error: '댓글 내용을 입력해주세요.' });
     }
 
-    const comment = db.findById('schedule_comments', commentId);
+    // MongoDB에서 직접 조회 (서버리스 캐시 불일치 방지)
+    const comments = await db.getTableAsync('schedule_comments');
+    const comment = comments.find(c => c.id === commentId);
     if (!comment) {
       return res.status(404).json({ error: '댓글을 찾을 수 없습니다.' });
     }
@@ -618,7 +620,9 @@ router.delete('/comments/:commentId', requireAuth, async (req, res) => {
     const commentId = parseInt(req.params.commentId);
     const userId = req.session.user.id;
 
-    const comment = db.findById('schedule_comments', commentId);
+    // MongoDB에서 직접 조회 (서버리스 캐시 불일치 방지)
+    const allComments = await db.getTableAsync('schedule_comments');
+    const comment = allComments.find(c => c.id === commentId);
     if (!comment) {
       return res.status(404).json({ error: '댓글을 찾을 수 없습니다.' });
     }
@@ -628,17 +632,14 @@ router.delete('/comments/:commentId', requireAuth, async (req, res) => {
       return res.status(403).json({ error: '삭제 권한이 없습니다.' });
     }
 
-    // 캐시 새로고침
-    if (db.refreshCache) {
-      await db.refreshCache('schedule_comments');
-      await db.refreshCache('comment_reactions');
-    }
+    // 리액션 데이터도 직접 조회
+    const allReactions = await db.getTableAsync('comment_reactions');
 
     // 대댓글도 함께 삭제
-    const replies = db.getTable('schedule_comments').filter(c => c.parent_id === commentId);
+    const replies = allComments.filter(c => c.parent_id === commentId);
     for (const reply of replies) {
       // 대댓글의 리액션 삭제
-      const replyReactions = db.getTable('comment_reactions').filter(r => r.comment_id === reply.id);
+      const replyReactions = allReactions.filter(r => r.comment_id === reply.id);
       for (const reaction of replyReactions) {
         await db.delete('comment_reactions', reaction.id);
       }
@@ -646,7 +647,7 @@ router.delete('/comments/:commentId', requireAuth, async (req, res) => {
     }
 
     // 댓글의 리액션 삭제
-    const commentReactions = db.getTable('comment_reactions').filter(r => r.comment_id === commentId);
+    const commentReactions = allReactions.filter(r => r.comment_id === commentId);
     for (const reaction of commentReactions) {
       await db.delete('comment_reactions', reaction.id);
     }
@@ -678,18 +679,18 @@ router.post('/comments/:commentId/reaction', requireAuth, async (req, res) => {
       return res.status(400).json({ error: '올바르지 않은 반응 타입입니다.' });
     }
 
-    const comment = db.findById('schedule_comments', commentId);
+    // MongoDB에서 직접 조회 (서버리스 캐시 불일치 방지)
+    const comments = await db.getTableAsync('schedule_comments');
+    const comment = comments.find(c => c.id === commentId);
     if (!comment) {
       return res.status(404).json({ error: '댓글을 찾을 수 없습니다.' });
     }
 
-    // 캐시 새로고침
-    if (db.refreshCache) {
-      await db.refreshCache('comment_reactions');
-    }
+    // 리액션 데이터 직접 조회
+    const allReactions = await db.getTableAsync('comment_reactions');
 
     // 기존 반응 확인
-    const existingReaction = db.getTable('comment_reactions').find(
+    const existingReaction = allReactions.find(
       r => r.comment_id === commentId && r.member_id === userId
     );
 
@@ -712,13 +713,9 @@ router.post('/comments/:commentId/reaction', requireAuth, async (req, res) => {
       });
     }
 
-    // 캐시 새로고침
-    if (db.refreshCache) {
-      await db.refreshCache('comment_reactions');
-    }
-
-    // 업데이트된 카운트 반환
-    const reactions = db.getTable('comment_reactions').filter(r => r.comment_id === commentId);
+    // 업데이트된 카운트 반환 (직접 조회)
+    const updatedReactions = await db.getTableAsync('comment_reactions');
+    const reactions = updatedReactions.filter(r => r.comment_id === commentId);
     const likes = reactions.filter(r => r.reaction_type === 'like').length;
     const dislikes = reactions.filter(r => r.reaction_type === 'dislike').length;
     const myReaction = reactions.find(r => r.member_id === userId);

@@ -36,3 +36,5 @@ coverage/
 *.tmp
 *.temp
 cookies.txt
+.vercel
+.env*.local

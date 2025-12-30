@@ -197,7 +197,7 @@ document.addEventListener('DOMContentLoaded', function() {
     card.dataset.commentId = comment.id;
     card.querySelector('.comment-author').textContent = comment.member_name;
     card.querySelector('.comment-time').textContent = formatTime(comment.created_at);
-    card.querySelector('.comment-content').textContent = comment.content;
+    card.querySelector('.comment-content').innerHTML = linkify(comment.content);
     card.querySelector('.likes-count').textContent = comment.likes || 0;
     card.querySelector('.dislikes-count').textContent = comment.dislikes || 0;
 
@@ -240,7 +240,7 @@ document.addEventListener('DOMContentLoaded', function() {
     card.dataset.commentId = reply.id;
     card.querySelector('.reply-author').textContent = reply.member_name;
     card.querySelector('.reply-time').textContent = formatTime(reply.created_at);
-    card.querySelector('.reply-content').textContent = reply.content;
+    card.querySelector('.reply-content').innerHTML = linkify(reply.content);
     card.querySelector('.likes-count').textContent = reply.likes || 0;
     card.querySelector('.dislikes-count').textContent = reply.dislikes || 0;
 
@@ -535,6 +535,26 @@ document.addEventListener('DOMContentLoaded', function() {
     if (diff < 604800000) return Math.floor(diff / 86400000) + '일 전';
 
     return date.toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' });
+  }
+
+  // URL을 클릭 가능한 링크로 변환
+  function linkify(text) {
+    // HTML 특수문자 이스케이프 (XSS 방지)
+    const escapeHtml = (str) => {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    };
+
+    const escaped = escapeHtml(text);
+
+    // URL 패턴 매칭 (http, https, www)
+    const urlPattern = /(https?:\/\/[^\s<]+|www\.[^\s<]+)/gi;
+
+    return escaped.replace(urlPattern, (url) => {
+      const href = url.startsWith('www.') ? 'https://' + url : url;
+      return `<a href="${href}" target="_blank" rel="noopener noreferrer" class="text-primary">${url}</a>`;
+    });
   }
 
   // 초기 로드

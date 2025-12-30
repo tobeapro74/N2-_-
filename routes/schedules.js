@@ -2,26 +2,34 @@ const express = require('express');
 const router = express.Router();
 const db = require('../models/database');
 const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
 
-// 이미지 업로드 설정
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadDir = path.join(__dirname, '../public/uploads/comments');
-    // 디렉토리가 없으면 생성
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    // 유니크한 파일명 생성: timestamp_userId_random.ext
-    const uniqueSuffix = Date.now() + '_' + req.session.user.id + '_' + Math.round(Math.random() * 1E9);
-    const ext = path.extname(file.originalname).toLowerCase();
-    cb(null, uniqueSuffix + ext);
-  }
-});
+// ============================================
+// Cloudinary 설정 (무료 플랜 우선 사용)
+// ============================================
+const cloudinary = require('cloudinary').v2;
+
+// Cloudinary 설정 (환경 변수에서 읽음)
+if (process.env.CLOUDINARY_URL || process.env.CLOUDINARY_CLOUD_NAME) {
+  cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
+  });
+  console.log('Cloudinary 설정 완료');
+}
+
+// Cloudinary 사용 가능 여부 확인
+const isCloudinaryConfigured = () => {
+  return !!(process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET);
+};
+
+// 이미지를 Base64로 변환하여 MongoDB에 저장하는 헬퍼 함수
+const imageToBase64 = (buffer, mimetype) => {
+  return `data:${mimetype};base64,${buffer.toString('base64')}`;
+};
+
+// 이미지 업로드 설정 (메모리 스토리지로 변경)
+const storage = multer.memoryStorage();
 
 // 파일 필터 (이미지만 허용)
 const fileFilter = (req, file, cb) => {
@@ -888,23 +896,62 @@ router.post('/:id/assign-teams', requireAuth, requireAdmin, async (req, res) => 
 });
 
 // ============================================
-// 이미지 업로드 API
+// 이미지 업로드 API (Cloudinary 우선, MongoDB 폴백)
 // ============================================
 
 // 댓글 이미지 업로드
-router.post('/comments/upload-image', requireAuth, upload.single('image'), (req, res) => {
+router.post('/comments/upload-image', requireAuth, upload.single('image'), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: '이미지 파일이 없습니다.' });
     }
 
-    // 업로드된 이미지 URL 반환
-    const imageUrl = '/uploads/comments/' + req.file.filename;
+    let imageUrl = null;
+    let storageType = null;
+
+    // 1. Cloudinary 시도 (환경 변수가 설정된 경우)
+    if (isCloudinaryConfigured()) {
+      try {
+        // Buffer를 base64 data URI로 변환하여 업로드
+        const base64Data = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
+
+        const result = await cloudinary.uploader.upload(base64Data, {
+          folder: 'n2golf/comments',
+          resource_type: 'image',
+          transformation: [
+            { width: 1200, height: 1200, crop: 'limit' }, // 최대 크기 제한
+            { quality: 'auto:good' } // 자동 품질 최적화
+          ]
+        });
+
+        imageUrl = result.secure_url;
+        storageType = 'cloudinary';
+        console.log('Cloudinary 업로드 성공:', result.public_id);
+      } catch (cloudinaryError) {
+        // Cloudinary 용량 초과 또는 에러 시 MongoDB 폴백
+        console.warn('Cloudinary 업로드 실패, MongoDB로 폴백:', cloudinaryError.message);
+      }
+    }
+
+    // 2. Cloudinary 실패 시 MongoDB에 Base64로 저장
+    if (!imageUrl) {
+      // 이미지 크기가 너무 크면 거부 (MongoDB 문서 크기 제한 고려)
+      if (req.file.size > 2 * 1024 * 1024) {
+        return res.status(400).json({
+          error: '이미지 저장소가 가득 찼습니다. 2MB 이하의 이미지만 업로드 가능합니다.'
+        });
+      }
+
+      // Base64 Data URI로 변환
+      imageUrl = imageToBase64(req.file.buffer, req.file.mimetype);
+      storageType = 'mongodb';
+      console.log('MongoDB Base64 저장 (크기:', Math.round(req.file.size / 1024), 'KB)');
+    }
 
     res.json({
       success: true,
       imageUrl: imageUrl,
-      filename: req.file.filename
+      storageType: storageType
     });
   } catch (error) {
     console.error('이미지 업로드 오류:', error);

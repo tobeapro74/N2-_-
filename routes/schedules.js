@@ -463,15 +463,11 @@ router.get('/:id/comments', requireAuth, async (req, res) => {
     const scheduleId = parseInt(req.params.id);
     const userId = req.session.user.id;
 
-    // 캐시 새로고침
-    if (db.refreshCache) {
-      await db.refreshCache('schedule_comments');
-      await db.refreshCache('comment_reactions');
-    }
-
-    const allComments = db.getTable('schedule_comments').filter(c => c.schedule_id === scheduleId);
-    const reactions = db.getTable('comment_reactions');
-    const members = db.getTable('members');
+    // MongoDB에서 직접 최신 데이터 조회 (서버리스 캐시 불일치 방지)
+    const allCommentsData = await db.getTableAsync('schedule_comments');
+    const allComments = allCommentsData.filter(c => c.schedule_id === scheduleId);
+    const reactions = await db.getTableAsync('comment_reactions');
+    const members = await db.getTableAsync('members');
 
     // 댓글에 추가 정보 붙이기
     const enrichComment = (comment) => {

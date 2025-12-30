@@ -983,8 +983,10 @@ router.post('/url-preview', requireAuth, async (req, res) => {
     const response = await fetch(targetUrl, {
       signal: controller.signal,
       headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; N2GolfBot/1.0)',
-        'Accept': 'text/html,application/xhtml+xml'
+        // 브라우저 User-Agent 사용 (일부 사이트가 봇 차단)
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Accept-Language': 'ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7'
       }
     });
     clearTimeout(timeout);

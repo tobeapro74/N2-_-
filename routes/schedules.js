@@ -994,15 +994,17 @@ router.post('/url-preview', requireAuth, async (req, res) => {
     }
 
     // 틱톡 URL 특별 처리 (서버에서 봇 차단)
-    const tiktokMatch = targetUrl.match(/tiktok\.com\/@([^\/]+)\/video\/(\d+)/);
+    // 지원 형식: tiktok.com/@user/video/123, tiktok.com/t/ABC, vm.tiktok.com/ABC
+    const tiktokMatch = targetUrl.match(/(?:tiktok\.com\/@([^\/]+)\/video\/(\d+)|tiktok\.com\/t\/|vm\.tiktok\.com\/|tiktok\.com)/);
     if (tiktokMatch) {
+      const username = tiktokMatch[1] || '';
       return res.json({
         success: true,
         data: {
           url: targetUrl,
           title: 'TikTok 동영상',
-          description: `@${tiktokMatch[1]}의 TikTok`,
-          image: 'https://sf16-scmcdn-sg.ibytedtos.com/goofy/tiktok/web/node/_next/static/images/logo-whole-c555aa707602e714ec956ac96e9db366.svg',
+          description: username ? `@${username}의 TikTok` : 'TikTok에서 공유된 동영상',
+          image: 'https://lf16-tiktok-web.ttwstatic.com/obj/tiktok-web/tiktok/webapp/main/webapp-desktop/8152caf0c8e8bc67ae0d.png',
           siteName: 'TikTok'
         }
       });

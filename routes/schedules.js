@@ -968,6 +968,102 @@ router.post('/comments/upload-image', requireAuth, upload.single('image'), async
   }
 });
 
+// ============================================
+// URL 메타데이터 조회 API (Open Graph)
+// ============================================
+router.post('/url-preview', requireAuth, async (req, res) => {
+  try {
+    const { url } = req.body;
+
+    if (!url) {
+      return res.status(400).json({ error: 'URL이 필요합니다.' });
+    }
+
+    // URL 유효성 검사
+    let targetUrl = url;
+    if (!targetUrl.startsWith('http://') && !targetUrl.startsWith('https://')) {
+      targetUrl = 'https://' + targetUrl;
+    }
+
+    // fetch로 HTML 가져오기
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000); // 5초 타임아웃
+
+    const response = await fetch(targetUrl, {
+      signal: controller.signal,
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; N2GolfBot/1.0)',
+        'Accept': 'text/html,application/xhtml+xml'
+      }
+    });
+    clearTimeout(timeout);
+
+    if (!response.ok) {
+      return res.json({ success: false, error: '페이지를 가져올 수 없습니다.' });
+    }
+
+    const html = await response.text();
+
+    // Open Graph 및 기본 메타태그 파싱
+    const getMetaContent = (html, property) => {
+      // og: 태그
+      let match = html.match(new RegExp(`<meta[^>]*property=["']og:${property}["'][^>]*content=["']([^"']+)["']`, 'i'));
+      if (match) return match[1];
+
+      // content가 앞에 오는 경우
+      match = html.match(new RegExp(`<meta[^>]*content=["']([^"']+)["'][^>]*property=["']og:${property}["']`, 'i'));
+      if (match) return match[1];
+
+      // twitter: 태그
+      match = html.match(new RegExp(`<meta[^>]*name=["']twitter:${property}["'][^>]*content=["']([^"']+)["']`, 'i'));
+      if (match) return match[1];
+
+      return null;
+    };
+
+    // title 태그
+    const getTitleTag = (html) => {
+      const match = html.match(/<title[^>]*>([^<]+)<\/title>/i);
+      return match ? match[1].trim() : null;
+    };
+
+    // description 메타태그
+    const getDescription = (html) => {
+      let match = html.match(/<meta[^>]*name=["']description["'][^>]*content=["']([^"']+)["']/i);
+      if (match) return match[1];
+      match = html.match(/<meta[^>]*content=["']([^"']+)["'][^>]*name=["']description["']/i);
+      return match ? match[1] : null;
+    };
+
+    const title = getMetaContent(html, 'title') || getTitleTag(html) || '';
+    const description = getMetaContent(html, 'description') || getDescription(html) || '';
+    let image = getMetaContent(html, 'image') || '';
+    const siteName = getMetaContent(html, 'site_name') || new URL(targetUrl).hostname;
+
+    // 상대 경로 이미지를 절대 경로로 변환
+    if (image && !image.startsWith('http')) {
+      const urlObj = new URL(targetUrl);
+      image = image.startsWith('/')
+        ? `${urlObj.protocol}//${urlObj.host}${image}`
+        : `${urlObj.protocol}//${urlObj.host}/${image}`;
+    }
+
+    res.json({
+      success: true,
+      data: {
+        url: targetUrl,
+        title: title.substring(0, 100),
+        description: description.substring(0, 200),
+        image,
+        siteName
+      }
+    });
+  } catch (error) {
+    console.error('URL 미리보기 오류:', error.message);
+    res.json({ success: false, error: '미리보기를 가져올 수 없습니다.' });
+  }
+});
+
 // multer 에러 핸들링 미들웨어
 router.use((error, req, res, next) => {
   if (error instanceof multer.MulterError) {

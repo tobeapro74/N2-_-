@@ -306,6 +306,9 @@ document.addEventListener('DOMContentLoaded', function() {
       const commentEl = createCommentElement(comment);
       commentsContainer.appendChild(commentEl);
     });
+
+    // URL 프리뷰 로드
+    loadAllUrlPreviews();
   }
 
   // 댓글 요소 생성
@@ -316,7 +319,7 @@ document.addEventListener('DOMContentLoaded', function() {
     card.dataset.commentId = comment.id;
     card.querySelector('.comment-author').textContent = comment.member_name;
     card.querySelector('.comment-time').textContent = formatTime(comment.created_at);
-    card.querySelector('.comment-content').innerHTML = linkify(comment.content || '');
+    card.querySelector('.comment-content').innerHTML = linkify(comment.content || '', comment.id);
     card.querySelector('.likes-count').textContent = comment.likes || 0;
     card.querySelector('.dislikes-count').textContent = comment.dislikes || 0;
 
@@ -378,7 +381,7 @@ document.addEventListener('DOMContentLoaded', function() {
     card.dataset.commentId = reply.id;
     card.querySelector('.reply-author').textContent = reply.member_name;
     card.querySelector('.reply-time').textContent = formatTime(reply.created_at);
-    card.querySelector('.reply-content').innerHTML = linkify(reply.content || '');
+    card.querySelector('.reply-content').innerHTML = linkify(reply.content || '', reply.id);
     card.querySelector('.likes-count').textContent = reply.likes || 0;
     card.querySelector('.dislikes-count').textContent = reply.dislikes || 0;
 
@@ -699,7 +702,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   // URL을 클릭 가능한 링크로 변환 + 줄바꿈 처리
-  function linkify(text) {
+  function linkify(text, commentId) {
     // HTML 특수문자 이스케이프 (XSS 방지)
     const escapeHtml = (str) => {
       const div = document.createElement('div');
@@ -711,6 +714,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // URL 패턴 매칭 (http, https, www)
     const urlPattern = /(https?:\/\/[^\s<]+|www\.[^\s<]+)/gi;
+    const urls = text.match(urlPattern) || [];
 
     let result = escaped.replace(urlPattern, (url) => {
       const href = url.startsWith('www.') ? 'https://' + url : url;
@@ -720,7 +724,63 @@ document.addEventListener('DOMContentLoaded', function() {
     // 줄바꿈을 <br>로 변환
     result = result.replace(/\n/g, '<br>');
 
+    // 첫 번째 URL에 대해 프리뷰 컨테이너 추가
+    if (urls.length > 0 && commentId) {
+      result += `<div class="url-preview-container mt-2" data-comment-id="${commentId}" data-url="${urls[0]}"></div>`;
+    }
+
     return result;
+  }
+
+  // URL 프리뷰 로드
+  async function loadUrlPreview(container) {
+    const url = container.dataset.url;
+    if (!url) return;
+
+    try {
+      const response = await fetch('/schedules/url-preview', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken
+        },
+        body: JSON.stringify({ url })
+      });
+
+      const data = await response.json();
+
+      if (data.success && data.data) {
+        const { title, description, image, siteName, url: targetUrl } = data.data;
+
+        // 썸네일이 있거나 제목이 있는 경우만 표시
+        if (title || image) {
+          container.innerHTML = `
+            <a href="${targetUrl}" target="_blank" rel="noopener noreferrer" class="text-decoration-none">
+              <div class="card border" style="max-width: 400px; font-size: 0.8rem;">
+                ${image ? `<img src="${image}" class="card-img-top" alt="" style="max-height: 150px; object-fit: cover;" onerror="this.style.display='none'">` : ''}
+                <div class="card-body py-2 px-3">
+                  <div class="text-muted" style="font-size: 0.7rem;">${siteName}</div>
+                  <div class="fw-bold text-dark text-truncate">${title || targetUrl}</div>
+                  ${description ? `<div class="text-muted text-truncate" style="font-size: 0.75rem;">${description}</div>` : ''}
+                </div>
+              </div>
+            </a>
+          `;
+        }
+      }
+    } catch (error) {
+      console.error('URL 프리뷰 로드 실패:', error);
+    }
+  }
+
+  // 모든 URL 프리뷰 로드
+  function loadAllUrlPreviews() {
+    document.querySelectorAll('.url-preview-container').forEach(container => {
+      if (!container.dataset.loaded) {
+        container.dataset.loaded = 'true';
+        loadUrlPreview(container);
+      }
+    });
   }
 
   // 초기 로드

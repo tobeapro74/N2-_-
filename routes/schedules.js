@@ -976,6 +976,22 @@ router.post('/url-preview', requireAuth, async (req, res) => {
       targetUrl = 'https://' + targetUrl;
     }
 
+    // 유튜브 URL 특별 처리 (서버에서 봇 차단하므로 썸네일 URL 직접 생성)
+    const youtubeMatch = targetUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/);
+    if (youtubeMatch) {
+      const videoId = youtubeMatch[1];
+      return res.json({
+        success: true,
+        data: {
+          url: `https://www.youtube.com/watch?v=${videoId}`,
+          title: 'YouTube 동영상',
+          description: '',
+          image: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
+          siteName: 'YouTube'
+        }
+      });
+    }
+
     // fetch로 HTML 가져오기 (리다이렉트 따라가기)
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 8000); // 8초 타임아웃 (리다이렉트 고려)

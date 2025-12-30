@@ -189,6 +189,59 @@ Error: The `functions` property cannot be used in conjunction with the `builds` 
 
 ---
 
+## 5. URL 미리보기 이미지 안 보임
+
+### 증상
+- 댓글에 링크를 붙여넣었는데 썸네일 이미지가 안 보임
+- 일부 사이트만 이미지가 안 보임 (예: 유튜브)
+
+### 원인별 해결
+
+#### 5.1 User-Agent 차단
+
+일부 사이트(다음, 네이버 등)는 봇 User-Agent를 차단합니다.
+
+**해결: 브라우저 User-Agent 사용**
+```javascript
+const response = await fetch(targetUrl, {
+  headers: {
+    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36...',
+    'Accept': 'text/html,application/xhtml+xml...',
+    'Accept-Language': 'ko-KR,ko;q=0.9'
+  }
+});
+```
+
+#### 5.2 유튜브 특별 처리
+
+유튜브는 서버 IP를 차단하므로 썸네일 URL을 직접 생성합니다.
+
+```javascript
+// 유튜브 URL 감지
+const youtubeMatch = targetUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+if (youtubeMatch) {
+  const videoId = youtubeMatch[1];
+  return {
+    image: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
+    // ...
+  };
+}
+```
+
+#### 5.3 CSP에서 외부 이미지 차단
+
+모든 외부 이미지를 허용하려면:
+```javascript
+imgSrc: ["'self'", "data:", "https:", "http:"],
+```
+
+### 진단 방법
+1. Network 탭에서 `url-preview` 요청 확인
+2. Response의 `image` 필드 값 확인
+3. 비어있으면 파싱 문제, 있으면 CSP 문제
+
+---
+
 ## 빠른 진단 체크리스트
 
 ### 이미지가 안 보일 때

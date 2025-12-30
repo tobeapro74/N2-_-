@@ -977,7 +977,8 @@ router.post('/url-preview', requireAuth, async (req, res) => {
     }
 
     // 유튜브 URL 특별 처리 (서버에서 봇 차단하므로 썸네일 URL 직접 생성)
-    const youtubeMatch = targetUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/);
+    // 일반 영상, 쇼츠, 공유 링크, 임베드 모두 지원
+    const youtubeMatch = targetUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/);
     if (youtubeMatch) {
       const videoId = youtubeMatch[1];
       return res.json({
@@ -988,6 +989,81 @@ router.post('/url-preview', requireAuth, async (req, res) => {
           description: '',
           image: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
           siteName: 'YouTube'
+        }
+      });
+    }
+
+    // 틱톡 URL 특별 처리 (서버에서 봇 차단)
+    const tiktokMatch = targetUrl.match(/tiktok\.com\/@([^\/]+)\/video\/(\d+)/);
+    if (tiktokMatch) {
+      return res.json({
+        success: true,
+        data: {
+          url: targetUrl,
+          title: 'TikTok 동영상',
+          description: `@${tiktokMatch[1]}의 TikTok`,
+          image: 'https://sf16-scmcdn-sg.ibytedtos.com/goofy/tiktok/web/node/_next/static/images/logo-whole-c555aa707602e714ec956ac96e9db366.svg',
+          siteName: 'TikTok'
+        }
+      });
+    }
+
+    // 인스타그램 URL 특별 처리 (서버에서 봇 차단)
+    const instagramMatch = targetUrl.match(/instagram\.com\/(p|reel|reels)\/([A-Za-z0-9_-]+)/);
+    if (instagramMatch) {
+      return res.json({
+        success: true,
+        data: {
+          url: targetUrl,
+          title: 'Instagram 게시물',
+          description: instagramMatch[1] === 'reel' || instagramMatch[1] === 'reels' ? 'Instagram 릴스' : 'Instagram 게시물',
+          image: 'https://static.cdninstagram.com/rsrc.php/v3/yR/r/lam-fZmwmvn.png',
+          siteName: 'Instagram'
+        }
+      });
+    }
+
+    // 페이스북 URL 특별 처리 (서버에서 봇 차단)
+    const facebookMatch = targetUrl.match(/facebook\.com|fb\.watch/);
+    if (facebookMatch) {
+      return res.json({
+        success: true,
+        data: {
+          url: targetUrl,
+          title: 'Facebook 게시물',
+          description: 'Facebook에서 공유된 콘텐츠',
+          image: 'https://static.xx.fbcdn.net/rsrc.php/y1/r/4lCu2zih0ca.svg',
+          siteName: 'Facebook'
+        }
+      });
+    }
+
+    // 쓰레드(Threads) URL 특별 처리 (서버에서 봇 차단)
+    const threadsMatch = targetUrl.match(/threads\.net\/@([^\/]+)\/post\/([A-Za-z0-9_-]+)/);
+    if (threadsMatch) {
+      return res.json({
+        success: true,
+        data: {
+          url: targetUrl,
+          title: 'Threads 게시물',
+          description: `@${threadsMatch[1]}의 Threads`,
+          image: 'https://static.cdninstagram.com/rsrc.php/v3/yS/r/ajlEU-wEDyo.png',
+          siteName: 'Threads'
+        }
+      });
+    }
+
+    // X(트위터) URL 특별 처리 (서버에서 봇 차단)
+    const twitterMatch = targetUrl.match(/(?:twitter\.com|x\.com)\/([^\/]+)\/status\/(\d+)/);
+    if (twitterMatch) {
+      return res.json({
+        success: true,
+        data: {
+          url: targetUrl,
+          title: 'X 게시물',
+          description: `@${twitterMatch[1]}의 게시물`,
+          image: 'https://abs.twimg.com/responsive-web/client-web/icon-ios.77d25eba.png',
+          siteName: 'X'
         }
       });
     }

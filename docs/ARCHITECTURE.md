@@ -6,6 +6,7 @@
 3. [데이터베이스 아키텍처](#3-데이터베이스-아키텍처)
 4. [Vercel 서버리스 환경 대응](#4-vercel-서버리스-환경-대응)
 5. [보안 설정 (CSP)](#5-보안-설정-csp)
+6. [URL 미리보기 시스템](#6-url-미리보기-시스템)
 
 ---
 
@@ -325,6 +326,82 @@ self.addEventListener('fetch', event => {
   // 내부 요청만 Service Worker가 처리
   event.respondWith(...);
 });
+```
+
+---
+
+## 6. URL 미리보기 시스템
+
+### 6.1 Open Graph 파싱
+
+댓글에 URL을 붙여넣으면 해당 페이지의 미리보기(썸네일, 제목, 설명)를 자동으로 가져옵니다.
+
+```
+사용자가 URL 입력
+      │
+      ▼
+┌─────────────────────┐
+│ /api/url-preview    │
+│ (서버에서 처리)      │
+└─────────────────────┘
+      │
+      ▼
+┌─────────────────────┐
+│ 유튜브 URL인가?      │
+└─────────────────────┘
+      │
+   ┌──┴──┐
+   │ Yes │ No
+   ▼     ▼
+┌─────────┐ ┌──────────────┐
+│직접 생성 │ │ HTML 파싱    │
+│썸네일 URL│ │ og:image 등  │
+└─────────┘ └──────────────┘
+```
+
+### 6.2 유튜브 특별 처리
+
+유튜브는 서버 IP를 차단하므로 HTML 파싱이 불가능합니다.
+따라서 비디오 ID를 추출하여 썸네일 URL을 직접 생성합니다.
+
+```javascript
+// routes/schedules.js
+const youtubeMatch = targetUrl.match(
+  /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/
+);
+
+if (youtubeMatch) {
+  const videoId = youtubeMatch[1];
+  return res.json({
+    image: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
+    title: 'YouTube 동영상',
+    siteName: 'YouTube'
+  });
+}
+```
+
+### 6.3 User-Agent 설정
+
+일부 사이트(다음, 네이버 등)는 봇 User-Agent를 차단합니다.
+Chrome 브라우저 User-Agent를 사용하여 우회합니다.
+
+```javascript
+const response = await fetch(targetUrl, {
+  headers: {
+    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36...',
+    'Accept': 'text/html,application/xhtml+xml...',
+    'Accept-Language': 'ko-KR,ko;q=0.9'
+  }
+});
+```
+
+### 6.4 CSP 설정
+
+외부 이미지를 표시하려면 CSP에서 허용해야 합니다.
+
+```javascript
+// app.js
+imgSrc: ["'self'", "data:", "https:", "http:"],
 ```
 
 ---

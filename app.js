@@ -38,7 +38,7 @@ app.use(helmet({
       scriptSrcAttr: ["'unsafe-inline'"],  // 인라인 이벤트 핸들러(onclick 등) 허용
       styleSrc: ["'self'", "'unsafe-inline'", "cdn.jsdelivr.net"],
       fontSrc: ["'self'", "cdn.jsdelivr.net", "data:"],
-      imgSrc: ["'self'", "data:"],
+      imgSrc: ["'self'", "data:", "https://res.cloudinary.com", "https://*.cloudinary.com"],
       connectSrc: ["'self'", "cdn.jsdelivr.net"],  // Service Worker fetch 허용
     },
   },
@@ -50,8 +50,8 @@ app.use(helmet({
 }));
 
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(express.json({ limit: '10mb' }));
 
 // HTTP 요청 로깅
 app.use(requestLogger);

@@ -27,7 +27,8 @@
     "express-session": "^1.17.3",
     "helmet": "^8.1.0",
     "moment": "^2.29.4",
-    "mongodb": "^7.0.0"
+    "mongodb": "^7.0.0",
+    "multer": "^2.0.2"
   },
   "devDependencies": {
     "nodemon": "^3.0.2"

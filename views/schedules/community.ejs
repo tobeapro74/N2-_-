@@ -32,12 +32,28 @@
 <div class="card border-0 shadow-sm mb-3">
   <div class="card-body py-2 px-3">
     <form id="commentForm">
-      <div class="d-flex gap-2">
-        <input type="text" id="commentInput" class="form-control form-control-sm" placeholder="댓글을 입력하세요..." maxlength="500" required>
-        <button type="submit" id="submitBtn" class="btn btn-success btn-sm px-3">
+      <!-- 이미지 미리보기 영역 -->
+      <div id="imagePreviewContainer" class="d-none mb-2">
+        <div class="position-relative d-inline-block">
+          <img id="imagePreview" src="" alt="미리보기" class="rounded" style="max-height: 120px; max-width: 100%;">
+          <button type="button" id="removeImageBtn" class="btn btn-danger btn-sm position-absolute top-0 end-0 rounded-circle p-0" style="width: 24px; height: 24px; transform: translate(30%, -30%);">
+            <i class="bi bi-x"></i>
+          </button>
+        </div>
+      </div>
+      <div class="d-flex gap-2 align-items-end">
+        <div class="flex-grow-1 d-flex gap-1 align-items-end">
+          <textarea id="commentInput" class="form-control form-control-sm" placeholder="댓글을 입력하세요... (Shift+Enter: 줄바꿈)" maxlength="500" rows="1" style="resize: none; overflow-y: hidden;"></textarea>
+          <label for="imageInput" class="btn btn-outline-secondary btn-sm px-2" style="height: 31px; cursor: pointer;" title="이미지 첨부">
+            <i class="bi bi-image"></i>
+          </label>
+          <input type="file" id="imageInput" accept="image/jpeg,image/png,image/gif,image/webp" class="d-none">
+        </div>
+        <button type="submit" id="submitBtn" class="btn btn-success btn-sm px-3" style="height: 31px;">
           <i class="bi bi-send"></i>
         </button>
       </div>
+      <small class="text-muted mt-1 d-block" style="font-size: 0.7rem;">이미지: 최대 5MB (jpg, png, gif, webp)</small>
     </form>
   </div>
 </div>
@@ -70,14 +86,20 @@
           </button>
         </div>
       </div>
+      <!-- 댓글 이미지 -->
+      <div class="comment-image-container d-none mb-2">
+        <img class="comment-image rounded" src="" alt="첨부 이미지" style="max-height: 200px; max-width: 100%; cursor: pointer;" onclick="window.open(this.src, '_blank')">
+      </div>
       <!-- 댓글 내용 -->
       <p class="mb-2 comment-content" style="font-size: 0.9rem;"></p>
       <!-- 수정 폼 (숨김) -->
       <div class="edit-form d-none mb-2">
-        <div class="d-flex gap-2">
-          <input type="text" class="form-control form-control-sm edit-input" maxlength="500">
-          <button class="btn btn-success btn-sm save-edit-btn">저장</button>
-          <button class="btn btn-outline-secondary btn-sm cancel-edit-btn">취소</button>
+        <div class="d-flex gap-2 align-items-end">
+          <textarea class="form-control form-control-sm edit-input" maxlength="500" rows="2" style="resize: none;"></textarea>
+          <div class="d-flex flex-column gap-1">
+            <button class="btn btn-success btn-sm save-edit-btn">저장</button>
+            <button class="btn btn-outline-secondary btn-sm cancel-edit-btn">취소</button>
+          </div>
         </div>
       </div>
       <!-- 액션 버튼 -->
@@ -96,10 +118,12 @@
       </div>
       <!-- 답글 폼 (숨김) -->
       <div class="reply-form d-none mt-2">
-        <div class="d-flex gap-2">
-          <input type="text" class="form-control form-control-sm reply-input" placeholder="답글을 입력하세요..." maxlength="500">
-          <button class="btn btn-success btn-sm submit-reply-btn">등록</button>
-          <button class="btn btn-outline-secondary btn-sm cancel-reply-btn">취소</button>
+        <div class="d-flex gap-2 align-items-end">
+          <textarea class="form-control form-control-sm reply-input" placeholder="답글을 입력하세요... (Shift+Enter: 줄바꿈)" maxlength="500" rows="1" style="resize: none; overflow-y: hidden;"></textarea>
+          <div class="d-flex gap-1">
+            <button class="btn btn-success btn-sm submit-reply-btn">등록</button>
+            <button class="btn btn-outline-secondary btn-sm cancel-reply-btn">취소</button>
+          </div>
         </div>
       </div>
       <!-- 대댓글 목록 -->
@@ -125,13 +149,19 @@
         </button>
       </div>
     </div>
+    <!-- 대댓글 이미지 -->
+    <div class="reply-image-container d-none mb-1">
+      <img class="reply-image rounded" src="" alt="첨부 이미지" style="max-height: 150px; max-width: 100%; cursor: pointer;" onclick="window.open(this.src, '_blank')">
+    </div>
     <p class="mb-1 reply-content" style="font-size: 0.85rem;"></p>
     <!-- 수정 폼 (숨김) -->
     <div class="edit-form d-none mb-1">
-      <div class="d-flex gap-2">
-        <input type="text" class="form-control form-control-sm edit-input" maxlength="500">
-        <button class="btn btn-success btn-sm save-edit-btn" style="font-size: 0.75rem;">저장</button>
-        <button class="btn btn-outline-secondary btn-sm cancel-edit-btn" style="font-size: 0.75rem;">취소</button>
+      <div class="d-flex gap-2 align-items-end">
+        <textarea class="form-control form-control-sm edit-input" maxlength="500" rows="2" style="resize: none;"></textarea>
+        <div class="d-flex gap-1">
+          <button class="btn btn-success btn-sm save-edit-btn" style="font-size: 0.75rem;">저장</button>
+          <button class="btn btn-outline-secondary btn-sm cancel-edit-btn" style="font-size: 0.75rem;">취소</button>
+        </div>
       </div>
     </div>
     <div class="d-flex align-items-center gap-3">
@@ -156,6 +186,104 @@ document.addEventListener('DOMContentLoaded', function() {
   const replyTemplate = document.getElementById('replyTemplate');
   const commentForm = document.getElementById('commentForm');
   const commentInput = document.getElementById('commentInput');
+
+  // 이미지 관련 요소
+  const imageInput = document.getElementById('imageInput');
+  const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+  const imagePreview = document.getElementById('imagePreview');
+  const removeImageBtn = document.getElementById('removeImageBtn');
+  let selectedImageUrl = null; // 업로드된 이미지 URL 저장
+
+  // 이미지 선택 처리
+  imageInput.addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // 파일 크기 체크 (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('이미지 크기는 5MB를 초과할 수 없습니다.');
+      imageInput.value = '';
+      return;
+    }
+
+    // 업로드 중 표시
+    imagePreview.src = URL.createObjectURL(file);
+    imagePreviewContainer.classList.remove('d-none');
+
+    // 서버에 업로드
+    const formData = new FormData();
+    formData.append('image', file);
+
+    try {
+      const response = await fetch('/schedules/comments/upload-image', {
+        method: 'POST',
+        headers: { 'X-CSRF-Token': csrfToken },
+        body: formData
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        selectedImageUrl = data.imageUrl;
+      } else {
+        alert(data.error || '이미지 업로드에 실패했습니다.');
+        resetImageUpload();
+      }
+    } catch (error) {
+      console.error('이미지 업로드 오류:', error);
+      alert('이미지 업로드 중 오류가 발생했습니다.');
+      resetImageUpload();
+    }
+  });
+
+  // 이미지 제거
+  removeImageBtn.addEventListener('click', () => {
+    resetImageUpload();
+  });
+
+  function resetImageUpload() {
+    imageInput.value = '';
+    imagePreview.src = '';
+    imagePreviewContainer.classList.add('d-none');
+    selectedImageUrl = null;
+  }
+
+  // textarea 자동 높이 조절 및 Enter/Shift+Enter 처리
+  function setupTextarea(textarea, onSubmit) {
+    // 자동 높이 조절
+    const autoResize = () => {
+      textarea.style.height = 'auto';
+      textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+    };
+
+    textarea.addEventListener('input', autoResize);
+
+    // Enter: 전송, Shift+Enter: 줄바꿈
+    textarea.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        if (textarea.value.trim()) {
+          onSubmit();
+        }
+      }
+    });
+  }
+
+  // 메인 댓글 입력창 설정 (이미지가 있으면 텍스트 없어도 전송 가능)
+  commentInput.addEventListener('input', () => {
+    commentInput.style.height = 'auto';
+    commentInput.style.height = Math.min(commentInput.scrollHeight, 120) + 'px';
+  });
+
+  commentInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      // 텍스트 또는 이미지가 있으면 전송
+      if (commentInput.value.trim() || selectedImageUrl) {
+        commentForm.dispatchEvent(new Event('submit'));
+      }
+    }
+  });
 
   // 댓글 로드
   async function loadComments() {
@@ -197,9 +325,17 @@ document.addEventListener('DOMContentLoaded', function() {
     card.dataset.commentId = comment.id;
     card.querySelector('.comment-author').textContent = comment.member_name;
     card.querySelector('.comment-time').textContent = formatTime(comment.created_at);
-    card.querySelector('.comment-content').innerHTML = linkify(comment.content);
+    card.querySelector('.comment-content').innerHTML = linkify(comment.content || '');
     card.querySelector('.likes-count').textContent = comment.likes || 0;
     card.querySelector('.dislikes-count').textContent = comment.dislikes || 0;
+
+    // 이미지 표시
+    if (comment.image_url) {
+      const imageContainer = card.querySelector('.comment-image-container');
+      const imageEl = card.querySelector('.comment-image');
+      imageContainer.classList.remove('d-none');
+      imageEl.src = comment.image_url;
+    }
 
     // 좋아요/싫어요 상태 반영
     const likeBtn = card.querySelector('.like-btn');
@@ -240,9 +376,17 @@ document.addEventListener('DOMContentLoaded', function() {
     card.dataset.commentId = reply.id;
     card.querySelector('.reply-author').textContent = reply.member_name;
     card.querySelector('.reply-time').textContent = formatTime(reply.created_at);
-    card.querySelector('.reply-content').innerHTML = linkify(reply.content);
+    card.querySelector('.reply-content').innerHTML = linkify(reply.content || '');
     card.querySelector('.likes-count').textContent = reply.likes || 0;
     card.querySelector('.dislikes-count').textContent = reply.dislikes || 0;
+
+    // 이미지 표시
+    if (reply.image_url) {
+      const imageContainer = card.querySelector('.reply-image-container');
+      const imageEl = card.querySelector('.reply-image');
+      imageContainer.classList.remove('d-none');
+      imageEl.src = reply.image_url;
+    }
 
     // 좋아요/싫어요 상태 반영
     const likeBtn = card.querySelector('.like-btn');
@@ -295,12 +439,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     submitReplyBtn.addEventListener('click', () => submitReply(comment.id, replyInput, replyForm));
 
-    replyInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        submitReply(comment.id, replyInput, replyForm);
-      }
-    });
+    // textarea 자동 높이 조절 및 Enter 전송
+    setupTextarea(replyInput, () => submitReply(comment.id, replyInput, replyForm));
 
     // 수정 버튼
     const editBtn = card.querySelector('.edit-btn');
@@ -369,7 +509,11 @@ document.addEventListener('DOMContentLoaded', function() {
     e.preventDefault();
 
     const content = commentInput.value.trim();
-    if (!content) return;
+    // 텍스트나 이미지 중 하나라도 있어야 함
+    if (!content && !selectedImageUrl) {
+      alert('댓글 내용을 입력하거나 이미지를 첨부해주세요.');
+      return;
+    }
 
     // 버튼 비활성화 및 로딩 표시
     submitBtn.disabled = true;
@@ -382,13 +526,15 @@ document.addEventListener('DOMContentLoaded', function() {
           'Content-Type': 'application/json',
           'X-CSRF-Token': csrfToken
         },
-        body: JSON.stringify({ content })
+        body: JSON.stringify({ content, image_url: selectedImageUrl })
       });
 
       const data = await response.json();
 
       if (data.success) {
         commentInput.value = '';
+        commentInput.style.height = 'auto'; // 높이 리셋
+        resetImageUpload(); // 이미지 초기화
         loadComments();
       } else {
         alert(data.error || '댓글 작성에 실패했습니다.');
@@ -422,6 +568,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
       if (data.success) {
         input.value = '';
+        input.style.height = 'auto'; // 높이 리셋
         form.classList.add('d-none');
         loadComments();
       } else {
@@ -537,7 +684,7 @@ document.addEventListener('DOMContentLoaded', function() {
     return date.toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' });
   }
 
-  // URL을 클릭 가능한 링크로 변환
+  // URL을 클릭 가능한 링크로 변환 + 줄바꿈 처리
   function linkify(text) {
     // HTML 특수문자 이스케이프 (XSS 방지)
     const escapeHtml = (str) => {
@@ -551,10 +698,15 @@ document.addEventListener('DOMContentLoaded', function() {
     // URL 패턴 매칭 (http, https, www)
     const urlPattern = /(https?:\/\/[^\s<]+|www\.[^\s<]+)/gi;
 
-    return escaped.replace(urlPattern, (url) => {
+    let result = escaped.replace(urlPattern, (url) => {
       const href = url.startsWith('www.') ? 'https://' + url : url;
       return `<a href="${href}" target="_blank" rel="noopener noreferrer" class="text-primary">${url}</a>`;
     });
+
+    // 줄바꿈을 <br>로 변환
+    result = result.replace(/\n/g, '<br>');
+
+    return result;
   }
 
   // 초기 로드

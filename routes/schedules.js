@@ -1,6 +1,45 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../models/database');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+
+// 이미지 업로드 설정
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadDir = path.join(__dirname, '../public/uploads/comments');
+    // 디렉토리가 없으면 생성
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    // 유니크한 파일명 생성: timestamp_userId_random.ext
+    const uniqueSuffix = Date.now() + '_' + req.session.user.id + '_' + Math.round(Math.random() * 1E9);
+    const ext = path.extname(file.originalname).toLowerCase();
+    cb(null, uniqueSuffix + ext);
+  }
+});
+
+// 파일 필터 (이미지만 허용)
+const fileFilter = (req, file, cb) => {
+  const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+  if (allowedTypes.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error('이미지 파일만 업로드 가능합니다. (jpg, png, gif, webp)'), false);
+  }
+};
+
+const upload = multer({
+  storage: storage,
+  fileFilter: fileFilter,
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB 제한
+  }
+});
 
 // 인증 미들웨어
 const requireAuth = (req, res, next) => {
@@ -476,11 +515,12 @@ router.get('/:id/comments', requireAuth, async (req, res) => {
 router.post('/:id/comments', requireAuth, async (req, res) => {
   try {
     const scheduleId = parseInt(req.params.id);
-    const { content, parent_id } = req.body;
+    const { content, parent_id, image_url } = req.body;
     const userId = req.session.user.id;
 
-    if (!content || !content.trim()) {
-      return res.status(400).json({ error: '댓글 내용을 입력해주세요.' });
+    // 텍스트나 이미지 중 하나라도 있어야 함
+    if ((!content || !content.trim()) && !image_url) {
+      return res.status(400).json({ error: '댓글 내용을 입력하거나 이미지를 첨부해주세요.' });
     }
 
     // 일정 존재 확인
@@ -501,12 +541,19 @@ router.post('/:id/comments', requireAuth, async (req, res) => {
       }
     }
 
-    const newId = await db.insert('schedule_comments', {
+    const commentData = {
       schedule_id: scheduleId,
       member_id: userId,
       parent_id: parent_id ? parseInt(parent_id) : null,
-      content: content.trim()
-    });
+      content: content ? content.trim() : ''
+    };
+
+    // 이미지 URL이 있으면 추가
+    if (image_url) {
+      commentData.image_url = image_url;
+    }
+
+    const newId = await db.insert('schedule_comments', commentData);
 
     // 캐시 새로고침
     if (db.refreshCache) {
@@ -838,6 +885,45 @@ router.post('/:id/assign-teams', requireAuth, requireAdmin, async (req, res) => 
     console.error('팀 배정 오류:', error);
     res.status(500).json({ error: '팀 배정 중 오류가 발생했습니다.' });
   }
+});
+
+// ============================================
+// 이미지 업로드 API
+// ============================================
+
+// 댓글 이미지 업로드
+router.post('/comments/upload-image', requireAuth, upload.single('image'), (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: '이미지 파일이 없습니다.' });
+    }
+
+    // 업로드된 이미지 URL 반환
+    const imageUrl = '/uploads/comments/' + req.file.filename;
+
+    res.json({
+      success: true,
+      imageUrl: imageUrl,
+      filename: req.file.filename
+    });
+  } catch (error) {
+    console.error('이미지 업로드 오류:', error);
+    res.status(500).json({ error: '이미지 업로드 중 오류가 발생했습니다.' });
+  }
+});
+
+// multer 에러 핸들링 미들웨어
+router.use((error, req, res, next) => {
+  if (error instanceof multer.MulterError) {
+    if (error.code === 'LIMIT_FILE_SIZE') {
+      return res.status(400).json({ error: '파일 크기는 5MB를 초과할 수 없습니다.' });
+    }
+    return res.status(400).json({ error: '파일 업로드 오류: ' + error.message });
+  }
+  if (error.message) {
+    return res.status(400).json({ error: error.message });
+  }
+  next(error);
 });
 
 module.exports = router;

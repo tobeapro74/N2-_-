@@ -362,12 +362,13 @@ self.addEventListener('fetch', event => {
 ### 6.2 유튜브 특별 처리
 
 유튜브는 서버 IP를 차단하므로 HTML 파싱이 불가능합니다.
-따라서 비디오 ID를 추출하여 썸네일 URL을 직접 생성합니다.
+비디오 ID를 추출하여 썸네일 URL을 직접 생성합니다.
+
+**지원 형식:** 일반 영상, 쇼츠, 공유 링크, 임베드
 
 ```javascript
-// routes/schedules.js
 const youtubeMatch = targetUrl.match(
-  /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/
+  /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/
 );
 
 if (youtubeMatch) {
@@ -380,7 +381,25 @@ if (youtubeMatch) {
 }
 ```
 
-### 6.3 User-Agent 설정
+### 6.3 틱톡 oEmbed API
+
+틱톡은 oEmbed API를 통해 실제 썸네일을 가져옵니다.
+
+```javascript
+const oembedUrl = `https://www.tiktok.com/oembed?url=${encodeURIComponent(targetUrl)}`;
+const oembedData = await fetch(oembedUrl).then(r => r.json());
+// oembedData.thumbnail_url 사용
+```
+
+### 6.4 기타 SNS 플랫폼 (로고 표시)
+
+서버에서 봇 차단하는 플랫폼은 각 플랫폼 로고를 표시합니다:
+- **Instagram**: 게시물, 릴스
+- **Facebook**: 모든 링크, fb.watch
+- **Threads**: 프로필, 게시물
+- **X (Twitter)**: 트윗
+
+### 6.5 User-Agent 설정
 
 일부 사이트(다음, 네이버 등)는 봇 User-Agent를 차단합니다.
 Chrome 브라우저 User-Agent를 사용하여 우회합니다.
@@ -395,7 +414,7 @@ const response = await fetch(targetUrl, {
 });
 ```
 
-### 6.4 CSP 설정
+### 6.6 CSP 설정
 
 외부 이미지를 표시하려면 CSP에서 허용해야 합니다.
 

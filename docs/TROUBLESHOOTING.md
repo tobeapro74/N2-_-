@@ -212,23 +212,37 @@ const response = await fetch(targetUrl, {
 });
 ```
 
-#### 5.2 유튜브 특별 처리
+#### 5.2 유튜브/쇼츠 특별 처리
 
 유튜브는 서버 IP를 차단하므로 썸네일 URL을 직접 생성합니다.
 
 ```javascript
-// 유튜브 URL 감지
-const youtubeMatch = targetUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+// 유튜브 URL 감지 (일반 영상, 쇼츠, 공유링크, 임베드)
+const youtubeMatch = targetUrl.match(
+  /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/
+);
 if (youtubeMatch) {
   const videoId = youtubeMatch[1];
-  return {
-    image: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
-    // ...
-  };
+  return { image: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` };
 }
 ```
 
-#### 5.3 CSP에서 외부 이미지 차단
+#### 5.3 틱톡 oEmbed API
+
+틱톡은 oEmbed API로 실제 썸네일을 가져옵니다.
+
+```javascript
+const oembedUrl = `https://www.tiktok.com/oembed?url=${encodeURIComponent(targetUrl)}`;
+const data = await fetch(oembedUrl).then(r => r.json());
+// data.thumbnail_url 사용
+```
+
+#### 5.4 기타 SNS (Instagram, Facebook, Threads, X)
+
+서버에서 봇 차단하는 플랫폼은 각 플랫폼 로고를 표시합니다.
+실제 썸네일은 가져올 수 없으므로 로고로 대체합니다.
+
+#### 5.5 CSP에서 외부 이미지 차단
 
 모든 외부 이미지를 허용하려면:
 ```javascript

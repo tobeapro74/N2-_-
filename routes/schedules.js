@@ -30,11 +30,13 @@ router.get('/', requireAuth, async (req, res) => {
     if (db.refreshCache) {
       await db.refreshCache('schedules');
       await db.refreshCache('reservations');
+      await db.refreshCache('schedule_comments');
     }
 
     let schedules = db.getTable('schedules');
     const golfCourses = db.getTable('golf_courses').filter(gc => gc.is_active);
     const reservations = db.getTable('reservations');
+    const comments = db.getTable('schedule_comments');
 
     if (year) {
       schedules = schedules.filter(s => s.play_date && s.play_date.startsWith(year));
@@ -53,12 +55,14 @@ router.get('/', requireAuth, async (req, res) => {
         const reserved_count = reservations.filter(
           r => r.schedule_id === s.id && ['pending', 'confirmed'].includes(r.status)
         ).length;
+        const comment_count = comments.filter(c => c.schedule_id === s.id).length;
         return {
           ...s,
           course_name: gc.name,
           location: gc.location,
           max_members: s.max_members || 12,
-          reserved_count
+          reserved_count,
+          comment_count
         };
       })
       .sort((a, b) => (a.play_date || '').localeCompare(b.play_date || ''));
@@ -362,6 +366,317 @@ router.post('/:id/delete', requireAuth, requireAdmin, async (req, res) => {
   } catch (error) {
     console.error('일정 삭제 오류:', error);
     res.status(500).json({ error: '일정 삭제 중 오류가 발생했습니다.' });
+  }
+});
+
+// ============================================
+// 커뮤니티 기능 (댓글, 좋아요/싫어요)
+// ============================================
+
+// 커뮤니티 페이지
+router.get('/:id/community', requireAuth, async (req, res) => {
+  try {
+    const scheduleId = parseInt(req.params.id);
+
+    // 캐시 새로고침
+    if (db.refreshCache) {
+      await db.refreshCache('schedules');
+      await db.refreshCache('schedule_comments');
+    }
+
+    const schedule = db.findById('schedules', scheduleId);
+
+    if (!schedule) {
+      return res.status(404).render('error', {
+        title: '일정 없음',
+        message: '일정을 찾을 수 없습니다.'
+      });
+    }
+
+    const golfCourse = db.findById('golf_courses', schedule.golf_course_id) || {};
+
+    res.render('schedules/community', {
+      title: `커뮤니티 - ${golfCourse.name}`,
+      schedule: {
+        ...schedule,
+        course_name: golfCourse.name,
+        location: golfCourse.location
+      }
+    });
+  } catch (error) {
+    console.error('커뮤니티 페이지 오류:', error);
+    res.status(500).render('error', {
+      title: '오류',
+      message: '커뮤니티 페이지를 불러오는 중 오류가 발생했습니다.'
+    });
+  }
+});
+
+// 댓글 목록 조회 API
+router.get('/:id/comments', requireAuth, async (req, res) => {
+  try {
+    const scheduleId = parseInt(req.params.id);
+    const userId = req.session.user.id;
+
+    // 캐시 새로고침
+    if (db.refreshCache) {
+      await db.refreshCache('schedule_comments');
+      await db.refreshCache('comment_reactions');
+    }
+
+    const allComments = db.getTable('schedule_comments').filter(c => c.schedule_id === scheduleId);
+    const reactions = db.getTable('comment_reactions');
+    const members = db.getTable('members');
+
+    // 댓글에 추가 정보 붙이기
+    const enrichComment = (comment) => {
+      const member = members.find(m => m.id === comment.member_id) || {};
+      const commentReactions = reactions.filter(r => r.comment_id === comment.id);
+      const likes = commentReactions.filter(r => r.reaction_type === 'like').length;
+      const dislikes = commentReactions.filter(r => r.reaction_type === 'dislike').length;
+      const myReaction = commentReactions.find(r => r.member_id === userId);
+
+      return {
+        ...comment,
+        member_name: member.name || '알 수 없음',
+        likes,
+        dislikes,
+        my_reaction: myReaction ? myReaction.reaction_type : null,
+        is_mine: comment.member_id === userId,
+        is_admin: req.session.user.is_admin
+      };
+    };
+
+    // 부모 댓글 (parent_id가 null인 것)
+    const parentComments = allComments
+      .filter(c => !c.parent_id)
+      .sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''));
+
+    // 각 부모 댓글에 대댓글 추가
+    const commentsWithReplies = parentComments.map(parent => {
+      const replies = allComments
+        .filter(c => c.parent_id === parent.id)
+        .sort((a, b) => (a.created_at || '').localeCompare(b.created_at || ''))
+        .map(enrichComment);
+
+      return {
+        ...enrichComment(parent),
+        replies
+      };
+    });
+
+    res.json({ comments: commentsWithReplies });
+  } catch (error) {
+    console.error('댓글 목록 조회 오류:', error);
+    res.status(500).json({ error: '댓글을 불러오는 중 오류가 발생했습니다.' });
+  }
+});
+
+// 댓글 작성 API
+router.post('/:id/comments', requireAuth, async (req, res) => {
+  try {
+    const scheduleId = parseInt(req.params.id);
+    const { content, parent_id } = req.body;
+    const userId = req.session.user.id;
+
+    if (!content || !content.trim()) {
+      return res.status(400).json({ error: '댓글 내용을 입력해주세요.' });
+    }
+
+    // 일정 존재 확인
+    const schedule = db.findById('schedules', scheduleId);
+    if (!schedule) {
+      return res.status(404).json({ error: '일정을 찾을 수 없습니다.' });
+    }
+
+    // 대댓글인 경우 부모 댓글 확인
+    if (parent_id) {
+      const parentComment = db.findById('schedule_comments', parseInt(parent_id));
+      if (!parentComment || parentComment.schedule_id !== scheduleId) {
+        return res.status(400).json({ error: '부모 댓글을 찾을 수 없습니다.' });
+      }
+      // 대댓글에 대댓글은 불가 (1단계만)
+      if (parentComment.parent_id) {
+        return res.status(400).json({ error: '대댓글에는 답글을 달 수 없습니다.' });
+      }
+    }
+
+    const newId = await db.insert('schedule_comments', {
+      schedule_id: scheduleId,
+      member_id: userId,
+      parent_id: parent_id ? parseInt(parent_id) : null,
+      content: content.trim()
+    });
+
+    // 캐시 새로고침
+    if (db.refreshCache) {
+      await db.refreshCache('schedule_comments');
+    }
+
+    res.json({ success: true, id: newId, message: '댓글이 등록되었습니다.' });
+  } catch (error) {
+    console.error('댓글 작성 오류:', error);
+    res.status(500).json({ error: '댓글 작성 중 오류가 발생했습니다.' });
+  }
+});
+
+// 댓글 수정 API
+router.put('/comments/:commentId', requireAuth, async (req, res) => {
+  try {
+    const commentId = parseInt(req.params.commentId);
+    const { content } = req.body;
+    const userId = req.session.user.id;
+
+    if (!content || !content.trim()) {
+      return res.status(400).json({ error: '댓글 내용을 입력해주세요.' });
+    }
+
+    const comment = db.findById('schedule_comments', commentId);
+    if (!comment) {
+      return res.status(404).json({ error: '댓글을 찾을 수 없습니다.' });
+    }
+
+    // 작성자 또는 관리자만 수정 가능
+    if (comment.member_id !== userId && !req.session.user.is_admin) {
+      return res.status(403).json({ error: '수정 권한이 없습니다.' });
+    }
+
+    await db.update('schedule_comments', commentId, {
+      content: content.trim()
+    });
+
+    // 캐시 새로고침
+    if (db.refreshCache) {
+      await db.refreshCache('schedule_comments');
+    }
+
+    res.json({ success: true, message: '댓글이 수정되었습니다.' });
+  } catch (error) {
+    console.error('댓글 수정 오류:', error);
+    res.status(500).json({ error: '댓글 수정 중 오류가 발생했습니다.' });
+  }
+});
+
+// 댓글 삭제 API
+router.delete('/comments/:commentId', requireAuth, async (req, res) => {
+  try {
+    const commentId = parseInt(req.params.commentId);
+    const userId = req.session.user.id;
+
+    const comment = db.findById('schedule_comments', commentId);
+    if (!comment) {
+      return res.status(404).json({ error: '댓글을 찾을 수 없습니다.' });
+    }
+
+    // 작성자 또는 관리자만 삭제 가능
+    if (comment.member_id !== userId && !req.session.user.is_admin) {
+      return res.status(403).json({ error: '삭제 권한이 없습니다.' });
+    }
+
+    // 캐시 새로고침
+    if (db.refreshCache) {
+      await db.refreshCache('schedule_comments');
+      await db.refreshCache('comment_reactions');
+    }
+
+    // 대댓글도 함께 삭제
+    const replies = db.getTable('schedule_comments').filter(c => c.parent_id === commentId);
+    for (const reply of replies) {
+      // 대댓글의 리액션 삭제
+      const replyReactions = db.getTable('comment_reactions').filter(r => r.comment_id === reply.id);
+      for (const reaction of replyReactions) {
+        await db.delete('comment_reactions', reaction.id);
+      }
+      await db.delete('schedule_comments', reply.id);
+    }
+
+    // 댓글의 리액션 삭제
+    const commentReactions = db.getTable('comment_reactions').filter(r => r.comment_id === commentId);
+    for (const reaction of commentReactions) {
+      await db.delete('comment_reactions', reaction.id);
+    }
+
+    // 댓글 삭제
+    await db.delete('schedule_comments', commentId);
+
+    // 캐시 새로고침
+    if (db.refreshCache) {
+      await db.refreshCache('schedule_comments');
+      await db.refreshCache('comment_reactions');
+    }
+
+    res.json({ success: true, message: '댓글이 삭제되었습니다.' });
+  } catch (error) {
+    console.error('댓글 삭제 오류:', error);
+    res.status(500).json({ error: '댓글 삭제 중 오류가 발생했습니다.' });
+  }
+});
+
+// 좋아요/싫어요 토글 API
+router.post('/comments/:commentId/reaction', requireAuth, async (req, res) => {
+  try {
+    const commentId = parseInt(req.params.commentId);
+    const { reaction_type } = req.body;
+    const userId = req.session.user.id;
+
+    if (!['like', 'dislike'].includes(reaction_type)) {
+      return res.status(400).json({ error: '올바르지 않은 반응 타입입니다.' });
+    }
+
+    const comment = db.findById('schedule_comments', commentId);
+    if (!comment) {
+      return res.status(404).json({ error: '댓글을 찾을 수 없습니다.' });
+    }
+
+    // 캐시 새로고침
+    if (db.refreshCache) {
+      await db.refreshCache('comment_reactions');
+    }
+
+    // 기존 반응 확인
+    const existingReaction = db.getTable('comment_reactions').find(
+      r => r.comment_id === commentId && r.member_id === userId
+    );
+
+    if (existingReaction) {
+      if (existingReaction.reaction_type === reaction_type) {
+        // 같은 반응 클릭 시 제거 (토글)
+        await db.delete('comment_reactions', existingReaction.id);
+      } else {
+        // 다른 반응 클릭 시 변경
+        await db.update('comment_reactions', existingReaction.id, {
+          reaction_type
+        });
+      }
+    } else {
+      // 새 반응 추가
+      await db.insert('comment_reactions', {
+        comment_id: commentId,
+        member_id: userId,
+        reaction_type
+      });
+    }
+
+    // 캐시 새로고침
+    if (db.refreshCache) {
+      await db.refreshCache('comment_reactions');
+    }
+
+    // 업데이트된 카운트 반환
+    const reactions = db.getTable('comment_reactions').filter(r => r.comment_id === commentId);
+    const likes = reactions.filter(r => r.reaction_type === 'like').length;
+    const dislikes = reactions.filter(r => r.reaction_type === 'dislike').length;
+    const myReaction = reactions.find(r => r.member_id === userId);
+
+    res.json({
+      success: true,
+      likes,
+      dislikes,
+      my_reaction: myReaction ? myReaction.reaction_type : null
+    });
+  } catch (error) {
+    console.error('반응 처리 오류:', error);
+    res.status(500).json({ error: '반응 처리 중 오류가 발생했습니다.' });
   }
 });
 

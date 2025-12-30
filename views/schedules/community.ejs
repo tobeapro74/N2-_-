@@ -1,0 +1,536 @@
+<%- include('../partials/header') %>
+
+<!-- 페이지 헤더 -->
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <div class="d-flex align-items-center">
+    <a href="/schedules/<%= schedule.id %>" class="back-link" aria-label="일정 상세로 이동">
+      <i class="bi bi-chevron-left" aria-hidden="true"></i>일정
+    </a>
+    <h5 class="mb-0 fw-bold"><i class="bi bi-chat-dots text-success me-2" aria-hidden="true"></i>커뮤니티</h5>
+  </div>
+</div>
+
+<!-- 일정 정보 요약 -->
+<div class="card border-0 shadow-sm mb-3">
+  <div class="card-body py-2 px-3">
+    <div class="d-flex align-items-center justify-content-between">
+      <div>
+        <span class="fw-bold text-success"><%= schedule.course_name %></span>
+        <span class="text-muted ms-2" style="font-size: 0.85rem;"><%= schedule.location %></span>
+      </div>
+      <div class="text-end">
+        <span class="badge bg-light text-dark"><%= moment(schedule.play_date).format('YYYY.MM.DD (ddd)') %></span>
+        <% if (schedule.tee_times) { %>
+        <small class="text-muted ms-1"><%= schedule.tee_times %></small>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 댓글 작성 폼 -->
+<div class="card border-0 shadow-sm mb-3">
+  <div class="card-body py-2 px-3">
+    <form id="commentForm">
+      <div class="d-flex gap-2">
+        <input type="text" id="commentInput" class="form-control form-control-sm" placeholder="댓글을 입력하세요..." maxlength="500" required>
+        <button type="submit" class="btn btn-success btn-sm px-3">
+          <i class="bi bi-send"></i>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- 댓글 목록 -->
+<div id="commentsContainer">
+  <div class="text-center py-4">
+    <div class="spinner-border spinner-border-sm text-success" role="status">
+      <span class="visually-hidden">로딩 중...</span>
+    </div>
+  </div>
+</div>
+
+<!-- 댓글 템플릿 -->
+<template id="commentTemplate">
+  <div class="card border-0 shadow-sm mb-2 comment-card" data-comment-id="">
+    <div class="card-body py-2 px-3">
+      <!-- 댓글 헤더 -->
+      <div class="d-flex align-items-center justify-content-between mb-1">
+        <div class="d-flex align-items-center">
+          <span class="fw-bold comment-author" style="font-size: 0.85rem;"></span>
+          <small class="text-muted ms-2 comment-time"></small>
+        </div>
+        <div class="comment-actions">
+          <button class="btn btn-link btn-sm text-muted p-0 me-2 edit-btn" style="font-size: 0.75rem;" title="수정">
+            <i class="bi bi-pencil"></i>
+          </button>
+          <button class="btn btn-link btn-sm text-danger p-0 delete-btn" style="font-size: 0.75rem;" title="삭제">
+            <i class="bi bi-trash"></i>
+          </button>
+        </div>
+      </div>
+      <!-- 댓글 내용 -->
+      <p class="mb-2 comment-content" style="font-size: 0.9rem;"></p>
+      <!-- 수정 폼 (숨김) -->
+      <div class="edit-form d-none mb-2">
+        <div class="d-flex gap-2">
+          <input type="text" class="form-control form-control-sm edit-input" maxlength="500">
+          <button class="btn btn-success btn-sm save-edit-btn">저장</button>
+          <button class="btn btn-outline-secondary btn-sm cancel-edit-btn">취소</button>
+        </div>
+      </div>
+      <!-- 액션 버튼 -->
+      <div class="d-flex align-items-center gap-3">
+        <button class="btn btn-link btn-sm p-0 like-btn" style="font-size: 0.8rem;">
+          <i class="bi bi-hand-thumbs-up"></i>
+          <span class="likes-count">0</span>
+        </button>
+        <button class="btn btn-link btn-sm p-0 dislike-btn" style="font-size: 0.8rem;">
+          <i class="bi bi-hand-thumbs-down"></i>
+          <span class="dislikes-count">0</span>
+        </button>
+        <button class="btn btn-link btn-sm p-0 text-muted reply-btn" style="font-size: 0.8rem;">
+          <i class="bi bi-reply"></i> 답글
+        </button>
+      </div>
+      <!-- 답글 폼 (숨김) -->
+      <div class="reply-form d-none mt-2">
+        <div class="d-flex gap-2">
+          <input type="text" class="form-control form-control-sm reply-input" placeholder="답글을 입력하세요..." maxlength="500">
+          <button class="btn btn-success btn-sm submit-reply-btn">등록</button>
+          <button class="btn btn-outline-secondary btn-sm cancel-reply-btn">취소</button>
+        </div>
+      </div>
+      <!-- 대댓글 목록 -->
+      <div class="replies-container mt-2"></div>
+    </div>
+  </div>
+</template>
+
+<!-- 대댓글 템플릿 -->
+<template id="replyTemplate">
+  <div class="reply-card border-start border-2 border-success ps-3 py-1 mb-1" data-comment-id="">
+    <div class="d-flex align-items-center justify-content-between mb-1">
+      <div class="d-flex align-items-center">
+        <i class="bi bi-arrow-return-right text-muted me-1" style="font-size: 0.7rem;"></i>
+        <span class="fw-bold reply-author" style="font-size: 0.8rem;"></span>
+        <small class="text-muted ms-2 reply-time"></small>
+      </div>
+      <div class="reply-actions">
+        <button class="btn btn-link btn-sm text-muted p-0 me-2 edit-btn" style="font-size: 0.7rem;" title="수정">
+          <i class="bi bi-pencil"></i>
+        </button>
+        <button class="btn btn-link btn-sm text-danger p-0 delete-btn" style="font-size: 0.7rem;" title="삭제">
+          <i class="bi bi-trash"></i>
+        </button>
+      </div>
+    </div>
+    <p class="mb-1 reply-content" style="font-size: 0.85rem;"></p>
+    <!-- 수정 폼 (숨김) -->
+    <div class="edit-form d-none mb-1">
+      <div class="d-flex gap-2">
+        <input type="text" class="form-control form-control-sm edit-input" maxlength="500">
+        <button class="btn btn-success btn-sm save-edit-btn" style="font-size: 0.75rem;">저장</button>
+        <button class="btn btn-outline-secondary btn-sm cancel-edit-btn" style="font-size: 0.75rem;">취소</button>
+      </div>
+    </div>
+    <div class="d-flex align-items-center gap-3">
+      <button class="btn btn-link btn-sm p-0 like-btn" style="font-size: 0.75rem;">
+        <i class="bi bi-hand-thumbs-up"></i>
+        <span class="likes-count">0</span>
+      </button>
+      <button class="btn btn-link btn-sm p-0 dislike-btn" style="font-size: 0.75rem;">
+        <i class="bi bi-hand-thumbs-down"></i>
+        <span class="dislikes-count">0</span>
+      </button>
+    </div>
+  </div>
+</template>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const scheduleId = <%= schedule.id %>;
+  const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+  const commentsContainer = document.getElementById('commentsContainer');
+  const commentTemplate = document.getElementById('commentTemplate');
+  const replyTemplate = document.getElementById('replyTemplate');
+  const commentForm = document.getElementById('commentForm');
+  const commentInput = document.getElementById('commentInput');
+
+  // 댓글 로드
+  async function loadComments() {
+    try {
+      const response = await fetch(`/schedules/${scheduleId}/comments`, {
+        headers: { 'X-CSRF-Token': csrfToken }
+      });
+      const data = await response.json();
+
+      if (data.comments) {
+        renderComments(data.comments);
+      }
+    } catch (error) {
+      console.error('댓글 로드 오류:', error);
+      commentsContainer.innerHTML = '<div class="text-center text-muted py-4">댓글을 불러오는 중 오류가 발생했습니다.</div>';
+    }
+  }
+
+  // 댓글 렌더링
+  function renderComments(comments) {
+    if (comments.length === 0) {
+      commentsContainer.innerHTML = '<div class="text-center text-muted py-4"><i class="bi bi-chat-dots me-2"></i>첫 번째 댓글을 남겨보세요!</div>';
+      return;
+    }
+
+    commentsContainer.innerHTML = '';
+
+    comments.forEach(comment => {
+      const commentEl = createCommentElement(comment);
+      commentsContainer.appendChild(commentEl);
+    });
+  }
+
+  // 댓글 요소 생성
+  function createCommentElement(comment) {
+    const clone = commentTemplate.content.cloneNode(true);
+    const card = clone.querySelector('.comment-card');
+
+    card.dataset.commentId = comment.id;
+    card.querySelector('.comment-author').textContent = comment.member_name;
+    card.querySelector('.comment-time').textContent = formatTime(comment.created_at);
+    card.querySelector('.comment-content').textContent = comment.content;
+    card.querySelector('.likes-count').textContent = comment.likes || 0;
+    card.querySelector('.dislikes-count').textContent = comment.dislikes || 0;
+
+    // 좋아요/싫어요 상태 반영
+    const likeBtn = card.querySelector('.like-btn');
+    const dislikeBtn = card.querySelector('.dislike-btn');
+
+    if (comment.my_reaction === 'like') {
+      likeBtn.classList.add('text-primary');
+    } else if (comment.my_reaction === 'dislike') {
+      dislikeBtn.classList.add('text-danger');
+    }
+
+    // 수정/삭제 버튼 표시 여부
+    const actionsDiv = card.querySelector('.comment-actions');
+    if (!comment.is_mine && !comment.is_admin) {
+      actionsDiv.style.display = 'none';
+    }
+
+    // 이벤트 리스너 등록
+    setupCommentEventListeners(card, comment);
+
+    // 대댓글 렌더링
+    if (comment.replies && comment.replies.length > 0) {
+      const repliesContainer = card.querySelector('.replies-container');
+      comment.replies.forEach(reply => {
+        const replyEl = createReplyElement(reply);
+        repliesContainer.appendChild(replyEl);
+      });
+    }
+
+    return clone;
+  }
+
+  // 대댓글 요소 생성
+  function createReplyElement(reply) {
+    const clone = replyTemplate.content.cloneNode(true);
+    const card = clone.querySelector('.reply-card');
+
+    card.dataset.commentId = reply.id;
+    card.querySelector('.reply-author').textContent = reply.member_name;
+    card.querySelector('.reply-time').textContent = formatTime(reply.created_at);
+    card.querySelector('.reply-content').textContent = reply.content;
+    card.querySelector('.likes-count').textContent = reply.likes || 0;
+    card.querySelector('.dislikes-count').textContent = reply.dislikes || 0;
+
+    // 좋아요/싫어요 상태 반영
+    const likeBtn = card.querySelector('.like-btn');
+    const dislikeBtn = card.querySelector('.dislike-btn');
+
+    if (reply.my_reaction === 'like') {
+      likeBtn.classList.add('text-primary');
+    } else if (reply.my_reaction === 'dislike') {
+      dislikeBtn.classList.add('text-danger');
+    }
+
+    // 수정/삭제 버튼 표시 여부
+    const actionsDiv = card.querySelector('.reply-actions');
+    if (!reply.is_mine && !reply.is_admin) {
+      actionsDiv.style.display = 'none';
+    }
+
+    // 이벤트 리스너 등록
+    setupReplyEventListeners(card, reply);
+
+    return clone;
+  }
+
+  // 댓글 이벤트 리스너
+  function setupCommentEventListeners(card, comment) {
+    // 좋아요
+    card.querySelector('.like-btn').addEventListener('click', () => handleReaction(comment.id, 'like', card));
+
+    // 싫어요
+    card.querySelector('.dislike-btn').addEventListener('click', () => handleReaction(comment.id, 'dislike', card));
+
+    // 답글 버튼
+    const replyBtn = card.querySelector('.reply-btn');
+    const replyForm = card.querySelector('.reply-form');
+    const replyInput = card.querySelector('.reply-input');
+    const submitReplyBtn = card.querySelector('.submit-reply-btn');
+    const cancelReplyBtn = card.querySelector('.cancel-reply-btn');
+
+    replyBtn.addEventListener('click', () => {
+      replyForm.classList.toggle('d-none');
+      if (!replyForm.classList.contains('d-none')) {
+        replyInput.focus();
+      }
+    });
+
+    cancelReplyBtn.addEventListener('click', () => {
+      replyForm.classList.add('d-none');
+      replyInput.value = '';
+    });
+
+    submitReplyBtn.addEventListener('click', () => submitReply(comment.id, replyInput, replyForm));
+
+    replyInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        submitReply(comment.id, replyInput, replyForm);
+      }
+    });
+
+    // 수정 버튼
+    const editBtn = card.querySelector('.edit-btn');
+    const editForm = card.querySelector('.edit-form');
+    const editInput = card.querySelector('.edit-input');
+    const saveEditBtn = card.querySelector('.save-edit-btn');
+    const cancelEditBtn = card.querySelector('.cancel-edit-btn');
+    const contentEl = card.querySelector('.comment-content');
+
+    editBtn.addEventListener('click', () => {
+      editInput.value = contentEl.textContent;
+      contentEl.classList.add('d-none');
+      editForm.classList.remove('d-none');
+      editInput.focus();
+    });
+
+    cancelEditBtn.addEventListener('click', () => {
+      editForm.classList.add('d-none');
+      contentEl.classList.remove('d-none');
+    });
+
+    saveEditBtn.addEventListener('click', () => saveEdit(comment.id, editInput, editForm, contentEl));
+
+    // 삭제 버튼
+    card.querySelector('.delete-btn').addEventListener('click', () => deleteComment(comment.id));
+  }
+
+  // 대댓글 이벤트 리스너
+  function setupReplyEventListeners(card, reply) {
+    // 좋아요
+    card.querySelector('.like-btn').addEventListener('click', () => handleReaction(reply.id, 'like', card));
+
+    // 싫어요
+    card.querySelector('.dislike-btn').addEventListener('click', () => handleReaction(reply.id, 'dislike', card));
+
+    // 수정 버튼
+    const editBtn = card.querySelector('.edit-btn');
+    const editForm = card.querySelector('.edit-form');
+    const editInput = card.querySelector('.edit-input');
+    const saveEditBtn = card.querySelector('.save-edit-btn');
+    const cancelEditBtn = card.querySelector('.cancel-edit-btn');
+    const contentEl = card.querySelector('.reply-content');
+
+    editBtn.addEventListener('click', () => {
+      editInput.value = contentEl.textContent;
+      contentEl.classList.add('d-none');
+      editForm.classList.remove('d-none');
+      editInput.focus();
+    });
+
+    cancelEditBtn.addEventListener('click', () => {
+      editForm.classList.add('d-none');
+      contentEl.classList.remove('d-none');
+    });
+
+    saveEditBtn.addEventListener('click', () => saveEdit(reply.id, editInput, editForm, contentEl));
+
+    // 삭제 버튼
+    card.querySelector('.delete-btn').addEventListener('click', () => deleteComment(reply.id));
+  }
+
+  // 댓글 작성
+  commentForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const content = commentInput.value.trim();
+    if (!content) return;
+
+    try {
+      const response = await fetch(`/schedules/${scheduleId}/comments`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken
+        },
+        body: JSON.stringify({ content })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        commentInput.value = '';
+        loadComments();
+      } else {
+        alert(data.error || '댓글 작성에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('댓글 작성 오류:', error);
+      alert('댓글 작성 중 오류가 발생했습니다.');
+    }
+  });
+
+  // 답글 작성
+  async function submitReply(parentId, input, form) {
+    const content = input.value.trim();
+    if (!content) return;
+
+    try {
+      const response = await fetch(`/schedules/${scheduleId}/comments`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken
+        },
+        body: JSON.stringify({ content, parent_id: parentId })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        input.value = '';
+        form.classList.add('d-none');
+        loadComments();
+      } else {
+        alert(data.error || '답글 작성에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('답글 작성 오류:', error);
+      alert('답글 작성 중 오류가 발생했습니다.');
+    }
+  }
+
+  // 댓글 수정
+  async function saveEdit(commentId, input, form, contentEl) {
+    const content = input.value.trim();
+    if (!content) return;
+
+    try {
+      const response = await fetch(`/schedules/comments/${commentId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken
+        },
+        body: JSON.stringify({ content })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        contentEl.textContent = content;
+        form.classList.add('d-none');
+        contentEl.classList.remove('d-none');
+      } else {
+        alert(data.error || '댓글 수정에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('댓글 수정 오류:', error);
+      alert('댓글 수정 중 오류가 발생했습니다.');
+    }
+  }
+
+  // 댓글 삭제
+  async function deleteComment(commentId) {
+    if (!confirm('댓글을 삭제하시겠습니까?')) return;
+
+    try {
+      const response = await fetch(`/schedules/comments/${commentId}`, {
+        method: 'DELETE',
+        headers: { 'X-CSRF-Token': csrfToken }
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        loadComments();
+      } else {
+        alert(data.error || '댓글 삭제에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('댓글 삭제 오류:', error);
+      alert('댓글 삭제 중 오류가 발생했습니다.');
+    }
+  }
+
+  // 좋아요/싫어요 처리
+  async function handleReaction(commentId, reactionType, card) {
+    try {
+      const response = await fetch(`/schedules/comments/${commentId}/reaction`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken
+        },
+        body: JSON.stringify({ reaction_type: reactionType })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // UI 업데이트
+        const likeBtn = card.querySelector('.like-btn');
+        const dislikeBtn = card.querySelector('.dislike-btn');
+
+        card.querySelector('.likes-count').textContent = data.likes;
+        card.querySelector('.dislikes-count').textContent = data.dislikes;
+
+        // 버튼 스타일 업데이트
+        likeBtn.classList.remove('text-primary');
+        dislikeBtn.classList.remove('text-danger');
+
+        if (data.my_reaction === 'like') {
+          likeBtn.classList.add('text-primary');
+        } else if (data.my_reaction === 'dislike') {
+          dislikeBtn.classList.add('text-danger');
+        }
+      }
+    } catch (error) {
+      console.error('반응 처리 오류:', error);
+    }
+  }
+
+  // 시간 포맷
+  function formatTime(dateString) {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diff = now - date;
+
+    if (diff < 60000) return '방금 전';
+    if (diff < 3600000) return Math.floor(diff / 60000) + '분 전';
+    if (diff < 86400000) return Math.floor(diff / 3600000) + '시간 전';
+    if (diff < 604800000) return Math.floor(diff / 86400000) + '일 전';
+
+    return date.toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' });
+  }
+
+  // 초기 로드
+  loadComments();
+});
+</script>
+
+<%- include('../partials/footer') %>

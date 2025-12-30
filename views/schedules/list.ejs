@@ -75,6 +75,7 @@
         <thead class="table-light">
           <tr>
             <th class="py-2 ps-3" data-sort="date">날짜</th>
+            <th class="py-2 text-center">커뮤니티</th>
             <th class="py-2" data-sort="string">골프장</th>
             <th class="py-2 hide-mobile" data-sort="string">위치</th>
             <th class="py-2 hide-mobile">티타임</th>
@@ -86,7 +87,7 @@
         <tbody>
           <% if (schedules.length === 0) { %>
           <tr>
-            <td colspan="7" class="text-center text-muted py-4">일정이 없습니다.</td>
+            <td colspan="8" class="text-center text-muted py-4">일정이 없습니다.</td>
           </tr>
           <% } else { %>
           <% schedules.forEach(schedule => { %>
@@ -94,6 +95,14 @@
             <td class="py-2 ps-3" data-value="<%= schedule.play_date %>">
               <span class="fw-bold"><%= moment(schedule.play_date).format('MM/DD') %></span>
               <span class="badge bg-light text-dark" style="font-size: 0.7rem;"><%= moment(schedule.play_date).format('ddd') %></span>
+            </td>
+            <td class="py-2 text-center" onclick="event.stopPropagation(); location.href='/schedules/<%= schedule.id %>/community'">
+              <a href="/schedules/<%= schedule.id %>/community" class="text-decoration-none">
+                <i class="bi bi-chat-dots text-success"></i>
+                <% if (schedule.comment_count > 0) { %>
+                <span class="badge bg-success bg-opacity-75" style="font-size: 0.65rem;"><%= schedule.comment_count %></span>
+                <% } %>
+              </a>
             </td>
             <td class="py-2"><%= schedule.course_name %></td>
             <td class="py-2 hide-mobile"><small class="text-muted"><%= schedule.location %></small></td>

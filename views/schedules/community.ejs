@@ -88,7 +88,7 @@
       </div>
       <!-- 댓글 이미지 -->
       <div class="comment-image-container d-none mb-2">
-        <img class="comment-image rounded" src="" alt="첨부 이미지" style="max-height: 200px; max-width: 100%; cursor: pointer;" onclick="window.open(this.src, '_blank')">
+        <img class="comment-image rounded" src="" alt="첨부 이미지" style="max-height: 300px; max-width: 100%; cursor: pointer;" onclick="window.open(this.src, '_blank')" onerror="this.parentElement.classList.add('d-none')">
       </div>
       <!-- 댓글 내용 -->
       <p class="mb-2 comment-content" style="font-size: 0.9rem;"></p>
@@ -151,7 +151,7 @@
     </div>
     <!-- 대댓글 이미지 -->
     <div class="reply-image-container d-none mb-1">
-      <img class="reply-image rounded" src="" alt="첨부 이미지" style="max-height: 150px; max-width: 100%; cursor: pointer;" onclick="window.open(this.src, '_blank')">
+      <img class="reply-image rounded" src="" alt="첨부 이미지" style="max-height: 200px; max-width: 100%; cursor: pointer;" onclick="window.open(this.src, '_blank')" onerror="this.parentElement.classList.add('d-none')">
     </div>
     <p class="mb-1 reply-content" style="font-size: 0.85rem;"></p>
     <!-- 수정 폼 (숨김) -->
@@ -333,8 +333,19 @@ document.addEventListener('DOMContentLoaded', function() {
     if (comment.image_url) {
       const imageContainer = card.querySelector('.comment-image-container');
       const imageEl = card.querySelector('.comment-image');
-      imageContainer.classList.remove('d-none');
+      // 이미지 로드 성공 시 표시
+      imageEl.onload = () => {
+        imageContainer.classList.remove('d-none');
+      };
+      imageEl.onerror = () => {
+        console.error('이미지 로드 실패:', comment.image_url);
+        imageContainer.classList.add('d-none');
+      };
       imageEl.src = comment.image_url;
+      // 이미지가 이미 캐시되어 있으면 바로 표시
+      if (imageEl.complete && imageEl.naturalHeight > 0) {
+        imageContainer.classList.remove('d-none');
+      }
     }
 
     // 좋아요/싫어요 상태 반영
@@ -384,8 +395,19 @@ document.addEventListener('DOMContentLoaded', function() {
     if (reply.image_url) {
       const imageContainer = card.querySelector('.reply-image-container');
       const imageEl = card.querySelector('.reply-image');
-      imageContainer.classList.remove('d-none');
+      // 이미지 로드 성공 시 표시
+      imageEl.onload = () => {
+        imageContainer.classList.remove('d-none');
+      };
+      imageEl.onerror = () => {
+        console.error('이미지 로드 실패:', reply.image_url);
+        imageContainer.classList.add('d-none');
+      };
       imageEl.src = reply.image_url;
+      // 이미지가 이미 캐시되어 있으면 바로 표시
+      if (imageEl.complete && imageEl.naturalHeight > 0) {
+        imageContainer.classList.remove('d-none');
+      }
     }
 
     // 좋아요/싫어요 상태 반영

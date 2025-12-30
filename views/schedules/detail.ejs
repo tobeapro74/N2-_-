@@ -103,6 +103,13 @@
           <% } %>
         </table>
 
+        <!-- 커뮤니티 버튼 -->
+        <div class="d-grid mb-3">
+          <a href="/schedules/<%= schedule.id %>/community" class="btn btn-outline-success">
+            <i class="bi bi-chat-dots"></i> 커뮤니티 (톡톡)
+          </a>
+        </div>
+
         <!-- 예약 버튼 -->
         <% if (schedule.status === 'open') { %>
         <hr>

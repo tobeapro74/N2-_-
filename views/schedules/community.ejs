@@ -32,24 +32,15 @@
 <div class="card border-0 shadow-sm mb-3">
   <div class="card-body py-2 px-3">
     <form id="commentForm">
-      <!-- 이미지 미리보기 영역 -->
-      <div id="imagePreviewContainer" class="d-none mb-2">
-        <div class="position-relative d-inline-block">
-          <img id="imagePreview" src="" alt="미리보기" class="rounded" style="max-height: 120px; max-width: 100%;">
-          <button type="button" id="removeImageBtn" class="btn btn-danger btn-sm position-absolute top-0 end-0 rounded-circle p-0" style="width: 24px; height: 24px; transform: translate(30%, -30%);">
-            <i class="bi bi-x"></i>
-          </button>
-        </div>
-      </div>
-      <div class="d-flex gap-2 align-items-end">
-        <div class="flex-grow-1 d-flex gap-1 align-items-end">
-          <textarea id="commentInput" class="form-control form-control-sm" placeholder="댓글을 입력하세요... (Shift+Enter: 줄바꿈)" maxlength="500" rows="1" style="resize: none; overflow-y: hidden;"></textarea>
-          <label for="imageInput" class="btn btn-outline-secondary btn-sm px-2" style="height: 31px; cursor: pointer;" title="이미지 첨부">
+      <div class="d-flex gap-2 align-items-center">
+        <div class="flex-grow-1 d-flex gap-1 align-items-center">
+          <textarea id="commentInput" class="form-control form-control-sm" placeholder="댓글을 입력하세요... (Shift+Enter: 줄바꿈)" maxlength="500" rows="1" style="resize: none; overflow-y: hidden; line-height: 1.5; padding-top: 6px; padding-bottom: 6px;"></textarea>
+          <label for="imageInput" class="btn btn-outline-secondary btn-sm px-2 d-flex align-items-center justify-content-center" style="height: 31px; cursor: pointer;" title="이미지 첨부">
             <i class="bi bi-image"></i>
           </label>
           <input type="file" id="imageInput" accept="image/jpeg,image/png,image/gif,image/webp" class="d-none">
         </div>
-        <button type="submit" id="submitBtn" class="btn btn-success btn-sm px-3" style="height: 31px;">
+        <button type="submit" id="submitBtn" class="btn btn-success btn-sm px-3 d-flex align-items-center justify-content-center" style="height: 31px;">
           <i class="bi bi-send"></i>
         </button>
       </div>
@@ -189,12 +180,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // 이미지 관련 요소
   const imageInput = document.getElementById('imageInput');
-  const imagePreviewContainer = document.getElementById('imagePreviewContainer');
-  const imagePreview = document.getElementById('imagePreview');
-  const removeImageBtn = document.getElementById('removeImageBtn');
+  const imageLabel = document.querySelector('label[for="imageInput"]');
   let selectedImageUrl = null; // 업로드된 이미지 URL 저장
+  let isUploading = false;
 
-  // 이미지 선택 처리
+  // 이미지 선택 처리 (미리보기 없이 바로 업로드)
   imageInput.addEventListener('change', async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -207,8 +197,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // 업로드 중 표시
-    imagePreview.src = URL.createObjectURL(file);
-    imagePreviewContainer.classList.remove('d-none');
+    isUploading = true;
+    imageLabel.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+    imageLabel.style.pointerEvents = 'none';
 
     // 서버에 업로드
     const formData = new FormData();
@@ -225,6 +216,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
       if (data.success) {
         selectedImageUrl = data.imageUrl;
+        // 업로드 성공 표시 (체크 아이콘)
+        imageLabel.innerHTML = '<i class="bi bi-check-circle-fill text-success"></i>';
       } else {
         alert(data.error || '이미지 업로드에 실패했습니다.');
         resetImageUpload();
@@ -233,18 +226,15 @@ document.addEventListener('DOMContentLoaded', function() {
       console.error('이미지 업로드 오류:', error);
       alert('이미지 업로드 중 오류가 발생했습니다.');
       resetImageUpload();
+    } finally {
+      isUploading = false;
+      imageLabel.style.pointerEvents = 'auto';
     }
-  });
-
-  // 이미지 제거
-  removeImageBtn.addEventListener('click', () => {
-    resetImageUpload();
   });
 
   function resetImageUpload() {
     imageInput.value = '';
-    imagePreview.src = '';
-    imagePreviewContainer.classList.add('d-none');
+    imageLabel.innerHTML = '<i class="bi bi-image"></i>';
     selectedImageUrl = null;
   }
 

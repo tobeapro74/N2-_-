@@ -995,19 +995,27 @@ router.post('/url-preview', requireAuth, async (req, res) => {
 
     const html = await response.text();
 
-    // Open Graph 및 기본 메타태그 파싱
+    // Open Graph 및 기본 메타태그 파싱 (다양한 형식 지원)
     const getMetaContent = (html, property) => {
-      // og: 태그
-      let match = html.match(new RegExp(`<meta[^>]*property=["']og:${property}["'][^>]*content=["']([^"']+)["']`, 'i'));
-      if (match) return match[1];
+      // 정규식 패턴들 (다양한 HTML 형식 대응)
+      const patterns = [
+        // og:property 형식 (property가 앞)
+        new RegExp(`<meta[^>]*property\\s*=\\s*["']?og:${property}["']?[^>]*content\\s*=\\s*["']([^"']+)["']`, 'i'),
+        // og:property 형식 (content가 앞)
+        new RegExp(`<meta[^>]*content\\s*=\\s*["']([^"']+)["'][^>]*property\\s*=\\s*["']?og:${property}["']?`, 'i'),
+        // twitter:property 형식
+        new RegExp(`<meta[^>]*name\\s*=\\s*["']?twitter:${property}["']?[^>]*content\\s*=\\s*["']([^"']+)["']`, 'i'),
+        new RegExp(`<meta[^>]*content\\s*=\\s*["']([^"']+)["'][^>]*name\\s*=\\s*["']?twitter:${property}["']?`, 'i'),
+        // itemprop 형식 (일부 사이트)
+        new RegExp(`<meta[^>]*itemprop\\s*=\\s*["']?${property}["']?[^>]*content\\s*=\\s*["']([^"']+)["']`, 'i'),
+      ];
 
-      // content가 앞에 오는 경우
-      match = html.match(new RegExp(`<meta[^>]*content=["']([^"']+)["'][^>]*property=["']og:${property}["']`, 'i'));
-      if (match) return match[1];
-
-      // twitter: 태그
-      match = html.match(new RegExp(`<meta[^>]*name=["']twitter:${property}["'][^>]*content=["']([^"']+)["']`, 'i'));
-      if (match) return match[1];
+      for (const pattern of patterns) {
+        const match = html.match(pattern);
+        if (match && match[1]) {
+          return match[1].trim();
+        }
+      }
 
       return null;
     };

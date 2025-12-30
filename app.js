@@ -38,7 +38,7 @@ app.use(helmet({
       scriptSrcAttr: ["'unsafe-inline'"],  // 인라인 이벤트 핸들러(onclick 등) 허용
       styleSrc: ["'self'", "'unsafe-inline'", "cdn.jsdelivr.net"],
       fontSrc: ["'self'", "cdn.jsdelivr.net", "data:"],
-      imgSrc: ["'self'", "data:", "https://res.cloudinary.com", "https://*.cloudinary.com"],
+      imgSrc: ["'self'", "data:", "https:", "http:"],  // 외부 URL 미리보기 이미지 허용
       connectSrc: ["'self'", "cdn.jsdelivr.net", "https://res.cloudinary.com", "https://*.cloudinary.com"],  // Service Worker fetch 허용
     },
   },

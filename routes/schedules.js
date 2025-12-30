@@ -910,6 +910,13 @@ router.post('/comments/upload-image', requireAuth, upload.single('image'), async
     let storageType = null;
 
     // 1. Cloudinary 시도 (환경 변수가 설정된 경우)
+    console.log('Cloudinary 환경변수 확인:', {
+      CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME ? '설정됨' : '없음',
+      API_KEY: process.env.CLOUDINARY_API_KEY ? '설정됨' : '없음',
+      API_SECRET: process.env.CLOUDINARY_API_SECRET ? '설정됨' : '없음',
+      isConfigured: isCloudinaryConfigured()
+    });
+
     if (isCloudinaryConfigured()) {
       try {
         // Buffer를 base64 data URI로 변환하여 업로드

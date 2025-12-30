@@ -112,6 +112,11 @@ N2골프_자금관리/
 3. **백업**: 중요한 변경 전 데이터 백업을 고려합니다.
 4. **테스트**: 변경 후 주요 기능이 정상 작동하는지 확인합니다.
 
+## 기술 문서
+
+- **[ARCHITECTURE.md](docs/ARCHITECTURE.md)**: 시스템 아키텍처, 기술 스택 선택 배경, Cloudinary/MongoDB 사용 전략
+- **[TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)**: 자주 발생하는 문제와 해결 방법 (CSP, 캐시, 배포 에러 등)
+
 ## 연락처
 
 - 프로젝트 관리자: NH투자증권 N2골프 동호회

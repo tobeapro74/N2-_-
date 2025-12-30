@@ -277,13 +277,12 @@ router.get('/:id', requireAuth, async (req, res) => {
   try {
     const scheduleId = parseInt(req.params.id);
 
-    // 캐시 새로고침
-    if (db.refreshCache) {
-      await db.refreshCache('schedules');
-      await db.refreshCache('reservations');
-    }
+    // MongoDB에서 직접 최신 데이터 조회 (서버리스 환경 캐시 불일치 방지)
+    const schedules = await db.getTableAsync('schedules');
+    const reservationsData = await db.getTableAsync('reservations');
+    const members = await db.getTableAsync('members');
 
-    const schedule = db.findById('schedules', scheduleId);
+    const schedule = schedules.find(s => s.id === scheduleId || s.id === parseInt(scheduleId));
 
     if (!schedule) {
       return res.status(404).render('error', {
@@ -293,8 +292,7 @@ router.get('/:id', requireAuth, async (req, res) => {
     }
 
     const golfCourse = db.findById('golf_courses', schedule.golf_course_id) || {};
-    const allReservations = db.getTable('reservations').filter(r => r.schedule_id === scheduleId);
-    const members = db.getTable('members');
+    const allReservations = reservationsData.filter(r => r.schedule_id === scheduleId);
 
     const reservations = allReservations
       .map(r => {

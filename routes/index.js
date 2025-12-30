@@ -5,20 +5,16 @@ const db = require('../models/database');
 // 메인 대시보드
 router.get('/', async (req, res) => {
   try {
-    // MongoDB 캐시 새로고침
-    if (db.refreshCache) {
-      await db.refreshCache('incomes');
-      await db.refreshCache('expenses');
-      await db.refreshCache('members');
-      await db.refreshCache('schedules');
-      await db.refreshCache('reservations');
-      await db.refreshCache('golf_courses');
-    }
+    // MongoDB에서 직접 최신 데이터 조회 (서버리스 환경 캐시 불일치 방지)
+    const incomes = await db.getTableAsync('incomes');
+    const expenses = await db.getTableAsync('expenses');
+    const allMembers = await db.getTableAsync('members');
+    const schedules = await db.getTableAsync('schedules');
+    const reservations = await db.getTableAsync('reservations');
+    const golfCourses = await db.getTableAsync('golf_courses');
+    const scheduleComments = await db.getTableAsync('schedule_comments') || [];
 
-    // 총 입금/출금 계산
-    const incomes = db.getTable('incomes');
-    const expenses = db.getTable('expenses');
-    const members = db.getTable('members').filter(m => !m.is_admin);
+    const members = allMembers.filter(m => !m.is_admin);
 
   const totalIncome = incomes.reduce((sum, i) => sum + (i.amount || 0), 0);
   const totalExpense = expenses.reduce((sum, e) => sum + (e.amount || 0), 0);
@@ -39,12 +35,6 @@ router.get('/', async (req, res) => {
   const monthlyExpense = expenses
     .filter(e => e.expense_date && e.expense_date.startsWith(currentMonth))
     .reduce((sum, e) => sum + (e.amount || 0), 0);
-
-  // 다가오는 일정
-  const schedules = db.getTable('schedules');
-  const golfCourses = db.getTable('golf_courses');
-  const reservations = db.getTable('reservations');
-  const scheduleComments = db.getTable('schedule_comments') || [];
   const today = new Date().toISOString().split('T')[0];
 
   const upcomingSchedules = schedules

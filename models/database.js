@@ -179,10 +179,27 @@ class Database {
     }
   }
 
-  // 테이블(컬렉션) 전체 데이터 가져오기
+  // 테이블(컬렉션) 전체 데이터 가져오기 (동기 - 캐시 사용)
   getTable(name) {
     if (useMongoDb && this.mongoCache[name]) {
       return this.mongoCache[name];
+    }
+    return this.data[name] || [];
+  }
+
+  // 테이블(컬렉션) 전체 데이터 가져오기 (비동기 - MongoDB 직접 조회)
+  async getTableAsync(name) {
+    if (useMongoDb) {
+      try {
+        const collection = await this.getCollection(name);
+        const data = await collection.find({}).toArray();
+        // 캐시도 업데이트
+        this.mongoCache[name] = data;
+        return data;
+      } catch (error) {
+        console.error(`getTableAsync 오류 (${name}):`, error);
+        return this.mongoCache[name] || [];
+      }
     }
     return this.data[name] || [];
   }

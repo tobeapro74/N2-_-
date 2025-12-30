@@ -203,20 +203,20 @@ router.get('/admin', requireAuth, requireAdmin, async (req, res) => {
   try {
     const { schedule_id } = req.query;
 
-    // 캐시 새로고침
-    if (db.refreshCache) {
-      await db.refreshCache('reservations');
-    }
+    // MongoDB에서 직접 최신 데이터 조회 (서버리스 환경 캐시 불일치 방지)
+    const allReservationsData = await db.getTableAsync('reservations');
+    const members = await db.getTableAsync('members');
+    const schedules = await db.getTableAsync('schedules');
+    const golfCourses = await db.getTableAsync('golf_courses');
 
     if (schedule_id) {
       const scheduleId = parseInt(schedule_id);
-      const schedule = db.findById('schedules', scheduleId);
-      const golfCourse = db.findById('golf_courses', schedule?.golf_course_id) || {};
+      const schedule = schedules.find(s => s.id === scheduleId || s.id === parseInt(scheduleId));
+      const golfCourse = golfCourses.find(gc => gc.id === schedule?.golf_course_id) || {};
 
-      const allReservations = db.getTable('reservations').filter(r => r.schedule_id === scheduleId);
-      const members = db.getTable('members');
+      const filteredReservations = allReservationsData.filter(r => r.schedule_id === scheduleId);
 
-      const reservations = allReservations
+      const reservations = filteredReservations
         .map(r => {
           const member = members.find(m => m.id === r.member_id) || {};
           return {
@@ -243,16 +243,13 @@ router.get('/admin', requireAuth, requireAdmin, async (req, res) => {
         reservations
       });
     } else {
-      const schedules = db.getTable('schedules');
-      const golfCourses = db.getTable('golf_courses');
-      const reservations = db.getTable('reservations');
       const today = new Date().toISOString().split('T')[0];
 
       const upcomingSchedules = schedules
         .filter(s => s.play_date >= today && s.status === 'open')
         .map(s => {
           const course = golfCourses.find(gc => gc.id === s.golf_course_id) || {};
-          const reserved_count = reservations.filter(
+          const reserved_count = allReservationsData.filter(
             r => r.schedule_id === s.id && ['pending', 'confirmed'].includes(r.status)
           ).length;
           return {

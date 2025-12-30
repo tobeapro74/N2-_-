@@ -113,6 +113,8 @@ body {
 .navbar {
   backdrop-filter: blur(10px);
   border-bottom: 1px solid hsl(var(--border) / 0.5);
+  position: relative;
+  z-index: 1030;
 }
 
 .navbar-brand {
@@ -734,6 +736,7 @@ tr[data-href]:focus {
   box-shadow: var(--shadow-md);
   padding: 0.25rem;
   min-width: 10rem;
+  z-index: 1050;
 }
 
 .dropdown-item {

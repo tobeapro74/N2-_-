@@ -44,6 +44,7 @@ router.get('/', async (req, res) => {
   const schedules = db.getTable('schedules');
   const golfCourses = db.getTable('golf_courses');
   const reservations = db.getTable('reservations');
+  const scheduleComments = db.getTable('schedule_comments') || [];
   const today = new Date().toISOString().split('T')[0];
 
   const upcomingSchedules = schedules
@@ -55,12 +56,17 @@ router.get('/', async (req, res) => {
       const reserved_count = reservations.filter(
         r => r.schedule_id === s.id && ['pending', 'confirmed'].includes(r.status)
       ).length;
+      // 오늘 새로 등록된 댓글이 있는지 확인
+      const hasNewComments = scheduleComments.some(
+        c => c.schedule_id === s.id && c.created_at && c.created_at.startsWith(today)
+      );
       return {
         ...s,
         course_name: course.name,
         location: course.location,
         reserved_count,
-        max_members: s.max_members || 12
+        max_members: s.max_members || 12,
+        has_new_comments: hasNewComments
       };
     });
 

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'n2golf-v1';
+const CACHE_NAME = 'n2golf-v2';
 const urlsToCache = [
   '/',
   '/css/style.css',
@@ -42,6 +42,13 @@ self.addEventListener('activate', event => {
 
 // 네트워크 요청 가로채기 (네트워크 우선 전략)
 self.addEventListener('fetch', event => {
+  const url = new URL(event.request.url);
+
+  // 외부 도메인 요청은 Service Worker가 처리하지 않음 (Cloudinary 등)
+  if (url.origin !== self.location.origin) {
+    return;
+  }
+
   event.respondWith(
     fetch(event.request)
       .then(response => {

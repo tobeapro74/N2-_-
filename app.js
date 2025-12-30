@@ -39,7 +39,7 @@ app.use(helmet({
       styleSrc: ["'self'", "'unsafe-inline'", "cdn.jsdelivr.net"],
       fontSrc: ["'self'", "cdn.jsdelivr.net", "data:"],
       imgSrc: ["'self'", "data:", "https://res.cloudinary.com", "https://*.cloudinary.com"],
-      connectSrc: ["'self'", "cdn.jsdelivr.net"],  // Service Worker fetch 허용
+      connectSrc: ["'self'", "cdn.jsdelivr.net", "https://res.cloudinary.com", "https://*.cloudinary.com"],  // Service Worker fetch 허용
     },
   },
   // HSTS 설정 (프로덕션에서만 활성화)

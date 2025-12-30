@@ -976,19 +976,27 @@ router.post('/url-preview', requireAuth, async (req, res) => {
       targetUrl = 'https://' + targetUrl;
     }
 
-    // fetch로 HTML 가져오기
+    // fetch로 HTML 가져오기 (리다이렉트 따라가기)
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 5000); // 5초 타임아웃
+    const timeout = setTimeout(() => controller.abort(), 8000); // 8초 타임아웃 (리다이렉트 고려)
 
-    const response = await fetch(targetUrl, {
+    const fetchOptions = {
       signal: controller.signal,
+      redirect: 'follow',  // 리다이렉트 자동 따라가기
       headers: {
         // 브라우저 User-Agent 사용 (일부 사이트가 봇 차단)
         'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
         'Accept-Language': 'ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7'
       }
-    });
+    };
+
+    let response = await fetch(targetUrl, fetchOptions);
+
+    // 리다이렉트된 경우 최종 URL 사용
+    if (response.url && response.url !== targetUrl) {
+      targetUrl = response.url;
+    }
     clearTimeout(timeout);
 
     if (!response.ok) {

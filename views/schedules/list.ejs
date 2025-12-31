@@ -113,7 +113,9 @@
               </span>
             </td>
             <td class="py-2 text-center">
-              <% if (schedule.status === 'open' && schedule.reserved_count >= schedule.max_members) { %>
+              <% if (schedule.status === 'pending') { %>
+              <span class="badge bg-info text-white" style="font-size: 0.7rem;">오픈전</span>
+              <% } else if (schedule.status === 'open' && schedule.reserved_count >= schedule.max_members) { %>
               <span class="badge bg-warning text-dark" style="font-size: 0.7rem;">대기접수중</span>
               <% } else if (schedule.status === 'open') { %>
               <span class="badge bg-success bg-opacity-75" style="font-size: 0.7rem;">예약가능</span>

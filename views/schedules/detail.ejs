@@ -84,7 +84,9 @@
           <tr>
             <th>상태</th>
             <td>
-              <% if (schedule.status === 'open') { %>
+              <% if (schedule.status === 'pending') { %>
+              <span class="badge bg-info">오픈전</span>
+              <% } else if (schedule.status === 'open') { %>
               <span class="badge bg-success">예약가능</span>
               <% } else if (schedule.status === 'closed') { %>
               <span class="badge bg-warning">마감</span>
@@ -111,7 +113,19 @@
         </div>
 
         <!-- 예약 버튼 -->
-        <% if (schedule.status === 'open') { %>
+        <% if (schedule.status === 'pending') { %>
+        <hr>
+        <% if (user && user.is_admin) { %>
+        <div class="alert alert-info mb-0 text-center">
+          <i class="bi bi-info-circle"></i> 오픈전 상태입니다. 상태를 '예약가능'으로 변경하면 예약이 시작됩니다.
+        </div>
+        <% } else { %>
+        <div class="alert alert-info mb-0 text-center">
+          <i class="bi bi-clock"></i> 아직 예약이 오픈되지 않았습니다.<br>
+          <small class="text-muted">오픈되면 알림을 받으시려면 커뮤니티에서 댓글을 남겨주세요.</small>
+        </div>
+        <% } %>
+        <% } else if (schedule.status === 'open') { %>
         <hr>
         <% if (myReservation && !user.is_admin) { %>
           <% if (myReservation.status !== 'cancelled') { %>

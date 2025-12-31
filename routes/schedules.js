@@ -417,6 +417,43 @@ router.post('/:id/delete', requireAuth, requireAdmin, async (req, res) => {
   }
 });
 
+// 4월 이후 일정 상태 일괄 변경 (오픈전으로)
+router.post('/bulk-update-status', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const { fromDate, status } = req.body;
+
+    if (!fromDate || !status) {
+      return res.status(400).json({ error: '날짜와 상태를 입력해주세요.' });
+    }
+
+    // 캐시 새로고침
+    if (db.refreshCache) {
+      await db.refreshCache('schedules');
+    }
+
+    const schedules = db.getTable('schedules').filter(s => s.play_date >= fromDate);
+    let updatedCount = 0;
+
+    for (const schedule of schedules) {
+      await db.update('schedules', schedule.id, { status });
+      updatedCount++;
+    }
+
+    // 캐시 새로고침
+    if (db.refreshCache) {
+      await db.refreshCache('schedules');
+    }
+
+    res.json({
+      success: true,
+      message: `${fromDate} 이후 ${updatedCount}개 일정이 '${status}' 상태로 변경되었습니다.`
+    });
+  } catch (error) {
+    console.error('일정 일괄 변경 오류:', error);
+    res.status(500).json({ error: '일정 일괄 변경 중 오류가 발생했습니다.' });
+  }
+});
+
 // ============================================
 // 커뮤니티 기능 (댓글, 좋아요/싫어요)
 // ============================================

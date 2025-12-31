@@ -49,6 +49,7 @@
           <div class="mb-3">
             <label class="form-label">상태</label>
             <select name="status" class="form-select">
+              <option value="pending" <%= schedule.status === 'pending' ? 'selected' : '' %>>오픈전</option>
               <option value="open" <%= schedule.status === 'open' ? 'selected' : '' %>>예약가능</option>
               <option value="closed" <%= schedule.status === 'closed' ? 'selected' : '' %>>마감</option>
               <option value="completed" <%= schedule.status === 'completed' ? 'selected' : '' %>>완료</option>

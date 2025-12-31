@@ -1714,6 +1714,54 @@ document.addEventListener('DOMContentLoaded', function() {
     initWelcomeBanner();
   }
 
+  // summary-card 링크 터치 이벤트 (로딩 인디케이터 + 터치 피드백)
+  document.querySelectorAll('.summary-card').forEach(function(card) {
+    var link = card.closest('a');
+    if (!link) return;
+
+    var isTap = false;
+    var touchStartX = 0;
+    var touchStartY = 0;
+    var SCROLL_THRESHOLD = 10;
+
+    link.addEventListener('touchstart', function(e) {
+      if (e.touches.length > 0) {
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+        isTap = true;
+      }
+      card.classList.add('pressed');
+    }, { passive: true });
+
+    link.addEventListener('touchmove', function(e) {
+      if (e.touches.length > 0) {
+        var deltaX = Math.abs(e.touches[0].clientX - touchStartX);
+        var deltaY = Math.abs(e.touches[0].clientY - touchStartY);
+        if (deltaX > SCROLL_THRESHOLD || deltaY > SCROLL_THRESHOLD) {
+          isTap = false;
+          card.classList.remove('pressed');
+        }
+      }
+    }, { passive: true });
+
+    link.addEventListener('touchend', function(e) {
+      card.classList.remove('pressed');
+      if (isTap) {
+        e.preventDefault();
+        var href = link.getAttribute('href');
+        if (href && href.startsWith('/')) {
+          if (window.showGlobalLoading) window.showGlobalLoading();
+          window.location.href = href;
+        }
+      }
+    }, { passive: false });
+
+    link.addEventListener('touchcancel', function() {
+      card.classList.remove('pressed');
+      isTap = false;
+    }, { passive: true });
+  });
+
   // 골프장 코스 가이드 클릭 이벤트 (모바일 터치 피드백 포함)
   document.querySelectorAll('.course-clickable').forEach(function(el) {
     // 클릭 핸들러

@@ -1697,6 +1697,22 @@ footer {
   background-color: hsl(var(--muted) / 0.8);
 }
 
+/* 날씨 카드 터치 피드백 */
+.weather-card-link {
+  display: block;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.weather-card {
+  transition: transform 0.1s ease-out, box-shadow 0.15s ease-out;
+}
+
+.weather-card-link:active .weather-card,
+.weather-card-link.pressed .weather-card {
+  transform: scale(0.95);
+  box-shadow: var(--shadow-sm);
+}
+
 /* 요약 카드 터치 피드백 */
 .summary-card {
   transition: transform 0.1s ease-out, box-shadow 0.15s ease-out !important;

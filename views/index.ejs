@@ -1107,8 +1107,8 @@ async function loadWeatherWidget() {
       mobileHtml += `
         <a href="${isLoggedIn ? '/weather/view/' + encodeURIComponent(course) : '#'}"
            onclick="${isLoggedIn ? '' : "return requireLogin('날씨 상세 정보를 보려면 로그인이 필요합니다.');"}"
-           class="text-decoration-none flex-shrink-0" style="width: 130px;">
-          <div class="border rounded overflow-hidden h-100">
+           class="text-decoration-none flex-shrink-0 weather-card-link" style="width: 130px;">
+          <div class="border rounded overflow-hidden h-100 weather-card">
             <div class="bg-${bgColor} ${bgColor === 'warning' ? 'text-dark' : 'text-white'} px-2 py-1 text-center">
               <div class="fw-bold" style="font-size: 0.7rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${course}</div>
             </div>
@@ -1140,9 +1140,51 @@ async function loadWeatherWidget() {
         </div>
       </div>
     `;
+
+    // 날씨 카드 터치 피드백 바인딩
+    bindWeatherCardTouchEvents();
   } else {
     weatherCards.innerHTML = '<div class="col-12 text-center text-muted py-2 small">날씨 정보를 불러올 수 없습니다.</div>';
   }
+}
+
+// 날씨 카드 터치 이벤트 바인딩
+function bindWeatherCardTouchEvents() {
+  const SCROLL_THRESHOLD = 10;
+
+  document.querySelectorAll('.weather-card-link').forEach(function(el) {
+    let touchStartY = 0;
+    let touchStartX = 0;
+
+    el.addEventListener('touchstart', function(e) {
+      if (e.touches.length > 0) {
+        touchStartY = e.touches[0].clientY;
+        touchStartX = e.touches[0].clientX;
+      }
+      el.classList.add('pressed');
+    }, { passive: true });
+
+    el.addEventListener('touchend', function(e) {
+      el.classList.remove('pressed');
+
+      if (e.changedTouches.length > 0) {
+        const touchEndY = e.changedTouches[0].clientY;
+        const touchEndX = e.changedTouches[0].clientX;
+        const deltaY = Math.abs(touchEndY - touchStartY);
+        const deltaX = Math.abs(touchEndX - touchStartX);
+
+        // 스크롤로 판단되면 클릭 실행 안 함
+        if (deltaY > SCROLL_THRESHOLD || deltaX > SCROLL_THRESHOLD) {
+          e.preventDefault();
+          return;
+        }
+      }
+    }, { passive: false });
+
+    el.addEventListener('touchcancel', function() {
+      el.classList.remove('pressed');
+    }, { passive: true });
+  });
 }
 
 // 실시간 교통 정보 데이터

@@ -148,11 +148,15 @@
   <div class="card-body py-2">
     <form id="bulkUpdateForm" class="row g-2 align-items-end">
       <%- include('../partials/csrf') %>
-      <div class="col-4">
+      <div class="col-6 col-md-3">
         <label class="form-label mb-0" style="font-size: 0.7rem;">시작 날짜</label>
         <input type="date" name="fromDate" class="form-control form-control-sm" value="2025-04-01" required>
       </div>
-      <div class="col-4">
+      <div class="col-6 col-md-3">
+        <label class="form-label mb-0" style="font-size: 0.7rem;">종료 날짜 <small class="text-muted">(선택)</small></label>
+        <input type="date" name="toDate" class="form-control form-control-sm">
+      </div>
+      <div class="col-6 col-md-3">
         <label class="form-label mb-0" style="font-size: 0.7rem;">변경할 상태</label>
         <select name="status" class="form-select form-select-sm" required>
           <option value="pending">오픈전</option>
@@ -160,7 +164,7 @@
           <option value="closed">마감</option>
         </select>
       </div>
-      <div class="col-4">
+      <div class="col-6 col-md-3">
         <button type="submit" class="btn btn-warning btn-sm w-100">
           <i class="bi bi-arrow-repeat"></i> 일괄 변경
         </button>
@@ -174,10 +178,12 @@ document.getElementById('bulkUpdateForm').addEventListener('submit', async funct
   e.preventDefault();
 
   const fromDate = this.fromDate.value;
+  const toDate = this.toDate.value;
   const status = this.status.value;
   const statusText = this.status.options[this.status.selectedIndex].text;
+  const dateRange = toDate ? `${fromDate} ~ ${toDate}` : `${fromDate} 이후`;
 
-  if (!confirm(`${fromDate} 이후 모든 일정을 '${statusText}' 상태로 변경하시겠습니까?`)) {
+  if (!confirm(`${dateRange} 모든 일정을 '${statusText}' 상태로 변경하시겠습니까?`)) {
     return;
   }
 
@@ -188,7 +194,7 @@ document.getElementById('bulkUpdateForm').addEventListener('submit', async funct
         'Content-Type': 'application/json',
         'X-CSRF-Token': document.querySelector('input[name="_csrf"]').value
       },
-      body: JSON.stringify({ fromDate, status })
+      body: JSON.stringify({ fromDate, toDate, status })
     });
 
     const result = await response.json();

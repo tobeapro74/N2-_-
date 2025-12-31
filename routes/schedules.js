@@ -417,13 +417,13 @@ router.post('/:id/delete', requireAuth, requireAdmin, async (req, res) => {
   }
 });
 
-// 4월 이후 일정 상태 일괄 변경 (오픈전으로)
+// 일정 상태 일괄 변경 (날짜 범위 지정 가능)
 router.post('/bulk-update-status', requireAuth, requireAdmin, async (req, res) => {
   try {
-    const { fromDate, status } = req.body;
+    const { fromDate, toDate, status } = req.body;
 
     if (!fromDate || !status) {
-      return res.status(400).json({ error: '날짜와 상태를 입력해주세요.' });
+      return res.status(400).json({ error: '시작 날짜와 상태를 입력해주세요.' });
     }
 
     // 캐시 새로고침
@@ -431,7 +431,13 @@ router.post('/bulk-update-status', requireAuth, requireAdmin, async (req, res) =
       await db.refreshCache('schedules');
     }
 
-    const schedules = db.getTable('schedules').filter(s => s.play_date >= fromDate);
+    // 날짜 범위 필터링 (toDate가 있으면 범위, 없으면 fromDate 이후 전체)
+    const schedules = db.getTable('schedules').filter(s => {
+      if (!s.play_date) return false;
+      if (s.play_date < fromDate) return false;
+      if (toDate && s.play_date > toDate) return false;
+      return true;
+    });
     let updatedCount = 0;
 
     for (const schedule of schedules) {
@@ -444,9 +450,10 @@ router.post('/bulk-update-status', requireAuth, requireAdmin, async (req, res) =
       await db.refreshCache('schedules');
     }
 
+    const dateRange = toDate ? `${fromDate} ~ ${toDate}` : `${fromDate} 이후`;
     res.json({
       success: true,
-      message: `${fromDate} 이후 ${updatedCount}개 일정이 '${status}' 상태로 변경되었습니다.`
+      message: `${dateRange} ${updatedCount}개 일정이 '${status}' 상태로 변경되었습니다.`
     });
   } catch (error) {
     console.error('일정 일괄 변경 오류:', error);

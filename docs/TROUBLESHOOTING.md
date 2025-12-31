@@ -10,6 +10,7 @@
 5. [URL 미리보기 이미지 안 보임](#5-url-미리보기-이미지-안-보임)
 6. [웹사이트 속도 느림](#6-웹사이트-속도-느림)
 7. [모바일 터치 이벤트 문제](#7-모바일-터치-이벤트-문제)
+8. [로딩 인디케이터 문제](#8-로딩-인디케이터-문제)
 
 ---
 
@@ -614,3 +615,182 @@ async function loadDynamicContent() {
 4. [ ] 시각적 터치 피드백 (pressed 클래스)
 5. [ ] `-webkit-tap-highlight-color: transparent` 설정
 6. [ ] 동적 요소는 생성 후 이벤트 바인딩
+
+---
+
+## 8. 로딩 인디케이터 문제
+
+### 8.1 로딩 표시 후 페이지 이동 안 됨
+
+#### 증상
+- "조회중..." 로딩 오버레이가 표시되고 5초 후 사라짐
+- 페이지가 이동하지 않고 현재 페이지에 머무름
+- 모바일에서 주로 발생
+
+#### 원인
+`showGlobalLoading()` 호출 후 기본 링크 동작(`<a href>`)에 의존했으나,
+로딩 오버레이가 화면을 덮어 클릭 이벤트가 차단됨.
+
+#### 해결 방법
+
+**기본 동작 대신 직접 이동:**
+```javascript
+// 변경 전 (문제)
+el.addEventListener('touchend', function(e) {
+  if (window.showGlobalLoading) window.showGlobalLoading();
+  // 기본 링크 동작에 의존 → 로딩 오버레이가 클릭을 차단
+}, { passive: true });
+
+// 변경 후 (해결)
+el.addEventListener('touchend', function(e) {
+  e.preventDefault();  // 기본 동작 방지
+  if (window.showGlobalLoading) window.showGlobalLoading();
+  window.location.href = el.getAttribute('href');  // 직접 이동
+}, { passive: false });  // preventDefault 사용하려면 passive: false
+```
+
+### 8.2 로딩 인디케이터가 안 나옴
+
+#### 증상
+- 카드/버튼 터치 시 로딩 없이 바로 페이지 이동
+- 데스크톱에서는 로딩이 나오는데 모바일에서만 안 나옴
+
+#### 원인
+1. 터치 이벤트 핸들러에서 `showGlobalLoading()` 호출 누락
+2. `isTap` 플래그가 false로 설정되어 조건문 통과 못함
+
+#### 해결 방법
+
+**터치 이벤트에서 명시적 호출:**
+```javascript
+el.addEventListener('touchend', function(e) {
+  el.classList.remove('pressed');
+  if (isTap) {
+    e.preventDefault();
+    var href = el.getAttribute('href');
+    if (href && href.startsWith('/')) {
+      if (window.showGlobalLoading) window.showGlobalLoading();  // 명시적 호출
+      window.location.href = href;
+    }
+  }
+}, { passive: false });
+```
+
+### 8.3 스크롤할 때 로딩이 뜸
+
+#### 증상
+- 화면을 스크롤하려고 터치했는데 로딩 인디케이터가 나타남
+- 카드/버튼 위에서 스크롤 시 원하지 않는 페이지 이동
+
+#### 원인
+`touchend`에서 스크롤과 탭을 구분하지 않음
+
+#### 해결 방법
+
+**touchmove에서 isTap 플래그 업데이트:**
+```javascript
+var isTap = false;
+var touchStartX = 0;
+var touchStartY = 0;
+var SCROLL_THRESHOLD = 10;  // 10px 이상 움직이면 스크롤
+
+el.addEventListener('touchstart', function(e) {
+  if (e.touches.length > 0) {
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+    isTap = true;  // 터치 시작 시 true
+  }
+}, { passive: true });
+
+el.addEventListener('touchmove', function(e) {
+  if (e.touches.length > 0) {
+    var deltaX = Math.abs(e.touches[0].clientX - touchStartX);
+    var deltaY = Math.abs(e.touches[0].clientY - touchStartY);
+    if (deltaX > SCROLL_THRESHOLD || deltaY > SCROLL_THRESHOLD) {
+      isTap = false;  // 스크롤로 판단되면 false
+    }
+  }
+}, { passive: true });
+
+el.addEventListener('touchend', function(e) {
+  if (isTap) {  // 탭일 때만 페이지 이동
+    e.preventDefault();
+    if (window.showGlobalLoading) window.showGlobalLoading();
+    window.location.href = el.getAttribute('href');
+  }
+}, { passive: false });
+```
+
+### 8.4 로딩 인디케이터가 계속 남아있음
+
+#### 증상
+- 페이지 이동 후에도 로딩 오버레이가 안 사라짐
+- 뒤로가기 시 로딩 오버레이가 남아있음
+
+#### 원인
+`pageshow` 이벤트 핸들러 미등록 또는 bfcache(뒤로-앞으로 캐시) 문제
+
+#### 해결 방법
+
+**pageshow 이벤트에서 숨김 처리:**
+```javascript
+// 뒤로가기/앞으로가기 시에도 동작
+window.addEventListener('pageshow', function(e) {
+  hideLoading();
+});
+
+// 페이지 로드 완료 시
+window.addEventListener('load', function() {
+  hideLoading();
+});
+
+// 탭 전환 시
+document.addEventListener('visibilitychange', function() {
+  if (document.visibilityState === 'visible') {
+    hideLoading();
+  }
+});
+```
+
+### 8.5 Service Worker 캐시 때문에 변경사항 반영 안 됨
+
+#### 증상
+- 코드를 수정했는데 모바일에서 이전 동작 유지
+- 브라우저 캐시 삭제해도 안 됨
+- "새 버전이 있습니다" 알림이 안 뜸
+
+#### 원인
+Service Worker가 이전 버전의 JavaScript를 캐시에서 제공
+
+#### 해결 방법
+
+**1단계: 캐시 버전 업데이트 (public/sw.js)**
+```javascript
+// 버전 번호 증가
+const CACHE_NAME = 'n2golf-v10';  // v9 → v10
+```
+
+**2단계: 배포**
+```bash
+git add .
+git commit -m "[수정] 로딩 인디케이터 수정 및 캐시 갱신"
+git push
+```
+
+**3단계: 사용자 측 캐시 정리 (필요시)**
+```
+브라우저 설정 → 사이트 데이터 삭제 → 해당 사이트 선택 → 삭제
+또는
+개발자 도구 → Application → Storage → Clear site data
+```
+
+### 로딩 인디케이터 체크리스트
+
+1. [ ] `showGlobalLoading()` 호출 직후 `window.location.href`로 이동
+2. [ ] `e.preventDefault()` 사용하여 기본 링크 동작 방지
+3. [ ] `passive: false` 설정 (preventDefault 사용 시 필수)
+4. [ ] 스크롤/탭 구분을 위한 isTap 플래그 사용
+5. [ ] SCROLL_THRESHOLD (10px) 이상 이동 시 스크롤로 판단
+6. [ ] touchcancel 이벤트에서 pressed 클래스 제거
+7. [ ] pageshow, load, visibilitychange에서 hideLoading 호출
+8. [ ] Service Worker 캐시 버전 업데이트

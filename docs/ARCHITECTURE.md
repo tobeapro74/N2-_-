@@ -8,6 +8,8 @@
 5. [보안 설정 (CSP)](#5-보안-설정-csp)
 6. [URL 미리보기 시스템](#6-url-미리보기-시스템)
 7. [성능 최적화](#7-성능-최적화)
+8. [실시간 교통 현황](#8-실시간-교통-현황)
+9. [전역 로딩 인디케이터](#9-전역-로딩-인디케이터)
 
 ---
 
@@ -624,3 +626,297 @@ const [comments, reactions, members] = await Promise.all([
 1. **Redis 캐싱**: 자주 조회되는 데이터를 Redis에 캐시
 2. **번들 최적화**: JavaScript/CSS 번들 크기 최소화
 3. **CDN 활용**: 정적 파일을 CDN에서 서빙
+
+---
+
+## 8. 실시간 교통 현황
+
+### 8.1 개요
+
+대시보드에서 출발지(을지로)부터 각 골프장까지의 실시간 교통 정보를 표시합니다.
+카카오 모빌리티 API를 활용하여 예상 소요 시간과 거리를 제공합니다.
+
+### 8.2 시스템 구성
+
+```
+┌─────────────┐        ┌──────────────────┐        ┌─────────────────────┐
+│   클라이언트  │──────▶│  /api/traffic    │──────▶│ 카카오 모빌리티 API   │
+│  (index.ejs) │        │  (routes/traffic) │        │  길찾기 API          │
+└─────────────┘        └──────────────────┘        └─────────────────────┘
+       │                        │
+       │                        ▼
+       │                ┌──────────────┐
+       │                │   MongoDB    │
+       │                │ golf_courses │
+       │                └──────────────┘
+       ▼
+┌─────────────────┐
+│ 교통 정보 카드   │
+│ (소요시간/거리)  │
+└─────────────────┘
+```
+
+### 8.3 API 구현 (routes/traffic.js)
+
+```javascript
+const KAKAO_REST_API_KEY = process.env.KAKAO_REST_API_KEY;
+const ORIGIN = { lat: 37.5663, lng: 126.9817 };  // 을지로
+
+router.get('/traffic/:courseId', async (req, res) => {
+  const course = await db.findById('golf_courses', courseId);
+
+  const response = await fetch(
+    `https://apis-navi.kakaomobility.com/v1/directions?` +
+    `origin=${ORIGIN.lng},${ORIGIN.lat}&` +
+    `destination=${course.longitude},${course.latitude}&` +
+    `priority=RECOMMEND`,
+    {
+      headers: { Authorization: `KakaoAK ${KAKAO_REST_API_KEY}` }
+    }
+  );
+
+  const data = await response.json();
+  const route = data.routes[0];
+
+  res.json({
+    duration: route.summary.duration,      // 초 단위
+    distance: route.summary.distance,      // 미터 단위
+    fare: route.summary.fare?.toll || 0    // 톨비
+  });
+});
+```
+
+### 8.4 클라이언트 표시 (views/index.ejs)
+
+```javascript
+async function loadTrafficInfo() {
+  const golfCourseId = getCurrentGolfCourseId();
+  const response = await fetch(`/api/traffic/${golfCourseId}`);
+  const data = await response.json();
+
+  // 소요시간 포맷: 초 → "1시간 30분"
+  const hours = Math.floor(data.duration / 3600);
+  const minutes = Math.ceil((data.duration % 3600) / 60);
+
+  // 거리 포맷: 미터 → "45.2km"
+  const distance = (data.distance / 1000).toFixed(1);
+
+  document.getElementById('trafficInfo').innerHTML = `
+    <span class="text-primary">${hours}시간 ${minutes}분</span>
+    <span class="text-muted">(${distance}km)</span>
+  `;
+}
+```
+
+### 8.5 환경 변수
+
+```env
+# 카카오 API (지도/교통)
+KAKAO_REST_API_KEY=your_kakao_rest_api_key
+```
+
+**카카오 개발자 콘솔 설정:**
+1. https://developers.kakao.com 접속
+2. 애플리케이션 생성 또는 선택
+3. 카카오 모빌리티 API 활성화
+4. REST API 키 복사
+
+### 8.6 CSP 설정
+
+카카오 모빌리티 API 호출을 위해 CSP 설정 필요:
+
+```javascript
+// app.js
+connectSrc: [
+  "'self'",
+  "https://apis-navi.kakaomobility.com"  // 카카오 모빌리티 API
+],
+```
+
+---
+
+## 9. 전역 로딩 인디케이터
+
+### 9.1 개요
+
+페이지 이동 시 "조회중..." 로딩 오버레이를 표시하여 사용자에게 피드백을 제공합니다.
+모바일 터치 이벤트와 데스크톱 클릭 이벤트 모두 지원합니다.
+
+### 9.2 시스템 구성
+
+```
+┌──────────────────────────────────────────────────────────┐
+│                    전역 로딩 오버레이                      │
+│  ┌────────────────────────────────────────────────────┐  │
+│  │              ● (스피너)                              │  │
+│  │              조회중...                               │  │
+│  └────────────────────────────────────────────────────┘  │
+└──────────────────────────────────────────────────────────┘
+                           │
+         ┌─────────────────┼─────────────────┐
+         ▼                 ▼                 ▼
+    ┌─────────┐      ┌──────────┐      ┌──────────┐
+    │ 링크 클릭 │      │ 폼 제출   │      │ 터치 탭  │
+    └─────────┘      └──────────┘      └──────────┘
+```
+
+### 9.3 HTML 구조 (views/partials/header.ejs)
+
+```html
+<!-- 전역 로딩 오버레이 -->
+<div id="globalLoadingOverlay" class="loading-overlay" style="display: none;">
+  <div class="loading-content">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">로딩중...</span>
+    </div>
+    <div class="loading-text mt-2">조회중...</div>
+  </div>
+</div>
+```
+
+### 9.4 JavaScript 구현
+
+```javascript
+(function() {
+  var loadingOverlay = document.getElementById('globalLoadingOverlay');
+  var isLoading = false;
+  var loadingTimeout;
+
+  function showLoading() {
+    if (isLoading || !loadingOverlay) return;
+    isLoading = true;
+    loadingOverlay.style.display = 'flex';
+    // 5초 후 자동 숨김 (안전장치)
+    loadingTimeout = setTimeout(hideLoading, 5000);
+  }
+
+  function hideLoading() {
+    isLoading = false;
+    if (loadingOverlay) loadingOverlay.style.display = 'none';
+    clearTimeout(loadingTimeout);
+  }
+
+  // 전역 함수로 노출
+  window.showGlobalLoading = showLoading;
+  window.hideGlobalLoading = hideLoading;
+
+  // 페이지 이동 시 자동 숨김
+  window.addEventListener('pageshow', hideLoading);
+  window.addEventListener('load', hideLoading);
+})();
+```
+
+### 9.5 자동 로딩 트리거
+
+**링크 클릭:**
+```javascript
+document.addEventListener('click', function(e) {
+  var link = e.target.closest('a');
+  if (isValidNavigationLink(link)) {
+    showLoading();
+  }
+});
+
+function isValidNavigationLink(element) {
+  if (!element) return false;
+  var href = element.getAttribute('href');
+  // 제외 조건: #, javascript:, tel:, mailto:, target="_blank", data-bs-toggle 등
+  if (!href || href.startsWith('#') || href.startsWith('javascript:')) {
+    return false;
+  }
+  return href.startsWith('/') || href.startsWith(window.location.origin);
+}
+```
+
+**폼 제출:**
+```javascript
+document.addEventListener('submit', function(e) {
+  if (!e.target.classList.contains('no-loading')) {
+    showLoading();
+  }
+});
+```
+
+### 9.6 모바일 터치 이벤트 통합
+
+모바일에서는 터치 이벤트를 별도로 처리하여 스크롤과 탭을 구분합니다.
+
+```javascript
+// 예: 날씨 카드 터치
+el.addEventListener('touchstart', function(e) {
+  touchStartX = e.touches[0].clientX;
+  touchStartY = e.touches[0].clientY;
+  isTap = true;
+}, { passive: true });
+
+el.addEventListener('touchmove', function(e) {
+  var deltaX = Math.abs(e.touches[0].clientX - touchStartX);
+  var deltaY = Math.abs(e.touches[0].clientY - touchStartY);
+  if (deltaX > SCROLL_THRESHOLD || deltaY > SCROLL_THRESHOLD) {
+    isTap = false;  // 스크롤로 판단
+  }
+}, { passive: true });
+
+el.addEventListener('touchend', function(e) {
+  if (isTap) {
+    e.preventDefault();
+    if (window.showGlobalLoading) window.showGlobalLoading();
+    window.location.href = el.getAttribute('href');
+  }
+}, { passive: false });
+```
+
+### 9.7 제외 클래스
+
+로딩 인디케이터를 표시하지 않을 요소에 사용:
+
+```html
+<!-- 로딩 표시 안 함 -->
+<a href="/some-page" class="no-loading">빠른 링크</a>
+<form action="/api/save" class="no-loading">...</form>
+```
+
+### 9.8 CSS 스타일 (public/css/style.css)
+
+```css
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.loading-content {
+  text-align: center;
+}
+
+.loading-text {
+  color: #198754;
+  font-weight: 500;
+}
+```
+
+### 9.9 Service Worker 캐시 갱신
+
+로딩 인디케이터 관련 변경 시 Service Worker 캐시 버전을 업데이트해야 합니다.
+
+```javascript
+// public/sw.js
+const CACHE_NAME = 'n2golf-v10';  // 버전 증가
+```
+
+### 9.10 체크리스트
+
+로딩 인디케이터 추가/수정 시 확인:
+
+- [ ] `showGlobalLoading()` 호출 후 페이지 이동 코드 실행
+- [ ] `e.preventDefault()` 사용하여 기본 동작 방지
+- [ ] `window.location.href`로 직접 이동 (기본 링크 동작에 의존하지 않음)
+- [ ] 모바일 터치 이벤트에서 스크롤 vs 탭 구분
+- [ ] Service Worker 캐시 버전 업데이트

@@ -1323,22 +1323,80 @@ function calculateTrafficStatus() {
 // 실시간 교통 데이터 캐시
 let trafficDataCache = null;
 
+// 오늘 날짜 문자열 (YYYY-MM-DD)
+function getTodayDateString() {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+}
+
+// 오늘 이미 교통 API를 호출했는지 확인
+function hasCalledTrafficApiToday() {
+  const lastCallDate = localStorage.getItem('trafficApiLastCallDate');
+  return lastCallDate === getTodayDateString();
+}
+
+// 교통 API 호출 기록 저장
+function markTrafficApiCalled() {
+  localStorage.setItem('trafficApiLastCallDate', getTodayDateString());
+}
+
+// 캐시된 교통 데이터 로드
+function loadCachedTrafficData() {
+  try {
+    const cached = localStorage.getItem('trafficDataCache');
+    const cachedTime = localStorage.getItem('trafficDataCacheTime');
+    if (cached && cachedTime) {
+      return { data: JSON.parse(cached), time: cachedTime };
+    }
+  } catch (e) {
+    console.error('캐시 로드 실패:', e);
+  }
+  return null;
+}
+
+// 교통 데이터 캐시 저장
+function saveTrafficDataCache(data) {
+  try {
+    const now = new Date();
+    const timeStr = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+    localStorage.setItem('trafficDataCache', JSON.stringify(data));
+    localStorage.setItem('trafficDataCacheTime', timeStr);
+  } catch (e) {
+    console.error('캐시 저장 실패:', e);
+  }
+}
+
 // 교통 정보 위젯 로드 (API 호출)
 async function loadTrafficWidget(forceRefresh = false) {
   const trafficCards = document.getElementById('trafficCards');
   const updateTimeEl = document.getElementById('trafficUpdateTime');
   if (!trafficCards) return;
 
+  // forceRefresh가 아니고, 오늘 이미 API를 호출했으면 캐시된 데이터 사용
+  if (!forceRefresh && hasCalledTrafficApiToday()) {
+    const cached = loadCachedTrafficData();
+    if (cached) {
+      trafficDataCache = cached.data;
+      if (updateTimeEl) {
+        updateTimeEl.innerHTML = `<i class="bi bi-clock-history text-secondary"></i> ${cached.time} 캐시`;
+      }
+      renderTrafficCards(trafficDataCache);
+      return;
+    }
+  }
+
   try {
     // API에서 실시간 교통 정보 조회 (캐시 방지를 위해 타임스탬프 추가)
-    const url = forceRefresh
-      ? `/api/traffic/duration?_t=${Date.now()}`
-      : '/api/traffic/duration';
+    const url = `/api/traffic/duration?_t=${Date.now()}`;
     const response = await fetch(url);
     const result = await response.json();
 
     trafficDataCache = result.data;
     const now = new Date();
+
+    // API 호출 기록 저장 및 데이터 캐시
+    markTrafficApiCalled();
+    saveTrafficDataCache(trafficDataCache);
 
     // 업데이트 시간 표시 (실시간 데이터 여부 표시)
     if (updateTimeEl) {
@@ -1354,8 +1412,17 @@ async function loadTrafficWidget(forceRefresh = false) {
 
   } catch (error) {
     console.error('교통 정보 로드 실패:', error);
-    // 실패 시 기본값 사용
-    renderTrafficCards(null);
+    // 실패 시 캐시된 데이터 또는 기본값 사용
+    const cached = loadCachedTrafficData();
+    if (cached) {
+      trafficDataCache = cached.data;
+      if (updateTimeEl) {
+        updateTimeEl.innerHTML = `<i class="bi bi-clock-history text-secondary"></i> ${cached.time} 캐시`;
+      }
+      renderTrafficCards(trafficDataCache);
+    } else {
+      renderTrafficCards(null);
+    }
   }
 }
 

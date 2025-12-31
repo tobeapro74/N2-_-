@@ -1381,8 +1381,14 @@ async function loadTrafficWidget(forceRefresh = false) {
         updateTimeEl.innerHTML = `<i class="bi bi-clock-history text-secondary"></i> ${cached.time} 캐시`;
       }
       renderTrafficCards(trafficDataCache);
-      return;
+    } else {
+      // 캐시 데이터가 없으면 기본값 사용 (API 재호출 방지)
+      if (updateTimeEl) {
+        updateTimeEl.innerHTML = `<i class="bi bi-clock text-secondary"></i> 기본값`;
+      }
+      renderTrafficCards(null);
     }
+    return;
   }
 
   try {

@@ -1897,6 +1897,40 @@ a:active .card {
 }
 
 /* =============================================
+   홈 화면 일정 카드 터치 피드백
+   ============================================= */
+/* 모바일 일정 카드 */
+.schedule-mobile-card {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.schedule-card-inner {
+  transition: transform 0.1s ease-out, box-shadow 0.15s ease-out;
+}
+
+.schedule-card-link {
+  -webkit-tap-highlight-color: transparent;
+  display: block;
+}
+
+.schedule-card-link:active .schedule-card-inner,
+.schedule-mobile-card:active .schedule-card-inner {
+  transform: scale(0.95);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.schedule-talk-btn {
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.1s ease-out, background-color 0.15s ease-out;
+}
+
+.schedule-talk-btn:active {
+  transform: scale(0.95);
+  background-color: hsl(var(--primary)) !important;
+  color: white !important;
+}
+
+/* =============================================
    코스 가이드 - 파 색상
    ============================================= */
 /* 파5 색상 - 비활성화 시 파란색, 활성화 시 노란색 */

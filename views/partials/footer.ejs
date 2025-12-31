@@ -124,10 +124,11 @@
 
       let isLoading = false;
       let loadingTimeout;
+      let showLoadingTimer;
 
       // 로딩 표시 함수
       function showLoading() {
-        if (isLoading) return; // 중복 호출 방지
+        if (isLoading) return;
         isLoading = true;
         loadingOverlay.style.display = 'flex';
         // 5초 후 자동 숨김 (무한 로딩 방지)
@@ -140,11 +141,19 @@
         isLoading = false;
         loadingOverlay.style.display = 'none';
         clearTimeout(loadingTimeout);
+        clearTimeout(showLoadingTimer);
+      }
+
+      // 지연 로딩 표시 (100ms 후 표시 - 빠른 페이지면 깜빡임 방지)
+      function scheduleShowLoading() {
+        if (isLoading) return;
+        clearTimeout(showLoadingTimer);
+        showLoadingTimer = setTimeout(showLoading, 100);
       }
 
       // 페이지 이동 감지 - 통합 클릭 이벤트
       document.addEventListener('click', function(e) {
-        // 이미 로딩 중이면 무시
+        // 이미 로딩 예약/진행 중이면 무시
         if (isLoading) return;
 
         // 링크 클릭 확인
@@ -154,6 +163,7 @@
 
           // 무시할 링크 패턴
           if (!href ||
+              href === '' ||
               href.startsWith('#') ||
               href.startsWith('javascript:') ||
               href.startsWith('tel:') ||
@@ -166,8 +176,7 @@
 
           // 페이지 이동 링크만 로딩 표시
           if (href.startsWith('/') || href.startsWith(window.location.origin)) {
-            // 약간의 지연 후 로딩 표시 (빠른 페이지 이동 시 깜빡임 방지)
-            setTimeout(showLoading, 50);
+            scheduleShowLoading();
             return;
           }
         }
@@ -175,7 +184,7 @@
         // onclick으로 location.href 변경하는 경우
         const onclickTarget = e.target.closest('[onclick*="location.href"]');
         if (onclickTarget && !onclickTarget.classList.contains('no-loading')) {
-          setTimeout(showLoading, 50);
+          scheduleShowLoading();
         }
       });
 
@@ -184,7 +193,7 @@
         if (isLoading) return;
         const form = e.target;
         if (!form.classList.contains('no-loading') && !form.hasAttribute('data-no-loading')) {
-          setTimeout(showLoading, 50);
+          scheduleShowLoading();
         }
       });
 
@@ -203,6 +212,11 @@
         if (document.visibilityState === 'visible') {
           hideLoading();
         }
+      });
+
+      // beforeunload 이벤트로 페이지 이동 감지 (보조)
+      window.addEventListener('beforeunload', function() {
+        showLoading();
       });
     })();
   </script>

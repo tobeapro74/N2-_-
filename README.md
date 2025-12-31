@@ -58,10 +58,17 @@ NH투자증권 N2골프 동호회를 위한 자금 및 예약 관리 웹 애플�
 - 좋아요/싫어요 리액션
 - 실시간 시간 표시 (방금 전, n시간 전 등)
 
+### UX 개선
+- 전역 로딩 인디케이터 ("조회중..." 표시)
+- Pull-to-Refresh (당겨서 새로고침) - 홈 화면
+- 모바일 터치 피드백 (버튼, 카드 등)
+- 스크롤/탭 자동 구분
+
 ### PWA 지원
 - 모바일 홈 화면 추가
 - 오프라인 캐싱
 - 앱처럼 사용 가능
+- Service Worker 캐시 관리
 
 ## 빠른 시작
 
@@ -104,7 +111,7 @@ N2골프_자금관리/
 ├── app.js              # 메인 애플리케이션
 ├── package.json        # 프로젝트 설정
 ├── CLAUDE.md           # Claude Code 규칙
-├── ROADMAP.md          # 프로젝트 로드맵
+├── docs/               # 기술 문서 (로드맵, 아키텍처, 트러블슈팅)
 ├── README.md           # 이 파일
 ├── data/               # JSON 데이터베이스
 ├── models/             # 데이터 모델 (날씨 서비스 포함)
@@ -150,6 +157,7 @@ npm run init-db # 데이터베이스 초기화
 
 ## 기술 문서
 
+- **[ROADMAP.md](docs/ROADMAP.md)**: 프로젝트 로드맵, 개발 계획
 - **[ARCHITECTURE.md](docs/ARCHITECTURE.md)**: 시스템 아키텍처, 기술 스택 선택 배경
 - **[TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)**: 자주 발생하는 문제와 해결 방법
 

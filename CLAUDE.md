@@ -73,8 +73,11 @@ N2골프_자금관리/
 ├── app.js              # 메인 애플리케이션 파일
 ├── package.json        # 프로젝트 설정
 ├── CLAUDE.md           # Claude Code 규칙 (이 파일)
-├── ROADMAP.md          # 프로젝트 로드맵
 ├── README.md           # 프로젝트 설명
+├── docs/               # 기술 문서
+│   ├── ROADMAP.md      # 프로젝트 로드맵
+│   ├── ARCHITECTURE.md # 시스템 아키텍처
+│   └── TROUBLESHOOTING.md # 문제 해결 가이드
 ├── data/               # JSON 데이터베이스
 │   └── n2golf.json
 ├── models/             # 데이터 모델
@@ -86,7 +89,8 @@ N2골프_자금관리/
 │   ├── members.js
 │   ├── reservations.js
 │   ├── schedules.js
-│   └── weather.js      # 날씨 API 라우터
+│   ├── weather.js      # 날씨 API 라우터
+│   └── traffic.js      # 교통 API 라우터
 ├── views/              # EJS 템플릿
 │   ├── partials/
 │   ├── auth/

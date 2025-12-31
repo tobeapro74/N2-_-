@@ -10,6 +10,7 @@
 7. [성능 최적화](#7-성능-최적화)
 8. [실시간 교통 현황](#8-실시간-교통-현황)
 9. [전역 로딩 인디케이터](#9-전역-로딩-인디케이터)
+10. [Pull-to-Refresh (당겨서 새로고침)](#10-pull-to-refresh-당겨서-새로고침)
 
 ---
 
@@ -919,4 +920,195 @@ const CACHE_NAME = 'n2golf-v10';  // 버전 증가
 - [ ] `e.preventDefault()` 사용하여 기본 동작 방지
 - [ ] `window.location.href`로 직접 이동 (기본 링크 동작에 의존하지 않음)
 - [ ] 모바일 터치 이벤트에서 스크롤 vs 탭 구분
+- [ ] Service Worker 캐시 버전 업데이트
+
+---
+
+## 10. Pull-to-Refresh (당겨서 새로고침)
+
+### 10.1 개요
+
+홈 화면에서 아래로 당겨서 페이지를 새로고침하는 모바일 네이티브 앱 스타일의 UX를 제공합니다.
+터치 이벤트를 감지하여 임계값(80px) 이상 당기면 페이지를 새로고침합니다.
+
+### 10.2 동작 조건
+
+- **홈 화면(`/`)에서만** 동작
+- **모바일 기기**에서만 동작 (`'ontouchstart' in window`)
+- **스크롤이 최상단**일 때만 동작 (`window.scrollY <= 0`)
+
+### 10.3 HTML 구조 (views/partials/header.ejs)
+
+```html
+<!-- Pull-to-Refresh 인디케이터 -->
+<div id="pullToRefreshIndicator" class="pull-to-refresh-indicator">
+  <i class="bi bi-arrow-down-circle pull-to-refresh-icon"></i>
+  <span class="pull-to-refresh-text">당겨서 새로고침</span>
+</div>
+```
+
+### 10.4 CSS 스타일 (public/css/style.css)
+
+```css
+.pull-to-refresh-indicator {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%) translateY(-100%);  /* 기본: 화면 위에 숨김 */
+  z-index: 9998;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.5rem;
+  background: hsl(var(--card));
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  transition: transform 0.2s ease-out;
+  pointer-events: none;
+}
+
+/* 당기는 중 */
+.pull-to-refresh-indicator.pulling {
+  transform: translateX(-50%) translateY(0);
+}
+
+/* 새로고침 중 */
+.pull-to-refresh-indicator.refreshing {
+  transform: translateX(-50%) translateY(0);
+}
+
+/* 아이콘 회전 애니메이션 */
+.pull-to-refresh-indicator.pulling .pull-to-refresh-icon {
+  transform: rotate(180deg);
+}
+
+.pull-to-refresh-indicator.refreshing .pull-to-refresh-icon {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+```
+
+### 10.5 JavaScript 구현 (views/partials/header.ejs)
+
+```javascript
+(function() {
+  // 홈 페이지에서만 동작 (모바일만)
+  if (window.location.pathname !== '/' || !('ontouchstart' in window)) return;
+
+  var indicator = document.getElementById('pullToRefreshIndicator');
+  var textEl = indicator.querySelector('.pull-to-refresh-text');
+
+  var startY = 0;
+  var currentY = 0;
+  var pulling = false;
+  var refreshing = false;
+  var PULL_THRESHOLD = 80;   // 새로고침 트리거 거리 (px)
+  var MAX_PULL = 120;
+
+  function isAtTop() {
+    return window.scrollY <= 0;
+  }
+
+  // 터치 시작
+  document.addEventListener('touchstart', function(e) {
+    if (refreshing || !isAtTop()) return;
+    startY = e.touches[0].clientY;
+    pulling = false;
+  }, { passive: true });
+
+  // 터치 이동
+  document.addEventListener('touchmove', function(e) {
+    if (refreshing || !isAtTop() || startY === 0) return;
+
+    currentY = e.touches[0].clientY;
+    var deltaY = currentY - startY;
+
+    // 아래로 당기는 경우만 처리
+    if (deltaY > 20) {
+      pulling = true;
+      indicator.classList.add('pulling');
+
+      if (deltaY >= PULL_THRESHOLD) {
+        textEl.textContent = '놓으면 새로고침';
+      } else {
+        textEl.textContent = '당겨서 새로고침';
+      }
+    }
+  }, { passive: true });
+
+  // 터치 종료
+  document.addEventListener('touchend', function(e) {
+    if (!pulling || refreshing) {
+      startY = 0;
+      return;
+    }
+
+    var deltaY = currentY - startY;
+
+    if (deltaY >= PULL_THRESHOLD) {
+      // 새로고침 실행
+      refreshing = true;
+      indicator.classList.remove('pulling');
+      indicator.classList.add('refreshing');
+      textEl.textContent = '조회중...';
+
+      // 전역 로딩 인디케이터와 연동
+      if (window.showGlobalLoading) window.showGlobalLoading();
+
+      setTimeout(function() {
+        window.location.reload();
+      }, 300);
+    } else {
+      // 임계값 미달 - 원래 상태로
+      indicator.classList.remove('pulling');
+    }
+
+    startY = 0;
+    currentY = 0;
+    pulling = false;
+  }, { passive: true });
+
+  // 터치 취소
+  document.addEventListener('touchcancel', function() {
+    indicator.classList.remove('pulling');
+    startY = 0;
+    currentY = 0;
+    pulling = false;
+  }, { passive: true });
+})();
+```
+
+### 10.6 전역 로딩 인디케이터 연동
+
+Pull-to-Refresh는 전역 로딩 인디케이터와 연동되어 동작합니다:
+
+1. 사용자가 화면을 아래로 당김
+2. 임계값(80px) 이상 당기면 "놓으면 새로고침" 텍스트 표시
+3. 손을 떼면:
+   - Pull-to-Refresh 인디케이터: "조회중..." 표시
+   - 전역 로딩 인디케이터: 화면 중앙에 표시
+4. 300ms 후 페이지 새로고침
+
+### 10.7 Service Worker 캐시 고려
+
+Pull-to-Refresh 관련 CSS/JS 변경 시 Service Worker 캐시 버전을 업데이트해야 합니다:
+
+```javascript
+// public/sw.js
+const CACHE_NAME = 'n2golf-v11';  // 버전 증가
+```
+
+### 10.8 체크리스트
+
+Pull-to-Refresh 구현/수정 시 확인:
+
+- [ ] 홈 화면(`/`)에서만 동작하는지 확인
+- [ ] 모바일에서만 동작하는지 확인 (`'ontouchstart' in window`)
+- [ ] 스크롤 최상단에서만 동작하는지 확인
+- [ ] 인디케이터 텍스트가 상태에 따라 변경되는지 확인
+- [ ] 전역 로딩 인디케이터와 연동되는지 확인
 - [ ] Service Worker 캐시 버전 업데이트

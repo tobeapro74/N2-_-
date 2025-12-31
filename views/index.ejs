@@ -855,7 +855,8 @@ function showCourseGuide(courseId) {
     html += '<ul class="nav nav-pills nav-fill mb-3 flex-wrap" id="holeTabs' + courseName + '" role="tablist">';
     for (let h = 1; h <= 9; h++) {
       const holeData = course.holes[courseName][h-1];
-      const parColor = holeData.par === 3 ? 'text-danger' : holeData.par === 5 ? 'text-primary' : '';
+      // 파3: 빨강, 파5: 노랑(활성화 시에도 잘 보임), 파4: 기본색
+      const parColor = holeData.par === 3 ? 'text-danger' : holeData.par === 5 ? 'par5-color' : '';
       html += '<li class="nav-item" role="presentation">';
       html += '<button class="nav-link ' + (h === 1 ? 'active' : '') + ' py-1 px-2" ';
       html += 'id="hole' + courseName + h + '-tab" data-bs-toggle="pill" ';

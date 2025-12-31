@@ -1862,3 +1862,23 @@ a:active .card {
   transform: scale(0.92);
 }
 
+/* =============================================
+   코스 가이드 - 파 색상
+   ============================================= */
+/* 파5 색상 - 비활성화 시 파란색, 활성화 시 노란색 */
+.par5-color {
+  color: #0d6efd; /* 파란색 (비활성화 시) */
+}
+
+/* 활성화된 탭에서 파5는 노란색으로 변경 (파란 배경에서 잘 보임) */
+.nav-pills .nav-link.active .par5-color,
+.nav-pills .nav-link:hover .par5-color {
+  color: #ffc107 !important; /* 노란색 */
+}
+
+/* 파3 빨간색은 활성화 시에도 흰색으로 변경 */
+.nav-pills .nav-link.active .text-danger,
+.nav-pills .nav-link:hover .text-danger {
+  color: #ffcdd2 !important; /* 연한 빨강 (흰색 배경보다 구분됨) */
+}
+

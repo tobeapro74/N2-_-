@@ -9,6 +9,7 @@
 4. [Vercel 배포 에러 (functions/builds 충돌)](#4-vercel-배포-에러-functionsbuilds-충돌)
 5. [URL 미리보기 이미지 안 보임](#5-url-미리보기-이미지-안-보임)
 6. [웹사이트 속도 느림](#6-웹사이트-속도-느림)
+7. [모바일 터치 이벤트 문제](#7-모바일-터치-이벤트-문제)
 
 ---
 
@@ -431,3 +432,131 @@ const members = await db.getTableAsync('members', {
 - **Lighthouse**: Chrome DevTools → Lighthouse 탭
 - **WebPageTest**: https://www.webpagetest.org/
 - **MongoDB Atlas**: Performance Advisor, Real-Time Performance Panel
+
+---
+
+## 7. 모바일 터치 이벤트 문제
+
+### 7.1 스크롤 시 실수로 클릭됨
+
+#### 증상
+- 화면을 위아래로 스크롤하려고 터치했는데 버튼/카드가 클릭됨
+- 골프장 카드를 터치해서 스크롤하면 가이드 페이지가 열림
+
+#### 원인
+`touchend` 이벤트에서 스크롤과 탭을 구분하지 않고 무조건 클릭 실행.
+
+#### 해결 방법
+
+**터치 시작/끝 위치 비교:**
+```javascript
+let touchStartY = 0;
+let touchStartX = 0;
+const SCROLL_THRESHOLD = 10; // 10px 이상 움직이면 스크롤로 판단
+
+el.addEventListener('touchstart', function(e) {
+  if (e.touches.length > 0) {
+    touchStartY = e.touches[0].clientY;
+    touchStartX = e.touches[0].clientX;
+  }
+  el.classList.add('pressed');
+}, { passive: true });
+
+el.addEventListener('touchend', function(e) {
+  el.classList.remove('pressed');
+
+  if (e.changedTouches.length > 0) {
+    const touchEndY = e.changedTouches[0].clientY;
+    const touchEndX = e.changedTouches[0].clientX;
+    const deltaY = Math.abs(touchEndY - touchStartY);
+    const deltaX = Math.abs(touchEndX - touchStartX);
+
+    // 스크롤로 판단되면 클릭 실행 안 함
+    if (deltaY > SCROLL_THRESHOLD || deltaX > SCROLL_THRESHOLD) {
+      return;
+    }
+  }
+
+  if (e.cancelable) e.preventDefault();
+  handleClick(e);
+}, { passive: false });
+```
+
+### 7.2 모바일에서 클릭이 안 됨
+
+#### 증상
+- PC에서는 클릭이 되는데 모바일에서 터치해도 반응 없음
+- div 요소에 onclick 속성을 사용한 경우 발생
+
+#### 원인
+- 인라인 `onclick`은 모바일에서 신뢰성이 낮음
+- 터치 이벤트와 클릭 이벤트의 처리 방식 차이
+
+#### 해결 방법
+
+**인라인 onclick 대신 이벤트 리스너 사용:**
+```javascript
+// 변경 전 (문제 발생)
+<div onclick="handleClick()">...</div>
+
+// 변경 후
+<div class="clickable" data-id="123">...</div>
+
+<script>
+document.querySelectorAll('.clickable').forEach(function(el) {
+  el.addEventListener('touchend', function(e) {
+    if (e.cancelable) e.preventDefault();
+    handleClick(el.dataset.id);
+  }, { passive: false });
+
+  el.addEventListener('click', function() {
+    handleClick(el.dataset.id);
+  });
+});
+</script>
+```
+
+### 7.3 터치 피드백 없음
+
+#### 증상
+- 버튼/카드를 터치해도 눌린 느낌이 없음
+- 터치했는지 시각적으로 확인이 안 됨
+
+#### 해결 방법
+
+**CSS 터치 피드백:**
+```css
+.btn {
+  -webkit-tap-highlight-color: transparent;
+  transition: all 0.15s ease;
+}
+
+.btn:not(:disabled):active,
+.btn:not(:disabled).pressed {
+  transform: scale(0.95);
+  opacity: 0.9;
+}
+```
+
+**JavaScript pressed 클래스:**
+```javascript
+el.addEventListener('touchstart', function() {
+  el.classList.add('pressed');
+}, { passive: true });
+
+el.addEventListener('touchend', function() {
+  el.classList.remove('pressed');
+}, { passive: true });
+
+el.addEventListener('touchcancel', function() {
+  el.classList.remove('pressed');
+}, { passive: true });
+```
+
+### 모바일 터치 체크리스트
+
+1. [ ] 인라인 onclick 대신 이벤트 리스너 사용
+2. [ ] touchstart/touchend/touchcancel 모두 처리
+3. [ ] 스크롤 vs 탭 구분 (터치 이동 거리 체크)
+4. [ ] 시각적 터치 피드백 (pressed 클래스)
+5. [ ] `-webkit-tap-highlight-color: transparent` 설정

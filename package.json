@@ -18,6 +18,7 @@
   "author": "N2골프",
   "license": "MIT",
   "dependencies": {
+    "@vercel/analytics": "^1.4.0",
     "bcryptjs": "^2.4.3",
     "cloudinary": "^2.8.0",
     "compression": "^1.8.1",

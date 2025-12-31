@@ -345,11 +345,17 @@ document.addEventListener('DOMContentLoaded', function() {
     // 좋아요/싫어요 상태 반영
     const likeBtn = card.querySelector('.like-btn');
     const dislikeBtn = card.querySelector('.dislike-btn');
+    const likeIcon = likeBtn.querySelector('i');
+    const dislikeIcon = dislikeBtn.querySelector('i');
 
     if (comment.my_reaction === 'like') {
       likeBtn.classList.add('text-primary');
+      likeIcon.classList.remove('bi-hand-thumbs-up');
+      likeIcon.classList.add('bi-hand-thumbs-up-fill');
     } else if (comment.my_reaction === 'dislike') {
       dislikeBtn.classList.add('text-danger');
+      dislikeIcon.classList.remove('bi-hand-thumbs-down');
+      dislikeIcon.classList.add('bi-hand-thumbs-down-fill');
     }
 
     // 수정/삭제 버튼 표시 여부
@@ -407,11 +413,17 @@ document.addEventListener('DOMContentLoaded', function() {
     // 좋아요/싫어요 상태 반영
     const likeBtn = card.querySelector('.like-btn');
     const dislikeBtn = card.querySelector('.dislike-btn');
+    const likeIcon = likeBtn.querySelector('i');
+    const dislikeIcon = dislikeBtn.querySelector('i');
 
     if (reply.my_reaction === 'like') {
       likeBtn.classList.add('text-primary');
+      likeIcon.classList.remove('bi-hand-thumbs-up');
+      likeIcon.classList.add('bi-hand-thumbs-up-fill');
     } else if (reply.my_reaction === 'dislike') {
       dislikeBtn.classList.add('text-danger');
+      dislikeIcon.classList.remove('bi-hand-thumbs-down');
+      dislikeIcon.classList.add('bi-hand-thumbs-down-fill');
     }
 
     // 수정/삭제 버튼 표시 여부
@@ -668,18 +680,28 @@ document.addEventListener('DOMContentLoaded', function() {
         // UI 업데이트
         const likeBtn = card.querySelector('.like-btn');
         const dislikeBtn = card.querySelector('.dislike-btn');
+        const likeIcon = likeBtn.querySelector('i');
+        const dislikeIcon = dislikeBtn.querySelector('i');
 
         card.querySelector('.likes-count').textContent = data.likes;
         card.querySelector('.dislikes-count').textContent = data.dislikes;
 
-        // 버튼 스타일 업데이트
+        // 버튼 스타일 및 아이콘 업데이트
         likeBtn.classList.remove('text-primary');
         dislikeBtn.classList.remove('text-danger');
+        likeIcon.classList.remove('bi-hand-thumbs-up-fill');
+        likeIcon.classList.add('bi-hand-thumbs-up');
+        dislikeIcon.classList.remove('bi-hand-thumbs-down-fill');
+        dislikeIcon.classList.add('bi-hand-thumbs-down');
 
         if (data.my_reaction === 'like') {
           likeBtn.classList.add('text-primary');
+          likeIcon.classList.remove('bi-hand-thumbs-up');
+          likeIcon.classList.add('bi-hand-thumbs-up-fill');
         } else if (data.my_reaction === 'dislike') {
           dislikeBtn.classList.add('text-danger');
+          dislikeIcon.classList.remove('bi-hand-thumbs-down');
+          dislikeIcon.classList.add('bi-hand-thumbs-down-fill');
         }
       }
     } catch (error) {

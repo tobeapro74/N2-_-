@@ -16,6 +16,8 @@ router.get('/', async (req, res) => {
     const reservations = await db.getTableAsync('reservations');
     const golfCourses = await db.getTableAsync('golf_courses');
     const scheduleComments = await db.getTableAsync('schedule_comments') || [];
+    const communityPosts = await db.getTableAsync('community_posts') || [];
+    const communityComments = await db.getTableAsync('community_comments') || [];
 
     const members = allMembers.filter(m => !m.is_admin);
 
@@ -101,6 +103,20 @@ router.get('/', async (req, res) => {
     .filter(m => m.join_date && m.join_date >= tenDaysAgoStr)
     .map(m => ({ name: m.name, join_date: m.join_date }));
 
+  // 일상톡톡 최신 게시글 (최근 5개)
+  const recentCommunityPosts = communityPosts
+    .sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''))
+    .slice(0, 5)
+    .map(post => {
+      const member = members.find(m => m.id === post.member_id) || {};
+      const commentCount = communityComments.filter(c => c.post_id === post.id).length;
+      return {
+        ...post,
+        member_name: member.name || '알 수 없음',
+        comment_count: commentCount
+      };
+    });
+
   // 로그인한 사용자의 개인 통계
   let userStats = null;
   if (req.session.user) {
@@ -151,7 +167,8 @@ router.get('/', async (req, res) => {
       recentTransactions,
       userStats,
       courseHoles,
-      newMembers
+      newMembers,
+      recentCommunityPosts
     });
   } catch (error) {
     console.error('대시보드 로드 오류:', error);

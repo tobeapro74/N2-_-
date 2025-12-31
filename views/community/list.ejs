@@ -1,0 +1,907 @@
+<%- include('../partials/header') %>
+
+<!-- 페이지 헤더 -->
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <div class="d-flex align-items-center">
+    <a href="/" class="back-link" aria-label="홈으로 이동">
+      <i class="bi bi-chevron-left" aria-hidden="true"></i>홈
+    </a>
+    <h5 class="mb-0 fw-bold"><i class="bi bi-chat-heart text-success me-2" aria-hidden="true"></i>일상톡톡</h5>
+  </div>
+</div>
+
+<!-- 게시글 작성 폼 -->
+<div class="card border-0 shadow-sm mb-3">
+  <div class="card-body py-2 px-3">
+    <form id="postForm">
+      <div class="mb-2">
+        <textarea id="postInput" class="form-control" placeholder="오늘 어떤 일이 있었나요? 자유롭게 이야기해주세요..." maxlength="1000" rows="2" style="resize: none;"></textarea>
+      </div>
+      <div class="d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center gap-2">
+          <label for="imageInput" class="btn btn-outline-secondary btn-sm px-2 d-flex align-items-center gap-1" style="cursor: pointer;" title="이미지 첨부">
+            <i class="bi bi-image"></i>
+            <span class="d-none d-md-inline" style="font-size: 0.75rem;">사진</span>
+          </label>
+          <input type="file" id="imageInput" accept="image/jpeg,image/png,image/gif,image/webp" class="d-none">
+          <small class="text-muted d-none d-md-inline" style="font-size: 0.7rem;">이미지: 최대 5MB</small>
+        </div>
+        <button type="submit" id="submitBtn" class="btn btn-success btn-sm px-3">
+          <i class="bi bi-send me-1"></i>게시
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- 게시글 목록 -->
+<div id="postsContainer">
+  <div class="text-center py-4">
+    <div class="spinner-border spinner-border-sm text-success" role="status">
+      <span class="visually-hidden">로딩 중...</span>
+    </div>
+  </div>
+</div>
+
+<!-- 더보기 버튼 -->
+<div id="loadMoreContainer" class="text-center py-3 d-none">
+  <button id="loadMoreBtn" class="btn btn-outline-success btn-sm">
+    <i class="bi bi-arrow-down-circle me-1"></i>더보기
+  </button>
+</div>
+
+<!-- 게시글 템플릿 -->
+<template id="postTemplate">
+  <div class="card border-0 shadow-sm mb-3 post-card" data-post-id="">
+    <div class="card-body py-2 px-3">
+      <!-- 게시글 헤더 -->
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <div class="d-flex align-items-center">
+          <span class="fw-bold post-author" style="font-size: 0.9rem;"></span>
+          <small class="text-muted ms-2 post-time"></small>
+        </div>
+        <div class="post-actions">
+          <button class="btn btn-link btn-sm text-muted p-0 me-2 edit-btn" style="font-size: 0.75rem;" title="수정">
+            <i class="bi bi-pencil"></i>
+          </button>
+          <button class="btn btn-link btn-sm text-danger p-0 delete-btn" style="font-size: 0.75rem;" title="삭제">
+            <i class="bi bi-trash"></i>
+          </button>
+        </div>
+      </div>
+      <!-- 게시글 이미지 -->
+      <div class="post-image-container d-none mb-2">
+        <img class="post-image rounded" src="" alt="첨부 이미지" loading="lazy" style="max-height: 400px; max-width: 100%; cursor: pointer;" onclick="window.open(this.src, '_blank')" onerror="this.parentElement.classList.add('d-none')">
+      </div>
+      <!-- 게시글 내용 -->
+      <p class="mb-2 post-content" style="font-size: 0.9rem; white-space: pre-wrap;"></p>
+      <!-- 수정 폼 (숨김) -->
+      <div class="edit-form d-none mb-2">
+        <div class="d-flex gap-2 align-items-end">
+          <textarea class="form-control form-control-sm edit-input" maxlength="1000" rows="3" style="resize: none;"></textarea>
+          <div class="d-flex flex-column gap-1">
+            <button class="btn btn-success btn-sm save-edit-btn">저장</button>
+            <button class="btn btn-outline-secondary btn-sm cancel-edit-btn">취소</button>
+          </div>
+        </div>
+      </div>
+      <!-- 액션 버튼 -->
+      <div class="d-flex align-items-center gap-3 pt-2 border-top">
+        <button class="btn btn-link btn-sm p-0 like-btn" style="font-size: 0.8rem;">
+          <i class="bi bi-hand-thumbs-up"></i>
+          <span class="likes-count">0</span>
+        </button>
+        <button class="btn btn-link btn-sm p-0 dislike-btn" style="font-size: 0.8rem;">
+          <i class="bi bi-hand-thumbs-down"></i>
+          <span class="dislikes-count">0</span>
+        </button>
+        <button class="btn btn-link btn-sm p-0 text-muted comment-toggle-btn" style="font-size: 0.8rem;">
+          <i class="bi bi-chat"></i>
+          <span class="comments-count">0</span>
+        </button>
+      </div>
+      <!-- 댓글 섹션 (숨김) -->
+      <div class="comments-section d-none mt-2 pt-2 border-top">
+        <!-- 댓글 목록 -->
+        <div class="comments-list"></div>
+        <!-- 댓글 작성 폼 -->
+        <div class="d-flex gap-2 align-items-center mt-2">
+          <input type="text" class="form-control form-control-sm comment-input" placeholder="댓글을 입력하세요..." maxlength="500">
+          <button class="btn btn-success btn-sm submit-comment-btn px-2">
+            <i class="bi bi-send"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<!-- 댓글 템플릿 -->
+<template id="commentTemplate">
+  <div class="comment-item border-start border-2 border-success ps-2 py-1 mb-1" data-comment-id="">
+    <div class="d-flex align-items-center justify-content-between">
+      <div class="d-flex align-items-center">
+        <span class="fw-bold comment-author" style="font-size: 0.8rem;"></span>
+        <small class="text-muted ms-2 comment-time" style="font-size: 0.7rem;"></small>
+      </div>
+      <div class="comment-actions">
+        <button class="btn btn-link btn-sm text-muted p-0 me-1 edit-comment-btn" style="font-size: 0.7rem;" title="수정">
+          <i class="bi bi-pencil"></i>
+        </button>
+        <button class="btn btn-link btn-sm text-danger p-0 delete-comment-btn" style="font-size: 0.7rem;" title="삭제">
+          <i class="bi bi-trash"></i>
+        </button>
+      </div>
+    </div>
+    <p class="mb-1 comment-content" style="font-size: 0.85rem;"></p>
+    <!-- 수정 폼 -->
+    <div class="comment-edit-form d-none mb-1">
+      <div class="d-flex gap-1">
+        <input type="text" class="form-control form-control-sm comment-edit-input" maxlength="500">
+        <button class="btn btn-success btn-sm save-comment-btn" style="font-size: 0.7rem;">저장</button>
+        <button class="btn btn-secondary btn-sm cancel-comment-btn" style="font-size: 0.7rem;">취소</button>
+      </div>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <button class="btn btn-link btn-sm p-0 like-comment-btn" style="font-size: 0.75rem;">
+        <i class="bi bi-hand-thumbs-up"></i>
+        <span class="likes-count">0</span>
+      </button>
+      <button class="btn btn-link btn-sm p-0 dislike-comment-btn" style="font-size: 0.75rem;">
+        <i class="bi bi-hand-thumbs-down"></i>
+        <span class="dislikes-count">0</span>
+      </button>
+      <button class="btn btn-link btn-sm p-0 text-muted reply-btn" style="font-size: 0.75rem;">답글</button>
+    </div>
+    <!-- 답글 폼 -->
+    <div class="reply-form d-none mt-1">
+      <div class="d-flex gap-1">
+        <input type="text" class="form-control form-control-sm reply-input" placeholder="답글 입력..." maxlength="500">
+        <button class="btn btn-success btn-sm submit-reply-btn" style="font-size: 0.7rem;">등록</button>
+        <button class="btn btn-secondary btn-sm cancel-reply-btn" style="font-size: 0.7rem;">취소</button>
+      </div>
+    </div>
+    <!-- 대댓글 목록 -->
+    <div class="replies-container ms-2 mt-1"></div>
+  </div>
+</template>
+
+<!-- 대댓글 템플릿 -->
+<template id="replyTemplate">
+  <div class="reply-item ps-2 py-1 mb-1" data-comment-id="" style="border-left: 1px solid #dee2e6;">
+    <div class="d-flex align-items-center justify-content-between">
+      <div class="d-flex align-items-center">
+        <span class="fw-bold reply-author" style="font-size: 0.75rem;"></span>
+        <small class="text-muted ms-2 reply-time" style="font-size: 0.65rem;"></small>
+      </div>
+      <div class="reply-actions">
+        <button class="btn btn-link btn-sm text-muted p-0 me-1 edit-reply-btn" style="font-size: 0.65rem;" title="수정">
+          <i class="bi bi-pencil"></i>
+        </button>
+        <button class="btn btn-link btn-sm text-danger p-0 delete-reply-btn" style="font-size: 0.65rem;" title="삭제">
+          <i class="bi bi-trash"></i>
+        </button>
+      </div>
+    </div>
+    <p class="mb-0 reply-content" style="font-size: 0.8rem;"></p>
+    <!-- 수정 폼 -->
+    <div class="reply-edit-form d-none mb-1">
+      <div class="d-flex gap-1">
+        <input type="text" class="form-control form-control-sm reply-edit-input" maxlength="500">
+        <button class="btn btn-success btn-sm save-reply-btn" style="font-size: 0.65rem;">저장</button>
+        <button class="btn btn-secondary btn-sm cancel-reply-edit-btn" style="font-size: 0.65rem;">취소</button>
+      </div>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <button class="btn btn-link btn-sm p-0 like-reply-btn" style="font-size: 0.7rem;">
+        <i class="bi bi-hand-thumbs-up"></i>
+        <span class="likes-count">0</span>
+      </button>
+      <button class="btn btn-link btn-sm p-0 dislike-reply-btn" style="font-size: 0.7rem;">
+        <i class="bi bi-hand-thumbs-down"></i>
+        <span class="dislikes-count">0</span>
+      </button>
+    </div>
+  </div>
+</template>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+  const postsContainer = document.getElementById('postsContainer');
+  const postTemplate = document.getElementById('postTemplate');
+  const commentTemplate = document.getElementById('commentTemplate');
+  const replyTemplate = document.getElementById('replyTemplate');
+  const postForm = document.getElementById('postForm');
+  const postInput = document.getElementById('postInput');
+  const submitBtn = document.getElementById('submitBtn');
+  const loadMoreBtn = document.getElementById('loadMoreBtn');
+  const loadMoreContainer = document.getElementById('loadMoreContainer');
+
+  // 이미지 관련
+  const imageInput = document.getElementById('imageInput');
+  const imageLabel = document.querySelector('label[for="imageInput"]');
+  let selectedImageUrl = null;
+
+  let currentPage = 1;
+  let hasMore = true;
+
+  // 시간 포맷
+  function formatTime(dateStr) {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diff = now - date;
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
+
+    if (minutes < 1) return '방금 전';
+    if (minutes < 60) return `${minutes}분 전`;
+    if (hours < 24) return `${hours}시간 전`;
+    if (days < 7) return `${days}일 전`;
+    return date.toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' });
+  }
+
+  // XSS 방지
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  // 이미지 업로드
+  imageInput.addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert('이미지 크기는 5MB를 초과할 수 없습니다.');
+      imageInput.value = '';
+      return;
+    }
+
+    imageLabel.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+    imageLabel.style.pointerEvents = 'none';
+
+    const formData = new FormData();
+    formData.append('image', file);
+
+    try {
+      const response = await fetch('/community/upload-image', {
+        method: 'POST',
+        headers: { 'X-CSRF-Token': csrfToken },
+        body: formData
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        selectedImageUrl = data.imageUrl;
+        imageLabel.innerHTML = '<i class="bi bi-check-circle-fill text-success"></i>';
+      } else {
+        alert(data.error || '이미지 업로드에 실패했습니다.');
+        resetImageUpload();
+      }
+    } catch (error) {
+      console.error('이미지 업로드 오류:', error);
+      alert('이미지 업로드 중 오류가 발생했습니다.');
+      resetImageUpload();
+    } finally {
+      imageLabel.style.pointerEvents = 'auto';
+    }
+  });
+
+  function resetImageUpload() {
+    imageInput.value = '';
+    imageLabel.innerHTML = '<i class="bi bi-image"></i><span class="d-none d-md-inline" style="font-size: 0.75rem;">사진</span>';
+    selectedImageUrl = null;
+  }
+
+  // 게시글 로드
+  async function loadPosts(page = 1, append = false) {
+    try {
+      const response = await fetch(`/community/posts?page=${page}&limit=10`, {
+        headers: { 'X-CSRF-Token': csrfToken }
+      });
+      const data = await response.json();
+
+      if (data.posts) {
+        if (!append) {
+          postsContainer.innerHTML = '';
+        }
+        renderPosts(data.posts);
+        hasMore = data.hasMore;
+        loadMoreContainer.classList.toggle('d-none', !hasMore);
+      }
+    } catch (error) {
+      console.error('게시글 로드 오류:', error);
+      postsContainer.innerHTML = '<div class="text-center text-muted py-4">게시글을 불러오는 중 오류가 발생했습니다.</div>';
+    }
+  }
+
+  // 게시글 렌더링
+  function renderPosts(posts) {
+    if (posts.length === 0 && currentPage === 1) {
+      postsContainer.innerHTML = '<div class="text-center text-muted py-4"><i class="bi bi-chat-heart me-2"></i>첫 번째 게시글을 작성해보세요!</div>';
+      return;
+    }
+
+    posts.forEach(post => {
+      const postEl = createPostElement(post);
+      postsContainer.appendChild(postEl);
+    });
+  }
+
+  // 게시글 요소 생성
+  function createPostElement(post) {
+    const clone = postTemplate.content.cloneNode(true);
+    const card = clone.querySelector('.post-card');
+
+    card.dataset.postId = post.id;
+    card.id = `post-${post.id}`;
+    card.querySelector('.post-author').textContent = post.member_name;
+    card.querySelector('.post-time').textContent = formatTime(post.created_at);
+    card.querySelector('.post-content').textContent = post.content || '';
+    card.querySelector('.likes-count').textContent = post.likes || 0;
+    card.querySelector('.dislikes-count').textContent = post.dislikes || 0;
+    card.querySelector('.comments-count').textContent = post.comment_count || 0;
+
+    // 이미지 표시
+    if (post.image_url) {
+      const imageContainer = card.querySelector('.post-image-container');
+      const imageEl = card.querySelector('.post-image');
+      imageEl.onload = () => imageContainer.classList.remove('d-none');
+      imageEl.onerror = () => imageContainer.classList.add('d-none');
+      imageEl.src = post.image_url;
+    }
+
+    // 좋아요/싫어요 상태
+    const likeBtn = card.querySelector('.like-btn');
+    const dislikeBtn = card.querySelector('.dislike-btn');
+    if (post.my_reaction === 'like') {
+      likeBtn.classList.add('text-primary');
+      likeBtn.querySelector('i').classList.replace('bi-hand-thumbs-up', 'bi-hand-thumbs-up-fill');
+    } else if (post.my_reaction === 'dislike') {
+      dislikeBtn.classList.add('text-danger');
+      dislikeBtn.querySelector('i').classList.replace('bi-hand-thumbs-down', 'bi-hand-thumbs-down-fill');
+    }
+
+    // 수정/삭제 버튼 표시
+    const actionsDiv = card.querySelector('.post-actions');
+    if (!post.is_mine && !post.is_admin) {
+      actionsDiv.style.display = 'none';
+    }
+
+    // 이벤트 리스너
+    setupPostEventListeners(card, post);
+
+    return clone;
+  }
+
+  // 게시글 이벤트 리스너
+  function setupPostEventListeners(card, post) {
+    // 좋아요
+    card.querySelector('.like-btn').addEventListener('click', () => handlePostReaction(post.id, 'like', card));
+    // 싫어요
+    card.querySelector('.dislike-btn').addEventListener('click', () => handlePostReaction(post.id, 'dislike', card));
+
+    // 댓글 토글
+    const commentToggleBtn = card.querySelector('.comment-toggle-btn');
+    const commentsSection = card.querySelector('.comments-section');
+    let commentsLoaded = false;
+
+    commentToggleBtn.addEventListener('click', async () => {
+      commentsSection.classList.toggle('d-none');
+      if (!commentsLoaded && !commentsSection.classList.contains('d-none')) {
+        await loadComments(post.id, card);
+        commentsLoaded = true;
+      }
+    });
+
+    // 댓글 작성
+    const commentInput = card.querySelector('.comment-input');
+    const submitCommentBtn = card.querySelector('.submit-comment-btn');
+
+    submitCommentBtn.addEventListener('click', () => submitComment(post.id, commentInput, card));
+    commentInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') submitComment(post.id, commentInput, card);
+    });
+
+    // 수정
+    const editBtn = card.querySelector('.edit-btn');
+    const editForm = card.querySelector('.edit-form');
+    const editInput = card.querySelector('.edit-input');
+    const contentEl = card.querySelector('.post-content');
+
+    editBtn.addEventListener('click', () => {
+      editInput.value = contentEl.textContent;
+      contentEl.classList.add('d-none');
+      editForm.classList.remove('d-none');
+      editInput.focus();
+    });
+
+    card.querySelector('.cancel-edit-btn').addEventListener('click', () => {
+      editForm.classList.add('d-none');
+      contentEl.classList.remove('d-none');
+    });
+
+    card.querySelector('.save-edit-btn').addEventListener('click', () => savePostEdit(post.id, editInput, editForm, contentEl));
+
+    // 삭제
+    card.querySelector('.delete-btn').addEventListener('click', () => deletePost(post.id, card));
+  }
+
+  // 게시글 반응
+  async function handlePostReaction(postId, reactionType, card) {
+    try {
+      const response = await fetch(`/community/posts/${postId}/reaction`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken
+        },
+        body: JSON.stringify({ reaction_type: reactionType })
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        updateReactionUI(card, data, '.like-btn', '.dislike-btn');
+      }
+    } catch (error) {
+      console.error('반응 처리 오류:', error);
+    }
+  }
+
+  // 반응 UI 업데이트
+  function updateReactionUI(card, data, likeSel, dislikeSel) {
+    const likeBtn = card.querySelector(likeSel);
+    const dislikeBtn = card.querySelector(dislikeSel);
+    const likeIcon = likeBtn.querySelector('i');
+    const dislikeIcon = dislikeBtn.querySelector('i');
+
+    // 리셋
+    likeBtn.classList.remove('text-primary');
+    dislikeBtn.classList.remove('text-danger');
+    likeIcon.className = 'bi bi-hand-thumbs-up';
+    dislikeIcon.className = 'bi bi-hand-thumbs-down';
+
+    // 적용
+    if (data.my_reaction === 'like') {
+      likeBtn.classList.add('text-primary');
+      likeIcon.className = 'bi bi-hand-thumbs-up-fill';
+    } else if (data.my_reaction === 'dislike') {
+      dislikeBtn.classList.add('text-danger');
+      dislikeIcon.className = 'bi bi-hand-thumbs-down-fill';
+    }
+
+    likeBtn.querySelector('.likes-count').textContent = data.likes;
+    dislikeBtn.querySelector('.dislikes-count').textContent = data.dislikes;
+  }
+
+  // 게시글 수정
+  async function savePostEdit(postId, input, form, contentEl) {
+    const content = input.value.trim();
+    if (!content) return;
+
+    try {
+      const response = await fetch(`/community/posts/${postId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken
+        },
+        body: JSON.stringify({ content })
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        contentEl.textContent = content;
+        form.classList.add('d-none');
+        contentEl.classList.remove('d-none');
+      } else {
+        alert(data.error || '수정에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('수정 오류:', error);
+    }
+  }
+
+  // 게시글 삭제
+  async function deletePost(postId, card) {
+    if (!confirm('정말 삭제하시겠습니까?')) return;
+
+    try {
+      const response = await fetch(`/community/posts/${postId}`, {
+        method: 'DELETE',
+        headers: { 'X-CSRF-Token': csrfToken }
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        card.remove();
+      } else {
+        alert(data.error || '삭제에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('삭제 오류:', error);
+    }
+  }
+
+  // 댓글 로드
+  async function loadComments(postId, postCard) {
+    const commentsList = postCard.querySelector('.comments-list');
+    commentsList.innerHTML = '<div class="text-center py-2"><span class="spinner-border spinner-border-sm"></span></div>';
+
+    try {
+      const response = await fetch(`/community/posts/${postId}/comments`, {
+        headers: { 'X-CSRF-Token': csrfToken }
+      });
+      const data = await response.json();
+
+      commentsList.innerHTML = '';
+      if (data.comments && data.comments.length > 0) {
+        data.comments.forEach(comment => {
+          const commentEl = createCommentElement(comment, postId, postCard);
+          commentsList.appendChild(commentEl);
+        });
+      } else {
+        commentsList.innerHTML = '<p class="text-muted text-center py-2 mb-0" style="font-size: 0.8rem;">아직 댓글이 없습니다.</p>';
+      }
+    } catch (error) {
+      console.error('댓글 로드 오류:', error);
+      commentsList.innerHTML = '<p class="text-danger text-center py-2">댓글을 불러오지 못했습니다.</p>';
+    }
+  }
+
+  // 댓글 요소 생성
+  function createCommentElement(comment, postId, postCard) {
+    const clone = commentTemplate.content.cloneNode(true);
+    const item = clone.querySelector('.comment-item');
+
+    item.dataset.commentId = comment.id;
+    item.querySelector('.comment-author').textContent = comment.member_name;
+    item.querySelector('.comment-time').textContent = formatTime(comment.created_at);
+    item.querySelector('.comment-content').textContent = comment.content || '';
+    item.querySelector('.likes-count').textContent = comment.likes || 0;
+    item.querySelector('.dislikes-count').textContent = comment.dislikes || 0;
+
+    // 좋아요/싫어요 상태
+    if (comment.my_reaction === 'like') {
+      item.querySelector('.like-comment-btn').classList.add('text-primary');
+      item.querySelector('.like-comment-btn i').classList.replace('bi-hand-thumbs-up', 'bi-hand-thumbs-up-fill');
+    } else if (comment.my_reaction === 'dislike') {
+      item.querySelector('.dislike-comment-btn').classList.add('text-danger');
+      item.querySelector('.dislike-comment-btn i').classList.replace('bi-hand-thumbs-down', 'bi-hand-thumbs-down-fill');
+    }
+
+    // 수정/삭제 버튼
+    if (!comment.is_mine && !comment.is_admin) {
+      item.querySelector('.comment-actions').style.display = 'none';
+    }
+
+    // 이벤트 리스너
+    setupCommentEventListeners(item, comment, postId, postCard);
+
+    // 대댓글 렌더링
+    if (comment.replies && comment.replies.length > 0) {
+      const repliesContainer = item.querySelector('.replies-container');
+      comment.replies.forEach(reply => {
+        const replyEl = createReplyElement(reply, postId, postCard);
+        repliesContainer.appendChild(replyEl);
+      });
+    }
+
+    return clone;
+  }
+
+  // 대댓글 요소 생성
+  function createReplyElement(reply, postId, postCard) {
+    const clone = replyTemplate.content.cloneNode(true);
+    const item = clone.querySelector('.reply-item');
+
+    item.dataset.commentId = reply.id;
+    item.querySelector('.reply-author').textContent = reply.member_name;
+    item.querySelector('.reply-time').textContent = formatTime(reply.created_at);
+    item.querySelector('.reply-content').textContent = reply.content || '';
+    item.querySelector('.likes-count').textContent = reply.likes || 0;
+    item.querySelector('.dislikes-count').textContent = reply.dislikes || 0;
+
+    if (reply.my_reaction === 'like') {
+      item.querySelector('.like-reply-btn').classList.add('text-primary');
+      item.querySelector('.like-reply-btn i').classList.replace('bi-hand-thumbs-up', 'bi-hand-thumbs-up-fill');
+    } else if (reply.my_reaction === 'dislike') {
+      item.querySelector('.dislike-reply-btn').classList.add('text-danger');
+      item.querySelector('.dislike-reply-btn i').classList.replace('bi-hand-thumbs-down', 'bi-hand-thumbs-down-fill');
+    }
+
+    if (!reply.is_mine && !reply.is_admin) {
+      item.querySelector('.reply-actions').style.display = 'none';
+    }
+
+    setupReplyEventListeners(item, reply, postId, postCard);
+
+    return clone;
+  }
+
+  // 댓글 이벤트 리스너
+  function setupCommentEventListeners(item, comment, postId, postCard) {
+    // 좋아요/싫어요
+    item.querySelector('.like-comment-btn').addEventListener('click', () => handleCommentReaction(comment.id, 'like', item));
+    item.querySelector('.dislike-comment-btn').addEventListener('click', () => handleCommentReaction(comment.id, 'dislike', item));
+
+    // 답글 토글
+    const replyBtn = item.querySelector('.reply-btn');
+    const replyForm = item.querySelector('.reply-form');
+    const replyInput = item.querySelector('.reply-input');
+
+    replyBtn.addEventListener('click', () => {
+      replyForm.classList.toggle('d-none');
+      if (!replyForm.classList.contains('d-none')) replyInput.focus();
+    });
+
+    item.querySelector('.cancel-reply-btn').addEventListener('click', () => {
+      replyForm.classList.add('d-none');
+      replyInput.value = '';
+    });
+
+    item.querySelector('.submit-reply-btn').addEventListener('click', () => {
+      submitReply(postId, comment.id, replyInput, postCard);
+    });
+
+    // 수정
+    const editBtn = item.querySelector('.edit-comment-btn');
+    const editForm = item.querySelector('.comment-edit-form');
+    const editInput = item.querySelector('.comment-edit-input');
+    const contentEl = item.querySelector('.comment-content');
+
+    editBtn.addEventListener('click', () => {
+      editInput.value = contentEl.textContent;
+      contentEl.classList.add('d-none');
+      editForm.classList.remove('d-none');
+      editInput.focus();
+    });
+
+    item.querySelector('.cancel-comment-btn').addEventListener('click', () => {
+      editForm.classList.add('d-none');
+      contentEl.classList.remove('d-none');
+    });
+
+    item.querySelector('.save-comment-btn').addEventListener('click', () => {
+      saveCommentEdit(comment.id, editInput, editForm, contentEl);
+    });
+
+    // 삭제
+    item.querySelector('.delete-comment-btn').addEventListener('click', () => deleteComment(comment.id, postId, postCard));
+  }
+
+  // 대댓글 이벤트 리스너
+  function setupReplyEventListeners(item, reply, postId, postCard) {
+    item.querySelector('.like-reply-btn').addEventListener('click', () => handleCommentReaction(reply.id, 'like', item));
+    item.querySelector('.dislike-reply-btn').addEventListener('click', () => handleCommentReaction(reply.id, 'dislike', item));
+
+    const editBtn = item.querySelector('.edit-reply-btn');
+    const editForm = item.querySelector('.reply-edit-form');
+    const editInput = item.querySelector('.reply-edit-input');
+    const contentEl = item.querySelector('.reply-content');
+
+    editBtn.addEventListener('click', () => {
+      editInput.value = contentEl.textContent;
+      contentEl.classList.add('d-none');
+      editForm.classList.remove('d-none');
+      editInput.focus();
+    });
+
+    item.querySelector('.cancel-reply-edit-btn').addEventListener('click', () => {
+      editForm.classList.add('d-none');
+      contentEl.classList.remove('d-none');
+    });
+
+    item.querySelector('.save-reply-btn').addEventListener('click', () => {
+      saveCommentEdit(reply.id, editInput, editForm, contentEl);
+    });
+
+    item.querySelector('.delete-reply-btn').addEventListener('click', () => deleteComment(reply.id, postId, postCard));
+  }
+
+  // 댓글 반응
+  async function handleCommentReaction(commentId, reactionType, item) {
+    try {
+      const response = await fetch(`/community/comments/${commentId}/reaction`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken
+        },
+        body: JSON.stringify({ reaction_type: reactionType })
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        // 버튼 선택자 결정
+        const isReply = item.classList.contains('reply-item');
+        const likeSel = isReply ? '.like-reply-btn' : '.like-comment-btn';
+        const dislikeSel = isReply ? '.dislike-reply-btn' : '.dislike-comment-btn';
+        updateReactionUI(item, data, likeSel, dislikeSel);
+      }
+    } catch (error) {
+      console.error('반응 처리 오류:', error);
+    }
+  }
+
+  // 댓글 작성
+  async function submitComment(postId, input, postCard) {
+    const content = input.value.trim();
+    if (!content) return;
+
+    try {
+      const response = await fetch(`/community/posts/${postId}/comments`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken
+        },
+        body: JSON.stringify({ content })
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        input.value = '';
+        await loadComments(postId, postCard);
+        // 댓글 수 업데이트
+        const countEl = postCard.querySelector('.comments-count');
+        countEl.textContent = parseInt(countEl.textContent) + 1;
+      } else {
+        alert(data.error || '댓글 작성에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('댓글 작성 오류:', error);
+    }
+  }
+
+  // 답글 작성
+  async function submitReply(postId, parentId, input, postCard) {
+    const content = input.value.trim();
+    if (!content) return;
+
+    try {
+      const response = await fetch(`/community/posts/${postId}/comments`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken
+        },
+        body: JSON.stringify({ content, parent_id: parentId })
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        input.value = '';
+        await loadComments(postId, postCard);
+        const countEl = postCard.querySelector('.comments-count');
+        countEl.textContent = parseInt(countEl.textContent) + 1;
+      } else {
+        alert(data.error || '답글 작성에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('답글 작성 오류:', error);
+    }
+  }
+
+  // 댓글 수정
+  async function saveCommentEdit(commentId, input, form, contentEl) {
+    const content = input.value.trim();
+    if (!content) return;
+
+    try {
+      const response = await fetch(`/community/comments/${commentId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken
+        },
+        body: JSON.stringify({ content })
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        contentEl.textContent = content;
+        form.classList.add('d-none');
+        contentEl.classList.remove('d-none');
+      } else {
+        alert(data.error || '수정에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('수정 오류:', error);
+    }
+  }
+
+  // 댓글 삭제
+  async function deleteComment(commentId, postId, postCard) {
+    if (!confirm('정말 삭제하시겠습니까?')) return;
+
+    try {
+      const response = await fetch(`/community/comments/${commentId}`, {
+        method: 'DELETE',
+        headers: { 'X-CSRF-Token': csrfToken }
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        await loadComments(postId, postCard);
+      } else {
+        alert(data.error || '삭제에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('삭제 오류:', error);
+    }
+  }
+
+  // 게시글 작성
+  postForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const content = postInput.value.trim();
+    if (!content && !selectedImageUrl) {
+      alert('내용을 입력하거나 이미지를 첨부해주세요.');
+      return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+
+    try {
+      const response = await fetch('/community/posts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken
+        },
+        body: JSON.stringify({ content, image_url: selectedImageUrl })
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        postInput.value = '';
+        resetImageUpload();
+        currentPage = 1;
+        loadPosts(1, false);
+      } else {
+        alert(data.error || '게시글 작성에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('게시글 작성 오류:', error);
+      alert('게시글 작성 중 오류가 발생했습니다.');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '<i class="bi bi-send me-1"></i>게시';
+    }
+  });
+
+  // 더보기
+  loadMoreBtn.addEventListener('click', () => {
+    currentPage++;
+    loadPosts(currentPage, true);
+  });
+
+  // URL 해시로 특정 게시글로 스크롤
+  function scrollToPost() {
+    const hash = window.location.hash;
+    if (hash && hash.startsWith('#post-')) {
+      setTimeout(() => {
+        const postEl = document.querySelector(hash);
+        if (postEl) {
+          postEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          postEl.classList.add('border-success', 'border-2');
+          setTimeout(() => postEl.classList.remove('border-success', 'border-2'), 2000);
+        }
+      }, 500);
+    }
+  }
+
+  // 초기 로드
+  loadPosts(1, false).then(() => scrollToPost());
+});
+</script>
+
+<%- include('../partials/footer') %>

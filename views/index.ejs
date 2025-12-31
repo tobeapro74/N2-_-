@@ -180,6 +180,50 @@
   </div>
 </div>
 
+<!-- 일상톡톡 커뮤니티 -->
+<div class="row mb-3">
+  <div class="col-12">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-white py-2 d-flex justify-content-between align-items-center">
+        <h6 class="home-section-title-bold mb-0">
+          <i class="bi bi-chat-heart text-success me-1"></i>일상톡톡
+        </h6>
+        <a href="/community" class="btn btn-sm btn-outline-success py-0 px-2" style="font-size: 0.75rem;">더보기</a>
+      </div>
+      <div class="card-body p-2">
+        <% if (!user) { %>
+        <p class="text-muted text-center py-2 mb-0" style="font-size: 0.85rem;">로그인 후 이용 가능합니다.</p>
+        <% } else if (typeof recentCommunityPosts === 'undefined' || recentCommunityPosts.length === 0) { %>
+        <div class="text-center py-3">
+          <p class="text-muted mb-2" style="font-size: 0.85rem;">아직 게시글이 없습니다.</p>
+          <a href="/community" class="btn btn-success btn-sm">첫 글 작성하기</a>
+        </div>
+        <% } else { %>
+        <div class="list-group list-group-flush">
+          <% recentCommunityPosts.slice(0, 3).forEach(post => { %>
+          <a href="/community#post-<%= post.id %>" class="list-group-item list-group-item-action py-2 px-1 border-0">
+            <div class="d-flex justify-content-between align-items-start">
+              <div class="flex-grow-1 overflow-hidden">
+                <div class="d-flex align-items-center mb-1">
+                  <span class="fw-bold me-2" style="font-size: 0.85rem;"><%= post.member_name %></span>
+                  <small class="text-muted" style="font-size: 0.7rem;"><%= moment(post.created_at).fromNow() %></small>
+                </div>
+                <p class="mb-0 text-truncate text-dark" style="font-size: 0.8rem; max-width: 100%;"><%= post.content || '(이미지)' %></p>
+              </div>
+              <div class="d-flex align-items-center gap-2 ms-2 flex-shrink-0">
+                <% if (post.image_url) { %><i class="bi bi-image text-muted" style="font-size: 0.75rem;"></i><% } %>
+                <span class="badge bg-light text-secondary" style="font-size: 0.65rem;"><i class="bi bi-chat"></i> <%= post.comment_count %></span>
+              </div>
+            </div>
+          </a>
+          <% }) %>
+        </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="row g-3">
   <!-- 다가오는 일정 -->
   <div class="col-12">

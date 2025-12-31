@@ -124,7 +124,6 @@
 
       let isLoading = false;
       let loadingTimeout;
-      let showLoadingTimer;
 
       // 로딩 표시 함수
       function showLoading() {
@@ -141,59 +140,48 @@
         isLoading = false;
         loadingOverlay.style.display = 'none';
         clearTimeout(loadingTimeout);
-        clearTimeout(showLoadingTimer);
       }
 
-      // 지연 로딩 표시 (100ms 후 표시 - 빠른 페이지면 깜빡임 방지)
-      function scheduleShowLoading() {
-        if (isLoading) return;
-        clearTimeout(showLoadingTimer);
-        showLoadingTimer = setTimeout(showLoading, 100);
+      // 링크 유효성 검사
+      function isValidNavigationLink(element) {
+        if (!element) return false;
+        const href = element.getAttribute('href');
+        if (!href || href === '' || href.startsWith('#') ||
+            href.startsWith('javascript:') || href.startsWith('tel:') ||
+            href.startsWith('mailto:') ||
+            element.getAttribute('target') === '_blank' ||
+            element.hasAttribute('data-bs-toggle') ||
+            element.classList.contains('no-loading')) {
+          return false;
+        }
+        return href.startsWith('/') || href.startsWith(window.location.origin);
       }
 
-      // 페이지 이동 감지 - 통합 클릭 이벤트
-      document.addEventListener('click', function(e) {
-        // 이미 로딩 예약/진행 중이면 무시
+      // 클릭 이벤트 핸들러
+      function handleNavigation(e) {
         if (isLoading) return;
 
-        // 링크 클릭 확인
         const linkTarget = e.target.closest('a');
-        if (linkTarget) {
-          const href = linkTarget.getAttribute('href');
-
-          // 무시할 링크 패턴
-          if (!href ||
-              href === '' ||
-              href.startsWith('#') ||
-              href.startsWith('javascript:') ||
-              href.startsWith('tel:') ||
-              href.startsWith('mailto:') ||
-              linkTarget.getAttribute('target') === '_blank' ||
-              linkTarget.hasAttribute('data-bs-toggle') ||
-              linkTarget.classList.contains('no-loading')) {
-            return;
-          }
-
-          // 페이지 이동 링크만 로딩 표시
-          if (href.startsWith('/') || href.startsWith(window.location.origin)) {
-            scheduleShowLoading();
-            return;
-          }
+        if (isValidNavigationLink(linkTarget)) {
+          showLoading();
+          return;
         }
 
-        // onclick으로 location.href 변경하는 경우
         const onclickTarget = e.target.closest('[onclick*="location.href"]');
         if (onclickTarget && !onclickTarget.classList.contains('no-loading')) {
-          scheduleShowLoading();
+          showLoading();
         }
-      });
+      }
+
+      // 클릭 이벤트 (데스크톱 + 모바일)
+      document.addEventListener('click', handleNavigation);
 
       // 폼 제출 시 로딩 표시
       document.addEventListener('submit', function(e) {
         if (isLoading) return;
         const form = e.target;
         if (!form.classList.contains('no-loading') && !form.hasAttribute('data-no-loading')) {
-          scheduleShowLoading();
+          showLoading();
         }
       });
 

@@ -1581,30 +1581,39 @@ document.addEventListener('DOMContentLoaded', function() {
     initWelcomeBanner();
   }
 
-  // 골프장 코스 가이드 클릭 이벤트 (모바일 터치 지원)
+  // 골프장 코스 가이드 클릭 이벤트 (모바일 터치 피드백 포함)
   document.querySelectorAll('.course-clickable').forEach(function(el) {
-    el.style.cursor = 'pointer';
-
-    // 클릭 및 터치 이벤트 핸들러
+    // 클릭 핸들러
     function handleClick(e) {
-      // direction-btn 클릭은 무시 (별도 처리)
       if (e.target.closest('.direction-btn')) return;
-
       const courseId = el.dataset.course;
       if (courseId) {
         showCourseGuide(courseId);
       }
     }
 
-    el.addEventListener('click', handleClick);
+    // 터치 시작 - 눌림 효과
+    el.addEventListener('touchstart', function() {
+      el.classList.add('pressed');
+    }, { passive: true });
+
+    // 터치 종료 - 눌림 효과 해제 및 클릭 실행
     el.addEventListener('touchend', function(e) {
-      // 터치 이벤트 발생 시 클릭과 중복 방지
+      el.classList.remove('pressed');
       if (e.cancelable) e.preventDefault();
       handleClick(e);
     }, { passive: false });
+
+    // 터치 취소 (스크롤 등) - 눌림 효과만 해제
+    el.addEventListener('touchcancel', function() {
+      el.classList.remove('pressed');
+    }, { passive: true });
+
+    // 데스크톱 클릭
+    el.addEventListener('click', handleClick);
   });
 
-  // 가는길 버튼 클릭 이벤트 (모바일 터치 지원)
+  // 가는길 버튼 클릭 이벤트 (모바일 터치 피드백 포함)
   document.querySelectorAll('.direction-btn').forEach(function(el) {
     function handleDirectionClick(e) {
       e.preventDefault();
@@ -1615,12 +1624,27 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }
 
-    el.addEventListener('click', handleDirectionClick);
+    // 터치 시작 - 눌림 효과
+    el.addEventListener('touchstart', function(e) {
+      e.stopPropagation();
+      el.classList.add('pressed');
+    }, { passive: true });
+
+    // 터치 종료
     el.addEventListener('touchend', function(e) {
+      el.classList.remove('pressed');
       if (e.cancelable) e.preventDefault();
       e.stopPropagation();
       handleDirectionClick(e);
     }, { passive: false });
+
+    // 터치 취소
+    el.addEventListener('touchcancel', function() {
+      el.classList.remove('pressed');
+    }, { passive: true });
+
+    // 데스크톱 클릭
+    el.addEventListener('click', handleDirectionClick);
   });
 });
 </script>

@@ -1648,3 +1648,43 @@ footer {
   }
 }
 
+/* =============================================
+   골프장 카드 터치 피드백
+   ============================================= */
+.course-clickable {
+  cursor: pointer;
+  border-radius: var(--radius);
+  padding: 0.5rem;
+  margin: -0.5rem;
+  transition: transform 0.1s ease-out, background-color 0.15s ease-out, box-shadow 0.15s ease-out;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* 마우스 호버 효과 (데스크톱) */
+@media (hover: hover) {
+  .course-clickable:hover {
+    background-color: hsl(var(--muted) / 0.5);
+  }
+}
+
+/* 눌림 효과 (active 상태) */
+.course-clickable:active,
+.course-clickable.pressed {
+  transform: scale(0.97);
+  background-color: hsl(var(--muted) / 0.8);
+}
+
+/* 가는길 버튼 터치 피드백 */
+.direction-btn {
+  transition: transform 0.1s ease-out, opacity 0.15s ease-out;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.direction-btn:active,
+.direction-btn.pressed {
+  transform: scale(0.92);
+  opacity: 0.8;
+}
+

@@ -1163,40 +1163,40 @@ function bindWeatherCardTouchEvents() {
   document.querySelectorAll('.weather-card-link').forEach(function(el) {
     let touchStartY = 0;
     let touchStartX = 0;
+    let isTap = false;
 
     el.addEventListener('touchstart', function(e) {
       if (e.touches.length > 0) {
         touchStartY = e.touches[0].clientY;
         touchStartX = e.touches[0].clientX;
+        isTap = true;
       }
       el.classList.add('pressed');
     }, { passive: true });
 
-    el.addEventListener('touchend', function(e) {
-      el.classList.remove('pressed');
-
-      if (e.changedTouches.length > 0) {
-        const touchEndY = e.changedTouches[0].clientY;
-        const touchEndX = e.changedTouches[0].clientX;
-        const deltaY = Math.abs(touchEndY - touchStartY);
-        const deltaX = Math.abs(touchEndX - touchStartX);
-
-        // 스크롤로 판단되면 클릭 실행 안 함
+    el.addEventListener('touchmove', function(e) {
+      if (e.touches.length > 0) {
+        const deltaY = Math.abs(e.touches[0].clientY - touchStartY);
+        const deltaX = Math.abs(e.touches[0].clientX - touchStartX);
         if (deltaY > SCROLL_THRESHOLD || deltaX > SCROLL_THRESHOLD) {
-          e.preventDefault();
-          return;
-        }
-
-        // 유효한 탭인 경우 로딩 인디케이터 표시
-        const href = el.getAttribute('href');
-        if (href && href !== '#' && href.startsWith('/')) {
-          if (window.showGlobalLoading) window.showGlobalLoading();
+          isTap = false;
+          el.classList.remove('pressed');
         }
       }
+    }, { passive: true });
+
+    el.addEventListener('touchend', function(e) {
+      el.classList.remove('pressed');
+      // 기본 링크 동작은 그대로 두고, isTap이 false면 막음
+      if (!isTap) {
+        e.preventDefault();
+      }
+      // isTap이 true면 기본 링크 동작 실행됨 (로딩은 header.ejs의 클릭 핸들러에서 처리)
     }, { passive: false });
 
     el.addEventListener('touchcancel', function() {
       el.classList.remove('pressed');
+      isTap = false;
     }, { passive: true });
   });
 }

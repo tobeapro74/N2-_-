@@ -24,6 +24,96 @@
   <meta name="csrf-token" content="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
 </head>
 <body>
+  <!-- 전역 로딩 오버레이 (모든 페이지에서 사용) -->
+  <div id="globalLoadingOverlay" class="loading-overlay" style="display: none;">
+    <div class="loading-content">
+      <div class="spinner-border text-primary" role="status" style="width: 2.5rem; height: 2.5rem;">
+        <span class="visually-hidden">로딩중...</span>
+      </div>
+      <div class="loading-text mt-2">조회중...</div>
+    </div>
+  </div>
+  <!-- 로딩 인디케이터 즉시 초기화 스크립트 -->
+  <script>
+    (function() {
+      var loadingOverlay = document.getElementById('globalLoadingOverlay');
+      var isLoading = false;
+      var loadingTimeout;
+
+      function showLoading() {
+        if (isLoading || !loadingOverlay) return;
+        isLoading = true;
+        loadingOverlay.style.display = 'flex';
+        clearTimeout(loadingTimeout);
+        loadingTimeout = setTimeout(hideLoading, 5000);
+      }
+
+      function hideLoading() {
+        isLoading = false;
+        if (loadingOverlay) loadingOverlay.style.display = 'none';
+        clearTimeout(loadingTimeout);
+      }
+
+      function isValidNavigationLink(element) {
+        if (!element) return false;
+        var href = element.getAttribute('href');
+        if (!href || href === '' || href.startsWith('#') ||
+            href.startsWith('javascript:') || href.startsWith('tel:') ||
+            href.startsWith('mailto:') ||
+            element.getAttribute('target') === '_blank' ||
+            element.hasAttribute('data-bs-toggle') ||
+            element.classList.contains('no-loading') ||
+            element.classList.contains('dropdown-toggle')) {
+          return false;
+        }
+        return href.startsWith('/') || href.startsWith(window.location.origin);
+      }
+
+      function handleClick(e) {
+        if (isLoading) return;
+        var linkTarget = e.target.closest('a');
+        if (isValidNavigationLink(linkTarget)) {
+          showLoading();
+          return;
+        }
+        var onclickTarget = e.target.closest('[onclick*="location.href"]');
+        if (onclickTarget && !onclickTarget.classList.contains('no-loading')) {
+          showLoading();
+        }
+      }
+
+      // 클릭 이벤트 리스너 등록
+      document.addEventListener('click', handleClick);
+
+      // 폼 제출 시 로딩 표시
+      document.addEventListener('submit', function(e) {
+        if (isLoading) return;
+        var form = e.target;
+        if (!form.classList.contains('no-loading') && !form.hasAttribute('data-no-loading')) {
+          showLoading();
+        }
+      });
+
+      // 페이지 표시 시 로딩 숨김 (뒤로가기/앞으로가기)
+      window.addEventListener('pageshow', hideLoading);
+
+      // 페이지 로드 완료 시 로딩 숨김
+      window.addEventListener('load', hideLoading);
+
+      // 탭 전환 시 로딩 숨김
+      document.addEventListener('visibilitychange', function() {
+        if (document.visibilityState === 'visible') hideLoading();
+      });
+
+      // 페이지 이동 시작 시 로딩 표시
+      window.addEventListener('beforeunload', showLoading);
+
+      // 전역 함수로 노출 (필요시 다른 스크립트에서 사용 가능)
+      window.showGlobalLoading = showLoading;
+      window.hideGlobalLoading = hideLoading;
+    })();
+  </script>
+
   <!-- 스킵 링크 (접근성) -->
   <a href="#main-content" class="skip-link">본문으로 바로가기</a>
 

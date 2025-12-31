@@ -1,4 +1,4 @@
-const CACHE_NAME = 'n2golf-v4';
+const CACHE_NAME = 'n2golf-v5';
 const urlsToCache = [
   '/',
   '/css/style.css',

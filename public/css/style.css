@@ -985,6 +985,24 @@ tr[data-href]:focus {
   display: flex;
 }
 
+.loading-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background: hsl(var(--card));
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+}
+
+.loading-text {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: hsl(var(--muted-foreground));
+  margin-top: 0.75rem;
+}
+
 /* 데스크톱/모바일 전환 */
 .desktop-table {
   display: block;

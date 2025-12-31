@@ -1,4 +1,15 @@
   </main>
+
+  <!-- 전역 로딩 오버레이 -->
+  <div id="globalLoadingOverlay" class="loading-overlay" style="display: none;">
+    <div class="loading-content">
+      <div class="spinner-border text-primary" role="status" style="width: 2.5rem; height: 2.5rem;">
+        <span class="visually-hidden">로딩중...</span>
+      </div>
+      <div class="loading-text mt-2">조회중...</div>
+    </div>
+  </div>
+
   <footer class="bg-light py-3 mt-5">
     <div class="container text-center text-muted">
       <small>&copy; 2024-2026 N2골프 (NH투자증권 골프동호회). All rights reserved.</small>
@@ -103,6 +114,85 @@
           autoSlide = setInterval(nextSlide, intervalTime);
         }
       }
+    })();
+  </script>
+  <!-- 전역 로딩 인디케이터 스크립트 -->
+  <script>
+    (function() {
+      const loadingOverlay = document.getElementById('globalLoadingOverlay');
+      if (!loadingOverlay) return;
+
+      // 로딩 표시 함수
+      function showLoading() {
+        loadingOverlay.style.display = 'flex';
+      }
+
+      // 로딩 숨김 함수
+      function hideLoading() {
+        loadingOverlay.style.display = 'none';
+      }
+
+      // 페이지 이동 감지 - 일반 링크 클릭
+      document.addEventListener('click', function(e) {
+        const target = e.target.closest('a');
+        if (!target) return;
+
+        const href = target.getAttribute('href');
+
+        // 무시할 링크 패턴
+        if (!href ||
+            href.startsWith('#') ||
+            href.startsWith('javascript:') ||
+            href.startsWith('tel:') ||
+            href.startsWith('mailto:') ||
+            target.getAttribute('target') === '_blank' ||
+            target.hasAttribute('data-bs-toggle') ||
+            target.classList.contains('no-loading')) {
+          return;
+        }
+
+        // 페이지 이동 링크만 로딩 표시
+        if (href.startsWith('/') || href.startsWith(window.location.origin)) {
+          showLoading();
+        }
+      });
+
+      // 클릭 가능한 요소 (onclick으로 location.href 변경하는 경우)
+      document.addEventListener('click', function(e) {
+        const target = e.target.closest('[onclick*="location.href"]');
+        if (target && !target.classList.contains('no-loading')) {
+          showLoading();
+        }
+      });
+
+      // 폼 제출 시 로딩 표시
+      document.addEventListener('submit', function(e) {
+        const form = e.target;
+        if (!form.classList.contains('no-loading') && !form.hasAttribute('data-no-loading')) {
+          showLoading();
+        }
+      });
+
+      // 뒤로가기/앞으로가기 시 로딩 숨김
+      window.addEventListener('pageshow', function(e) {
+        if (e.persisted) {
+          hideLoading();
+        }
+      });
+
+      // 페이지 로드 완료 시 로딩 숨김 (안전장치)
+      window.addEventListener('load', function() {
+        hideLoading();
+      });
+
+      // 3초 후 자동 숨김 (무한 로딩 방지)
+      let loadingTimeout;
+      const originalShowLoading = showLoading;
+      showLoading = function() {
+        originalShowLoading();
+        clearTimeout(loadingTimeout);
+        loadingTimeout = setTimeout(hideLoading, 5000);
+      };
     })();
   </script>
 </body>

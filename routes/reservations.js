@@ -203,11 +203,13 @@ router.get('/admin', requireAuth, requireAdmin, async (req, res) => {
   try {
     const { schedule_id } = req.query;
 
-    // MongoDB에서 직접 최신 데이터 조회 (서버리스 환경 캐시 불일치 방지)
-    const allReservationsData = await db.getTableAsync('reservations');
-    const members = await db.getTableAsync('members');
-    const schedules = await db.getTableAsync('schedules');
-    const golfCourses = await db.getTableAsync('golf_courses');
+    // MongoDB에서 직접 최신 데이터 조회 (병렬 처리 + projection으로 성능 향상)
+    const [allReservationsData, members, schedules, golfCourses] = await Promise.all([
+      db.getTableAsync('reservations'),
+      db.getTableAsync('members', { projection: { id: 1, name: 1, employee_id: 1, department: 1, phone: 1 } }),
+      db.getTableAsync('schedules'),
+      db.getTableAsync('golf_courses')
+    ]);
 
     if (schedule_id) {
       const scheduleId = parseInt(schedule_id);

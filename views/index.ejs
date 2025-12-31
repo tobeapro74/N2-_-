@@ -1593,14 +1593,37 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }
 
+    // 터치 시작 위치 저장
+    let touchStartY = 0;
+    let touchStartX = 0;
+    const SCROLL_THRESHOLD = 10; // 10px 이상 움직이면 스크롤로 판단
+
     // 터치 시작 - 눌림 효과
-    el.addEventListener('touchstart', function() {
+    el.addEventListener('touchstart', function(e) {
+      if (e.touches.length > 0) {
+        touchStartY = e.touches[0].clientY;
+        touchStartX = e.touches[0].clientX;
+      }
       el.classList.add('pressed');
     }, { passive: true });
 
-    // 터치 종료 - 눌림 효과 해제 및 클릭 실행
+    // 터치 종료 - 스크롤인지 탭인지 판단
     el.addEventListener('touchend', function(e) {
       el.classList.remove('pressed');
+
+      // 터치 끝 위치 확인
+      if (e.changedTouches.length > 0) {
+        const touchEndY = e.changedTouches[0].clientY;
+        const touchEndX = e.changedTouches[0].clientX;
+        const deltaY = Math.abs(touchEndY - touchStartY);
+        const deltaX = Math.abs(touchEndX - touchStartX);
+
+        // 스크롤로 판단되면 클릭 실행 안 함
+        if (deltaY > SCROLL_THRESHOLD || deltaX > SCROLL_THRESHOLD) {
+          return;
+        }
+      }
+
       if (e.cancelable) e.preventDefault();
       handleClick(e);
     }, { passive: false });
@@ -1625,17 +1648,40 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }
 
+    // 터치 시작 위치 저장
+    let touchStartY = 0;
+    let touchStartX = 0;
+    const SCROLL_THRESHOLD = 10;
+
     // 터치 시작 - 눌림 효과
     el.addEventListener('touchstart', function(e) {
       e.stopPropagation();
+      if (e.touches.length > 0) {
+        touchStartY = e.touches[0].clientY;
+        touchStartX = e.touches[0].clientX;
+      }
       el.classList.add('pressed');
     }, { passive: true });
 
-    // 터치 종료
+    // 터치 종료 - 스크롤인지 탭인지 판단
     el.addEventListener('touchend', function(e) {
       el.classList.remove('pressed');
-      if (e.cancelable) e.preventDefault();
       e.stopPropagation();
+
+      // 터치 끝 위치 확인
+      if (e.changedTouches.length > 0) {
+        const touchEndY = e.changedTouches[0].clientY;
+        const touchEndX = e.changedTouches[0].clientX;
+        const deltaY = Math.abs(touchEndY - touchStartY);
+        const deltaX = Math.abs(touchEndX - touchStartX);
+
+        // 스크롤로 판단되면 클릭 실행 안 함
+        if (deltaY > SCROLL_THRESHOLD || deltaX > SCROLL_THRESHOLD) {
+          return;
+        }
+      }
+
+      if (e.cancelable) e.preventDefault();
       handleDirectionClick(e);
     }, { passive: false });
 

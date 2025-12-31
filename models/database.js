@@ -64,9 +64,11 @@ async function connectMongo() {
 
   try {
     mongoClient = new MongoClient(MONGODB_URI, {
-      maxPoolSize: 10,
+      maxPoolSize: 50,  // 연결 풀 증대 (기존 10 -> 50)
+      minPoolSize: 5,   // 최소 연결 유지
       serverSelectionTimeoutMS: 5000,
       socketTimeoutMS: 45000,
+      maxIdleTimeMS: 30000,  // 유휴 연결 30초 후 정리
     });
 
     await mongoClient.connect();
@@ -188,13 +190,20 @@ class Database {
   }
 
   // 테이블(컬렉션) 전체 데이터 가져오기 (비동기 - MongoDB 직접 조회)
-  async getTableAsync(name) {
+  async getTableAsync(name, options = {}) {
     if (useMongoDb) {
       try {
         const collection = await this.getCollection(name);
-        const data = await collection.find({}).toArray();
-        // 캐시도 업데이트
-        this.mongoCache[name] = data;
+        const { projection, filter = {} } = options;
+
+        // projection이 있으면 필요한 필드만 조회 (성능 최적화)
+        const findOptions = projection ? { projection } : {};
+        const data = await collection.find(filter, findOptions).toArray();
+
+        // projection 없을 때만 캐시 업데이트 (전체 데이터일 때만)
+        if (!projection && Object.keys(filter).length === 0) {
+          this.mongoCache[name] = data;
+        }
         return data;
       } catch (error) {
         console.error(`getTableAsync 오류 (${name}):`, error);

@@ -160,6 +160,16 @@ N2골프_자금관리/
 - [x] 홈 화면 추가 기능
 - [x] 오프라인 캐싱
 
+### 11. 성능 최적화
+- [x] gzip 압축 (응답 크기 60-70% 감소)
+- [x] 정적 파일 캐싱 (1일)
+- [x] MongoDB 연결 풀 최적화 (maxPoolSize 50)
+- [x] MongoDB 인덱스 (14개)
+- [x] Cloudinary 이미지 자동 최적화 (WebP/AVIF)
+- [x] 이미지 Lazy Loading
+- [x] Promise.all 병렬 쿼리 처리
+- [x] MongoDB projection
+
 ## 향후 개발 계획
 
 ### Phase 1 (완료)
@@ -185,6 +195,16 @@ N2골프_자금관리/
 - [x] URL 링크 미리보기 (Open Graph)
 - [x] 유튜브 썸네일 자동 생성
 - [x] MongoDB Atlas 연동 (Vercel 서버리스)
+
+### Phase 2.8 - 성능 최적화 (완료)
+- [x] gzip 압축 (응답 크기 60-70% 감소)
+- [x] 정적 파일 캐싱 (1일)
+- [x] MongoDB 연결 풀 최적화 (maxPoolSize 50)
+- [x] MongoDB 인덱스 생성 (14개)
+- [x] Cloudinary 이미지 자동 최적화 (f_auto, q_auto)
+- [x] 이미지 Lazy Loading
+- [x] Promise.all 병렬 쿼리 처리
+- [x] MongoDB projection (필요 필드만 조회)
 
 ### Phase 3 (예정)
 - [ ] 스코어카드 기록 기능

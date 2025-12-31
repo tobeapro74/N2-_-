@@ -7,6 +7,7 @@
 4. [Vercel 서버리스 환경 대응](#4-vercel-서버리스-환경-대응)
 5. [보안 설정 (CSP)](#5-보안-설정-csp)
 6. [URL 미리보기 시스템](#6-url-미리보기-시스템)
+7. [성능 최적화](#7-성능-최적화)
 
 ---
 
@@ -451,3 +452,175 @@ Vercel에서 환경 변수 설정:
 ```bash
 vercel env pull .env.local
 ```
+
+---
+
+## 7. 성능 최적화
+
+### 7.1 gzip 압축
+
+응답 데이터를 gzip으로 압축하여 네트워크 전송량을 60-70% 감소시킵니다.
+
+```javascript
+// app.js
+const compression = require('compression');
+
+app.use(compression({
+  level: 6,              // 압축 레벨 (1-9, 6이 균형점)
+  threshold: 1024,       // 1KB 이상만 압축
+  filter: (req, res) => {
+    if (req.headers['x-no-compression']) return false;
+    return compression.filter(req, res);
+  }
+}));
+```
+
+### 7.2 정적 파일 캐싱
+
+브라우저가 정적 파일(CSS, JS, 이미지)을 캐시하도록 설정합니다.
+
+```javascript
+// app.js
+app.use(express.static(path.join(__dirname, 'public'), {
+  maxAge: '1d',       // 1일 캐싱
+  etag: true,         // ETag 헤더로 변경 감지
+  lastModified: true  // Last-Modified 헤더 포함
+}));
+```
+
+**캐싱 동작:**
+- 첫 요청: 200 OK + 파일 전체 전송
+- 재요청: 304 Not Modified (파일 미변경 시)
+
+### 7.3 MongoDB 연결 풀 최적화
+
+```javascript
+// models/database.js
+mongoClient = new MongoClient(MONGODB_URI, {
+  maxPoolSize: 50,           // 최대 연결 수 (기존 10 → 50)
+  minPoolSize: 5,            // 최소 연결 유지
+  serverSelectionTimeoutMS: 5000,
+  socketTimeoutMS: 45000,
+  maxIdleTimeMS: 30000,      // 유휴 연결 30초 후 정리
+});
+```
+
+**연결 풀의 효과:**
+```
+연결 풀 없이:
+요청1 → 연결 생성 → 쿼리 → 연결 종료
+요청2 → 연결 생성 → 쿼리 → 연결 종료  (매번 연결 오버헤드)
+
+연결 풀 사용:
+요청1 → 풀에서 연결 획득 → 쿼리 → 풀에 반환
+요청2 → 풀에서 연결 획득 → 쿼리 → 풀에 반환  (재사용)
+```
+
+### 7.4 MongoDB 인덱스
+
+자주 조회되는 필드에 인덱스를 생성하여 쿼리 속도를 O(n) → O(log n)으로 개선합니다.
+
+**생성된 인덱스:**
+
+| 컬렉션 | 인덱스 | 용도 |
+|--------|--------|------|
+| reservations | schedule_id | 일정별 예약 조회 |
+| reservations | member_id | 회원별 예약 조회 |
+| reservations | schedule_id + member_id (unique) | 중복 예약 방지 |
+| schedule_comments | schedule_id | 일정별 댓글 조회 |
+| schedule_comments | schedule_id + parent_id | 대댓글 조회 |
+| schedule_comments | created_at (desc) | 최신순 정렬 |
+| comment_reactions | comment_id | 댓글별 리액션 조회 |
+| comment_reactions | comment_id + member_id (unique) | 중복 리액션 방지 |
+| schedules | golf_course_id + play_date | 골프장+날짜 조회 |
+| schedules | play_date | 날짜별 일정 조회 |
+| finances | transaction_date (desc) | 최신 거래 조회 |
+| finances | type + transaction_date | 유형별 거래 조회 |
+| members | name | 이름 검색 |
+| members | department | 부서별 회원 조회 |
+
+**인덱스 생성 스크립트:**
+```bash
+node scripts/create-indexes.js
+```
+
+### 7.5 Cloudinary 이미지 최적화
+
+업로드 및 표시 시 자동으로 최적화된 포맷(WebP/AVIF)과 품질을 적용합니다.
+
+```javascript
+// 업로드 시 (routes/schedules.js)
+cloudinary.uploader.upload(base64Data, {
+  transformation: [
+    { width: 1200, height: 1200, crop: 'limit' },
+    { quality: 'auto:good', fetch_format: 'auto' }  // 자동 최적화
+  ]
+});
+
+// 표시 시 URL 변환 (utils/validator.js)
+function optimizeCloudinaryUrl(url) {
+  if (!url.includes('res.cloudinary.com')) return url;
+  if (url.includes('f_auto') || url.includes('q_auto')) return url;
+  return url.replace('/upload/', '/upload/f_auto,q_auto/');
+}
+```
+
+### 7.6 이미지 Lazy Loading
+
+화면에 보이는 이미지만 먼저 로드하여 초기 페이지 속도를 개선합니다.
+
+```html
+<img src="..." loading="lazy" alt="...">
+```
+
+적용 위치:
+- 댓글/대댓글 첨부 이미지
+- URL 미리보기 썸네일
+- 홀 레이아웃 이미지
+
+### 7.7 쿼리 최적화
+
+**Projection**: 필요한 필드만 조회하여 네트워크 전송량 감소
+
+```javascript
+// 모든 필드 조회 (비효율)
+const members = await db.getTableAsync('members');
+
+// 필요한 필드만 조회 (최적화)
+const members = await db.getTableAsync('members', {
+  projection: { id: 1, name: 1 }
+});
+```
+
+**Promise.all**: 여러 쿼리를 병렬로 실행
+
+```javascript
+// 순차 실행 (느림)
+const comments = await db.getTableAsync('schedule_comments');
+const reactions = await db.getTableAsync('comment_reactions');
+const members = await db.getTableAsync('members');
+
+// 병렬 실행 (빠름)
+const [comments, reactions, members] = await Promise.all([
+  db.getTableAsync('schedule_comments'),
+  db.getTableAsync('comment_reactions'),
+  db.getTableAsync('members', { projection: { id: 1, name: 1 } })
+]);
+```
+
+### 7.8 성능 최적화 체크리스트
+
+새로운 기능 개발 시 확인사항:
+
+- [ ] 자주 조회되는 필드에 인덱스가 있는가?
+- [ ] N+1 쿼리 문제가 없는가?
+- [ ] Promise.all로 병렬 처리 가능한가?
+- [ ] projection으로 필요한 필드만 조회하는가?
+- [ ] 이미지에 lazy loading이 적용되어 있는가?
+- [ ] 불필요한 캐시 갱신을 하고 있지 않은가?
+
+### 7.9 추가 최적화 방안 (향후)
+
+1. **Redis 캐싱**: 자주 조회되는 데이터를 Redis에 캐시
+2. **번들 최적화**: JavaScript/CSS 번들 크기 최소화
+3. **CDN 활용**: 정적 파일을 CDN에서 서빙

@@ -232,6 +232,21 @@ function validateTeeTimes(value, required = false) {
   return { valid: true, value };
 }
 
+// Cloudinary URL 최적화 (f_auto, q_auto 적용)
+function optimizeCloudinaryUrl(url) {
+  if (!url || typeof url !== 'string') return url;
+
+  // Cloudinary URL인지 확인
+  if (!url.includes('res.cloudinary.com')) return url;
+
+  // 이미 최적화 파라미터가 있으면 그대로 반환
+  if (url.includes('f_auto') || url.includes('q_auto')) return url;
+
+  // /upload/ 다음에 최적화 파라미터 삽입
+  // 예: .../upload/v123/... → .../upload/f_auto,q_auto/v123/...
+  return url.replace('/upload/', '/upload/f_auto,q_auto/');
+}
+
 // 여러 필드 한번에 검증
 function validateAll(validations) {
   const errors = [];
@@ -265,5 +280,6 @@ module.exports = {
   validatePassword,
   validateEnum,
   validateTeeTimes,
-  validateAll
+  validateAll,
+  optimizeCloudinaryUrl
 };

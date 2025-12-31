@@ -7,6 +7,8 @@
 2. [Service Worker 외부 리소스 차단](#2-service-worker-외부-리소스-차단)
 3. [Vercel 서버리스 캐시 불일치](#3-vercel-서버리스-캐시-불일치)
 4. [Vercel 배포 에러 (functions/builds 충돌)](#4-vercel-배포-에러-functionsbuilds-충돌)
+5. [URL 미리보기 이미지 안 보임](#5-url-미리보기-이미지-안-보임)
+6. [웹사이트 속도 느림](#6-웹사이트-속도-느림)
 
 ---
 
@@ -274,3 +276,158 @@ imgSrc: ["'self'", "data:", "https:", "http:"],
 1. [ ] `vercel.json` 문법 오류 확인
 2. [ ] `functions`와 `builds` 동시 사용 여부 확인
 3. [ ] 로컬에서 `npx vercel --prod` 실행하여 상세 에러 확인
+
+---
+
+## 6. 웹사이트 속도 느림
+
+### 증상
+- 페이지 로딩이 2초 이상 걸림
+- MongoDB 업그레이드(M0 → M10)에도 속도 개선 없음
+- 첫 방문 시 특히 느림
+
+### 원인별 해결
+
+#### 6.1 gzip 압축 미적용
+
+**확인 방법:**
+```bash
+curl -H "Accept-Encoding: gzip" -I https://your-site.vercel.app
+```
+응답 헤더에 `Content-Encoding: gzip`이 없으면 압축 미적용.
+
+**해결:**
+```javascript
+// app.js
+const compression = require('compression');
+app.use(compression({
+  level: 6,
+  threshold: 1024
+}));
+```
+
+#### 6.2 정적 파일 캐싱 없음
+
+**확인 방법:**
+Network 탭에서 CSS/JS 요청이 매번 200 OK인지 확인.
+304 Not Modified가 나와야 캐싱 동작 중.
+
+**해결:**
+```javascript
+// app.js
+app.use(express.static(path.join(__dirname, 'public'), {
+  maxAge: '1d',
+  etag: true,
+  lastModified: true
+}));
+```
+
+#### 6.3 MongoDB 연결 풀 부족
+
+**증상:**
+- 동시 요청 시 응답 지연
+- 간헐적인 타임아웃
+
+**해결:**
+```javascript
+// models/database.js
+mongoClient = new MongoClient(MONGODB_URI, {
+  maxPoolSize: 50,   // 기존 10 → 50
+  minPoolSize: 5,
+  maxIdleTimeMS: 30000
+});
+```
+
+#### 6.4 MongoDB 인덱스 없음
+
+**확인 방법:**
+MongoDB Atlas → 컬렉션 → Indexes 탭에서 인덱스 확인.
+`_id` 외에 인덱스가 없으면 문제.
+
+**해결:**
+```bash
+node scripts/create-indexes.js
+```
+
+**주요 인덱스:**
+- `reservations.schedule_id`
+- `schedule_comments.schedule_id`
+- `schedules.play_date`
+- `finances.transaction_date`
+
+#### 6.5 Vercel Cold Start
+
+**증상:**
+- 한동안 접속 없다가 첫 요청 시 3-5초 소요
+- 이후 요청은 빠름
+
+**원인:**
+서버리스 함수가 유휴 상태에서 깨어나는 시간.
+
+**완화 방법:**
+1. 정적 자산은 캐싱으로 빠르게 로드
+2. 중요 API는 최소한의 연결로 응답
+3. (유료) Vercel Pro의 Always On 기능 사용
+
+#### 6.6 쿼리 최적화 미적용
+
+**증상:**
+- API 응답이 느림
+- 여러 데이터를 조회하는 페이지가 특히 느림
+
+**해결 1: Promise.all로 병렬 처리**
+```javascript
+// 순차 실행 (느림)
+const comments = await db.getTableAsync('schedule_comments');
+const reactions = await db.getTableAsync('comment_reactions');
+
+// 병렬 실행 (빠름)
+const [comments, reactions] = await Promise.all([
+  db.getTableAsync('schedule_comments'),
+  db.getTableAsync('comment_reactions')
+]);
+```
+
+**해결 2: Projection으로 필요한 필드만 조회**
+```javascript
+// 모든 필드 조회 (비효율)
+const members = await db.getTableAsync('members');
+
+// 필요한 필드만 조회 (최적화)
+const members = await db.getTableAsync('members', {
+  projection: { id: 1, name: 1 }
+});
+```
+
+#### 6.7 이미지 최적화 미적용
+
+**증상:**
+- 이미지가 많은 페이지 로딩 느림
+- Cloudinary 이미지 용량이 큼
+
+**해결 1: Cloudinary URL 최적화**
+```javascript
+// utils/validator.js의 optimizeCloudinaryUrl() 사용
+// /upload/ → /upload/f_auto,q_auto/ 변환
+```
+
+**해결 2: Lazy Loading 적용**
+```html
+<img src="..." loading="lazy" alt="...">
+```
+
+### 성능 진단 체크리스트
+
+1. [ ] Network 탭에서 가장 느린 요청 확인
+2. [ ] gzip 압축 적용 여부 확인
+3. [ ] 정적 파일 304 응답 확인
+4. [ ] MongoDB Atlas Performance Advisor 확인
+5. [ ] 인덱스 생성 여부 확인
+6. [ ] Promise.all 병렬 처리 적용 여부 확인
+7. [ ] 이미지 lazy loading 적용 여부 확인
+
+### 성능 측정 도구
+
+- **Lighthouse**: Chrome DevTools → Lighthouse 탭
+- **WebPageTest**: https://www.webpagetest.org/
+- **MongoDB Atlas**: Performance Advisor, Real-Time Performance Panel

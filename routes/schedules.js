@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const db = require('../models/database');
 const multer = require('multer');
+const { optimizeCloudinaryUrl } = require('../utils/validator');
 
 // ============================================
 // Cloudinary 설정 (무료 플랜 우선 사용)
@@ -277,10 +278,12 @@ router.get('/:id', requireAuth, async (req, res) => {
   try {
     const scheduleId = parseInt(req.params.id);
 
-    // MongoDB에서 직접 최신 데이터 조회 (서버리스 환경 캐시 불일치 방지)
-    const schedules = await db.getTableAsync('schedules');
-    const reservationsData = await db.getTableAsync('reservations');
-    const members = await db.getTableAsync('members');
+    // MongoDB에서 직접 최신 데이터 조회 (병렬 처리 + projection으로 성능 향상)
+    const [schedules, reservationsData, members] = await Promise.all([
+      db.getTableAsync('schedules'),
+      db.getTableAsync('reservations'),
+      db.getTableAsync('members', { projection: { id: 1, name: 1, employee_id: 1, department: 1 } })
+    ]);
 
     const schedule = schedules.find(s => s.id === scheduleId || s.id === parseInt(scheduleId));
 
@@ -463,11 +466,13 @@ router.get('/:id/comments', requireAuth, async (req, res) => {
     const scheduleId = parseInt(req.params.id);
     const userId = req.session.user.id;
 
-    // MongoDB에서 직접 최신 데이터 조회 (서버리스 캐시 불일치 방지)
-    const allCommentsData = await db.getTableAsync('schedule_comments');
+    // MongoDB에서 직접 최신 데이터 조회 (병렬 처리 + projection으로 성능 향상)
+    const [allCommentsData, reactions, members] = await Promise.all([
+      db.getTableAsync('schedule_comments'),
+      db.getTableAsync('comment_reactions'),
+      db.getTableAsync('members', { projection: { id: 1, name: 1 } }) // 필요한 필드만 조회
+    ]);
     const allComments = allCommentsData.filter(c => c.schedule_id === scheduleId);
-    const reactions = await db.getTableAsync('comment_reactions');
-    const members = await db.getTableAsync('members');
 
     // 댓글에 추가 정보 붙이기
     const enrichComment = (comment) => {
@@ -479,6 +484,7 @@ router.get('/:id/comments', requireAuth, async (req, res) => {
 
       return {
         ...comment,
+        image_url: optimizeCloudinaryUrl(comment.image_url), // Cloudinary URL 최적화
         member_name: member.name || '알 수 없음',
         likes,
         dislikes,
@@ -920,7 +926,7 @@ router.post('/comments/upload-image', requireAuth, upload.single('image'), async
           resource_type: 'image',
           transformation: [
             { width: 1200, height: 1200, crop: 'limit' }, // 최대 크기 제한
-            { quality: 'auto:good' } // 자동 품질 최적화
+            { quality: 'auto:good', fetch_format: 'auto' } // 자동 품질 및 포맷(WebP/AVIF) 최적화
           ]
         });
 

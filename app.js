@@ -1,6 +1,7 @@
 const express = require('express');
 const session = require('express-session');
 const cookieSession = require('cookie-session');
+const compression = require('compression');
 const path = require('path');
 const crypto = require('crypto');
 const helmet = require('helmet');
@@ -49,7 +50,23 @@ app.use(helmet({
   } : false
 }));
 
-app.use(express.static(path.join(__dirname, 'public')));
+// gzip 압축 (응답 크기 60-70% 감소)
+app.use(compression({
+  level: 6,
+  threshold: 1024,  // 1KB 이상만 압축
+  filter: (req, res) => {
+    if (req.headers['x-no-compression']) return false;
+    return compression.filter(req, res);
+  }
+}));
+
+// 정적 파일 제공 (캐싱 헤더 포함)
+app.use(express.static(path.join(__dirname, 'public'), {
+  maxAge: '1d',  // 1일 캐싱
+  etag: true,
+  lastModified: true
+}));
+
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(express.json({ limit: '10mb' }));
 

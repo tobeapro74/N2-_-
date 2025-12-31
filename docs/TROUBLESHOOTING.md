@@ -553,6 +553,59 @@ el.addEventListener('touchcancel', function() {
 }, { passive: true });
 ```
 
+### 7.4 동적으로 생성된 요소의 터치 피드백
+
+#### 증상
+- 페이지 로드 후 동적으로 생성된 카드(날씨, 교통 등)에 터치 피드백이 안 됨
+
+#### 원인
+- DOM 로드 시점에 요소가 없어서 이벤트 바인딩이 안 됨
+
+#### 해결 방법
+
+**동적 요소 생성 후 이벤트 바인딩:**
+```javascript
+// 동적 콘텐츠 생성 후 호출
+function bindDynamicTouchEvents() {
+  const SCROLL_THRESHOLD = 10;
+
+  document.querySelectorAll('.dynamic-card-link').forEach(function(el) {
+    let touchStartY = 0;
+    let touchStartX = 0;
+
+    el.addEventListener('touchstart', function(e) {
+      if (e.touches.length > 0) {
+        touchStartY = e.touches[0].clientY;
+        touchStartX = e.touches[0].clientX;
+      }
+      el.classList.add('pressed');
+    }, { passive: true });
+
+    el.addEventListener('touchend', function(e) {
+      el.classList.remove('pressed');
+      if (e.changedTouches.length > 0) {
+        const deltaY = Math.abs(e.changedTouches[0].clientY - touchStartY);
+        const deltaX = Math.abs(e.changedTouches[0].clientX - touchStartX);
+        if (deltaY > SCROLL_THRESHOLD || deltaX > SCROLL_THRESHOLD) {
+          e.preventDefault();
+          return;
+        }
+      }
+    }, { passive: false });
+
+    el.addEventListener('touchcancel', function() {
+      el.classList.remove('pressed');
+    }, { passive: true });
+  });
+}
+
+// 동적 콘텐츠 로드 후 호출
+async function loadDynamicContent() {
+  container.innerHTML = dynamicHtml;
+  bindDynamicTouchEvents();  // 생성 후 바인딩
+}
+```
+
 ### 모바일 터치 체크리스트
 
 1. [ ] 인라인 onclick 대신 이벤트 리스너 사용
@@ -560,3 +613,4 @@ el.addEventListener('touchcancel', function() {
 3. [ ] 스크롤 vs 탭 구분 (터치 이동 거리 체크)
 4. [ ] 시각적 터치 피드백 (pressed 클래스)
 5. [ ] `-webkit-tap-highlight-color: transparent` 설정
+6. [ ] 동적 요소는 생성 후 이벤트 바인딩

@@ -22,6 +22,11 @@
   <link href="/css/style.css" rel="stylesheet">
   <!-- CSRF 토큰 저장 -->
   <meta name="csrf-token" content="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+  <!-- Vercel Web Analytics -->
+  <script>
+    window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+  </script>
+  <script defer src="/_vercel/insights/script.js"></script>
 </head>
 <body>
   <!-- 스킵 링크 (접근성) -->

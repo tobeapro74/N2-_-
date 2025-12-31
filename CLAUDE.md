@@ -116,6 +116,31 @@ N2골프_자금관리/
 3. **백업**: 중요한 변경 전 데이터 백업을 고려합니다.
 4. **테스트**: 변경 후 주요 기능이 정상 작동하는지 확인합니다.
 
+## 커밋/푸시 전 필수 작업
+
+**중요**: 코드 변경 후 커밋/푸시 전에 반드시 `docs/` 폴더의 관련 문서들을 최신화해야 합니다.
+
+### 업데이트 대상 문서
+
+| 문서 | 업데이트 조건 |
+|------|---------------|
+| **[prompt.md](docs/prompt.md)** | 모든 커밋 전 필수 - 사용자 프롬프트 명령 기록 |
+| **[ARCHITECTURE.md](docs/ARCHITECTURE.md)** | 시스템 구조, 기술 스택, API 변경 시 |
+| **[ROADMAP.md](docs/ROADMAP.md)** | 새 기능 추가 또는 완료 시 |
+| **[TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)** | 버그 수정, 문제 해결 사례 발생 시 |
+| **[test-scenario.md](docs/test-scenario.md)** | 테스트 시나리오 변경 시 |
+| **[make_app.md](docs/make_app.md)** | 앱 개발 가이드 관련 변경 시 |
+| **[SQLITE_MIGRATION.md](docs/SQLITE_MIGRATION.md)** | 데이터베이스 관련 변경 시 |
+
+### 업데이트 체크리스트
+
+커밋 전 다음을 확인합니다:
+
+1. ✅ `docs/prompt.md`에 오늘 사용한 프롬프트 명령 추가
+2. ✅ 변경 사항과 관련된 문서 최신화
+3. ✅ 작업 결과 요약 테이블 업데이트
+4. ✅ 마지막 업데이트 일시 갱신
+
 ## 기술 문서
 
 - **[ARCHITECTURE.md](docs/ARCHITECTURE.md)**: 시스템 아키텍처, 기술 스택 선택 배경, Cloudinary/MongoDB 사용 전략

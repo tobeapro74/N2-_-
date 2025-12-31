@@ -2,6 +2,9 @@ const express = require('express');
 const router = express.Router();
 const db = require('../models/database');
 
+// 코스 홀 정보 (정적 데이터 - JS 모듈로 관리)
+const courseHolesData = require('../data/courseHoles');
+
 // 메인 대시보드
 router.get('/', async (req, res) => {
   try {
@@ -86,8 +89,8 @@ router.get('/', async (req, res) => {
     .sort((a, b) => (b.date || '').localeCompare(a.date || ''))
     .slice(0, 10);
 
-  // 코스 가이드 데이터 (홀 정보 포함)
-  const courseHoles = db.getTable('course_holes') || {};
+  // 코스 가이드 데이터 (홀 정보 포함 - 정적 데이터 사용)
+  const courseHoles = courseHolesData;
 
   // 신규 회원 (가입 10일 이내) - 비로그인 시 환영 배너용
   const tenDaysAgo = new Date();

@@ -122,62 +122,75 @@
       const loadingOverlay = document.getElementById('globalLoadingOverlay');
       if (!loadingOverlay) return;
 
+      let isLoading = false;
+      let loadingTimeout;
+
       // 로딩 표시 함수
       function showLoading() {
+        if (isLoading) return; // 중복 호출 방지
+        isLoading = true;
         loadingOverlay.style.display = 'flex';
+        // 5초 후 자동 숨김 (무한 로딩 방지)
+        clearTimeout(loadingTimeout);
+        loadingTimeout = setTimeout(hideLoading, 5000);
       }
 
       // 로딩 숨김 함수
       function hideLoading() {
+        isLoading = false;
         loadingOverlay.style.display = 'none';
+        clearTimeout(loadingTimeout);
       }
 
-      // 페이지 이동 감지 - 일반 링크 클릭
+      // 페이지 이동 감지 - 통합 클릭 이벤트
       document.addEventListener('click', function(e) {
-        const target = e.target.closest('a');
-        if (!target) return;
+        // 이미 로딩 중이면 무시
+        if (isLoading) return;
 
-        const href = target.getAttribute('href');
+        // 링크 클릭 확인
+        const linkTarget = e.target.closest('a');
+        if (linkTarget) {
+          const href = linkTarget.getAttribute('href');
 
-        // 무시할 링크 패턴
-        if (!href ||
-            href.startsWith('#') ||
-            href.startsWith('javascript:') ||
-            href.startsWith('tel:') ||
-            href.startsWith('mailto:') ||
-            target.getAttribute('target') === '_blank' ||
-            target.hasAttribute('data-bs-toggle') ||
-            target.classList.contains('no-loading')) {
-          return;
+          // 무시할 링크 패턴
+          if (!href ||
+              href.startsWith('#') ||
+              href.startsWith('javascript:') ||
+              href.startsWith('tel:') ||
+              href.startsWith('mailto:') ||
+              linkTarget.getAttribute('target') === '_blank' ||
+              linkTarget.hasAttribute('data-bs-toggle') ||
+              linkTarget.classList.contains('no-loading')) {
+            return;
+          }
+
+          // 페이지 이동 링크만 로딩 표시
+          if (href.startsWith('/') || href.startsWith(window.location.origin)) {
+            // 약간의 지연 후 로딩 표시 (빠른 페이지 이동 시 깜빡임 방지)
+            setTimeout(showLoading, 50);
+            return;
+          }
         }
 
-        // 페이지 이동 링크만 로딩 표시
-        if (href.startsWith('/') || href.startsWith(window.location.origin)) {
-          showLoading();
-        }
-      });
-
-      // 클릭 가능한 요소 (onclick으로 location.href 변경하는 경우)
-      document.addEventListener('click', function(e) {
-        const target = e.target.closest('[onclick*="location.href"]');
-        if (target && !target.classList.contains('no-loading')) {
-          showLoading();
+        // onclick으로 location.href 변경하는 경우
+        const onclickTarget = e.target.closest('[onclick*="location.href"]');
+        if (onclickTarget && !onclickTarget.classList.contains('no-loading')) {
+          setTimeout(showLoading, 50);
         }
       });
 
       // 폼 제출 시 로딩 표시
       document.addEventListener('submit', function(e) {
+        if (isLoading) return;
         const form = e.target;
         if (!form.classList.contains('no-loading') && !form.hasAttribute('data-no-loading')) {
-          showLoading();
+          setTimeout(showLoading, 50);
         }
       });
 
       // 뒤로가기/앞으로가기 시 로딩 숨김
       window.addEventListener('pageshow', function(e) {
-        if (e.persisted) {
-          hideLoading();
-        }
+        hideLoading();
       });
 
       // 페이지 로드 완료 시 로딩 숨김 (안전장치)
@@ -185,14 +198,12 @@
         hideLoading();
       });
 
-      // 3초 후 자동 숨김 (무한 로딩 방지)
-      let loadingTimeout;
-      const originalShowLoading = showLoading;
-      showLoading = function() {
-        originalShowLoading();
-        clearTimeout(loadingTimeout);
-        loadingTimeout = setTimeout(hideLoading, 5000);
-      };
+      // visibility 변경 시 로딩 숨김 (탭 전환 등)
+      document.addEventListener('visibilitychange', function() {
+        if (document.visibilityState === 'visible') {
+          hideLoading();
+        }
+      });
     })();
   </script>
 </body>

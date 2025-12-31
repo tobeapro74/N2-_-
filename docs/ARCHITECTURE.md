@@ -11,6 +11,7 @@
 8. [실시간 교통 현황](#8-실시간-교통-현황)
 9. [전역 로딩 인디케이터](#9-전역-로딩-인디케이터)
 10. [Pull-to-Refresh (당겨서 새로고침)](#10-pull-to-refresh-당겨서-새로고침)
+11. [커뮤니티 리액션 시각화](#11-커뮤니티-리액션-시각화)
 
 ---
 
@@ -1112,3 +1113,129 @@ Pull-to-Refresh 구현/수정 시 확인:
 - [ ] 인디케이터 텍스트가 상태에 따라 변경되는지 확인
 - [ ] 전역 로딩 인디케이터와 연동되는지 확인
 - [ ] Service Worker 캐시 버전 업데이트
+
+---
+
+## 11. 커뮤니티 리액션 시각화
+
+### 11.1 개요
+
+커뮤니티 댓글에서 사용자가 누른 좋아요/싫어요 버튼을 시각적으로 구분합니다.
+내가 누른 버튼은 **채워진 아이콘**으로 표시되어 한눈에 확인할 수 있습니다.
+
+### 11.2 아이콘 상태
+
+| 상태 | 좋아요 버튼 | 싫어요 버튼 |
+|------|-------------|-------------|
+| 누르지 않음 | `bi-hand-thumbs-up` (빈 아이콘) | `bi-hand-thumbs-down` (빈 아이콘) |
+| **내가 누름** | `bi-hand-thumbs-up-fill` (파란색 채워진 아이콘) | `bi-hand-thumbs-down-fill` (빨간색 채워진 아이콘) |
+
+### 11.3 데이터 구조
+
+서버에서 댓글 조회 시 `my_reaction` 필드를 포함하여 반환합니다:
+
+```javascript
+{
+  id: 1,
+  content: "좋은 라운딩이었습니다!",
+  member_name: "홍길동",
+  likes: 5,
+  dislikes: 1,
+  my_reaction: "like"  // 'like', 'dislike', 또는 null
+}
+```
+
+### 11.4 클라이언트 구현 (views/schedules/community.ejs)
+
+**초기 렌더링 시:**
+```javascript
+// 좋아요/싫어요 상태 반영
+const likeBtn = card.querySelector('.like-btn');
+const dislikeBtn = card.querySelector('.dislike-btn');
+const likeIcon = likeBtn.querySelector('i');
+const dislikeIcon = dislikeBtn.querySelector('i');
+
+if (comment.my_reaction === 'like') {
+  likeBtn.classList.add('text-primary');
+  likeIcon.classList.remove('bi-hand-thumbs-up');
+  likeIcon.classList.add('bi-hand-thumbs-up-fill');
+} else if (comment.my_reaction === 'dislike') {
+  dislikeBtn.classList.add('text-danger');
+  dislikeIcon.classList.remove('bi-hand-thumbs-down');
+  dislikeIcon.classList.add('bi-hand-thumbs-down-fill');
+}
+```
+
+**버튼 클릭 시:**
+```javascript
+async function handleReaction(commentId, reactionType, card) {
+  const response = await fetch(`/schedules/comments/${commentId}/reaction`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRF-Token': csrfToken
+    },
+    body: JSON.stringify({ reaction_type: reactionType })
+  });
+
+  const data = await response.json();
+
+  if (data.success) {
+    const likeBtn = card.querySelector('.like-btn');
+    const dislikeBtn = card.querySelector('.dislike-btn');
+    const likeIcon = likeBtn.querySelector('i');
+    const dislikeIcon = dislikeBtn.querySelector('i');
+
+    // 카운트 업데이트
+    card.querySelector('.likes-count').textContent = data.likes;
+    card.querySelector('.dislikes-count').textContent = data.dislikes;
+
+    // 모든 버튼 초기화
+    likeBtn.classList.remove('text-primary');
+    dislikeBtn.classList.remove('text-danger');
+    likeIcon.classList.remove('bi-hand-thumbs-up-fill');
+    likeIcon.classList.add('bi-hand-thumbs-up');
+    dislikeIcon.classList.remove('bi-hand-thumbs-down-fill');
+    dislikeIcon.classList.add('bi-hand-thumbs-down');
+
+    // 현재 상태에 맞게 스타일 적용
+    if (data.my_reaction === 'like') {
+      likeBtn.classList.add('text-primary');
+      likeIcon.classList.remove('bi-hand-thumbs-up');
+      likeIcon.classList.add('bi-hand-thumbs-up-fill');
+    } else if (data.my_reaction === 'dislike') {
+      dislikeBtn.classList.add('text-danger');
+      dislikeIcon.classList.remove('bi-hand-thumbs-down');
+      dislikeIcon.classList.add('bi-hand-thumbs-down-fill');
+    }
+  }
+}
+```
+
+### 11.5 토글 동작
+
+- 같은 버튼을 다시 누르면 리액션이 취소됨 (아이콘이 빈 상태로 돌아감)
+- 다른 버튼을 누르면 기존 리액션이 새 리액션으로 대체됨
+
+### 11.6 CSS 스타일
+
+```css
+/* 좋아요 버튼 - 활성화 시 파란색 */
+.like-btn.text-primary i {
+  color: #0d6efd;
+}
+
+/* 싫어요 버튼 - 활성화 시 빨간색 */
+.dislike-btn.text-danger i {
+  color: #dc3545;
+}
+```
+
+### 11.7 Service Worker 캐시
+
+리액션 시각화 관련 변경 시 캐시 버전 업데이트:
+
+```javascript
+// public/sw.js
+const CACHE_NAME = 'n2golf-v12';  // 버전 증가
+```

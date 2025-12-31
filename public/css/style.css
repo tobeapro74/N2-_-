@@ -1649,8 +1649,31 @@ footer {
 }
 
 /* =============================================
-   골프장 카드 터치 피드백
+   터치 피드백 시스템
    ============================================= */
+
+/* 기본 터치 피드백 (카드, 리스트 아이템 등) */
+.touch-feedback {
+  cursor: pointer;
+  transition: transform 0.1s ease-out, background-color 0.15s ease-out, box-shadow 0.15s ease-out;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+@media (hover: hover) {
+  .touch-feedback:hover {
+    background-color: hsl(var(--muted) / 0.5);
+  }
+}
+
+.touch-feedback:active,
+.touch-feedback.pressed {
+  transform: scale(0.98);
+  background-color: hsl(var(--muted) / 0.8);
+}
+
+/* 골프장 카드 터치 피드백 */
 .course-clickable {
   cursor: pointer;
   border-radius: var(--radius);
@@ -1662,29 +1685,180 @@ footer {
   -webkit-user-select: none;
 }
 
-/* 마우스 호버 효과 (데스크톱) */
 @media (hover: hover) {
   .course-clickable:hover {
     background-color: hsl(var(--muted) / 0.5);
   }
 }
 
-/* 눌림 효과 (active 상태) */
 .course-clickable:active,
 .course-clickable.pressed {
   transform: scale(0.97);
   background-color: hsl(var(--muted) / 0.8);
 }
 
-/* 가는길 버튼 터치 피드백 */
+/* 요약 카드 터치 피드백 */
+.summary-card {
+  transition: transform 0.1s ease-out, box-shadow 0.15s ease-out !important;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.summary-card:active,
+.summary-card.pressed {
+  transform: scale(0.97);
+  box-shadow: var(--shadow-sm) !important;
+}
+
+/* 리스트 아이템 터치 피드백 */
+.list-group-item-action {
+  transition: transform 0.1s ease-out, background-color 0.15s ease-out;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.list-group-item-action:active,
+.list-group-item-action.pressed {
+  transform: scale(0.99);
+  background-color: hsl(var(--muted) / 0.8) !important;
+}
+
+/* 버튼 터치 피드백 강화 */
+.btn {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn:not(:disabled):active,
+.btn:not(:disabled).pressed {
+  transform: scale(0.95);
+  opacity: 0.9;
+}
+
+/* 뱃지 버튼 터치 피드백 */
+.badge[role="button"],
+.badge.clickable,
 .direction-btn {
+  cursor: pointer;
   transition: transform 0.1s ease-out, opacity 0.15s ease-out;
   -webkit-tap-highlight-color: transparent;
 }
 
+.badge[role="button"]:active,
+.badge.clickable:active,
 .direction-btn:active,
 .direction-btn.pressed {
   transform: scale(0.92);
   opacity: 0.8;
+}
+
+/* 네비게이션 탭/필 터치 피드백 */
+.nav-link,
+.nav-pills .nav-link,
+.nav-tabs .nav-link {
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.1s ease-out, background-color 0.15s ease-out, color 0.15s ease-out;
+}
+
+.nav-link:active,
+.nav-pills .nav-link:active,
+.nav-tabs .nav-link:active {
+  transform: scale(0.97);
+}
+
+/* 테이블 행 터치 피드백 */
+.table-hover tbody tr {
+  transition: background-color 0.15s ease-out;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 클릭 가능한 카드 */
+.card-clickable,
+.card[onclick],
+a.card,
+a .card {
+  cursor: pointer;
+  transition: transform 0.1s ease-out, box-shadow 0.15s ease-out;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.card-clickable:active,
+.card[onclick]:active,
+a.card:active,
+a:active .card {
+  transform: scale(0.98);
+}
+
+/* 모바일 가로 스크롤 카드 */
+.scroll-card,
+.flex-shrink-0[style*="width"] {
+  transition: transform 0.1s ease-out;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.scroll-card:active,
+.flex-shrink-0[style*="width"]:active {
+  transform: scale(0.97);
+}
+
+/* 드롭다운 아이템 터치 피드백 */
+.dropdown-item {
+  transition: background-color 0.15s ease-out, transform 0.1s ease-out;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.dropdown-item:active {
+  transform: scale(0.98);
+}
+
+/* 모달 닫기 버튼 터치 피드백 */
+.btn-close {
+  transition: transform 0.1s ease-out, opacity 0.15s ease-out;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn-close:active {
+  transform: scale(0.9);
+  opacity: 0.7;
+}
+
+/* 페이지네이션 터치 피드백 */
+.page-link {
+  transition: transform 0.1s ease-out, background-color 0.15s ease-out;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.page-link:active {
+  transform: scale(0.95);
+}
+
+/* 알림/토스트 닫기 버튼 */
+.alert .btn-close,
+.toast .btn-close {
+  transition: transform 0.1s ease-out;
+}
+
+/* 아코디언 헤더 터치 피드백 */
+.accordion-button {
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 0.15s ease-out, transform 0.1s ease-out;
+}
+
+.accordion-button:active {
+  transform: scale(0.99);
+}
+
+/* 입력 그룹 버튼 */
+.input-group .btn:active {
+  transform: scale(0.95);
+}
+
+/* 모바일 하단 네비게이션 (있는 경우) */
+.bottom-nav a,
+.bottom-nav button {
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.1s ease-out;
+}
+
+.bottom-nav a:active,
+.bottom-nav button:active {
+  transform: scale(0.92);
 }
 

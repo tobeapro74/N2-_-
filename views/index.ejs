@@ -202,8 +202,12 @@
                   <span class="home-card-subtitle d-block"><%= schedule.location %></span>
                 </div>
                 <div class="text-end me-3">
-                  <span class="badge bg-success home-card-badge"><%= moment(schedule.play_date).format('MM/DD (ddd)') %></span>
+                  <span class="badge <%= schedule.status === 'pending' ? 'bg-info' : 'bg-success' %> home-card-badge"><%= moment(schedule.play_date).format('MM/DD (ddd)') %></span>
+                  <% if (schedule.status === 'pending') { %>
+                  <span class="home-card-meta text-info d-block">오픈전</span>
+                  <% } else { %>
                   <span class="home-card-meta text-muted d-block"><%= schedule.reserved_count %>/<%= schedule.max_members %>명</span>
+                  <% } %>
                 </div>
               </div>
             </a>
@@ -222,8 +226,12 @@
               <div class="border rounded bg-light h-100">
                 <a href="/schedules/<%= schedule.id %>" class="text-decoration-none d-block p-2">
                   <div class="d-flex justify-content-between align-items-start mb-1">
-                    <span class="badge bg-success home-card-badge"><%= moment(schedule.play_date).format('MM/DD') %></span>
+                    <span class="badge <%= schedule.status === 'pending' ? 'bg-info' : 'bg-success' %> home-card-badge"><%= moment(schedule.play_date).format('MM/DD') %></span>
+                    <% if (schedule.status === 'pending') { %>
+                    <span class="home-card-meta text-info">오픈전</span>
+                    <% } else { %>
                     <span class="home-card-meta text-muted"><%= schedule.reserved_count %>/<%= schedule.max_members %></span>
+                    <% } %>
                   </div>
                   <div class="home-card-title text-dark text-truncate"><%= schedule.course_name %></div>
                 </a>

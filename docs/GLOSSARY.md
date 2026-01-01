@@ -29,28 +29,169 @@
 
 ### 1.2 배포 및 호스팅 (Deployment & Hosting)
 
+#### 호스팅 (Hosting)
+웹사이트나 애플리케이션을 인터넷에서 접근할 수 있도록 서버에 올려두는 것입니다.
+- **종류**:
+  - **공유 호스팅**: 여러 사이트가 하나의 서버 공유 (저렴, 성능 제한)
+  - **VPS (Virtual Private Server)**: 가상 전용 서버 (중간 비용)
+  - **클라우드 호스팅**: AWS, GCP, Azure 등 (유연한 확장)
+  - **PaaS (Platform as a Service)**: Vercel, Heroku, Netlify 등 (간편한 배포)
+- **이 앱에서**: Vercel (PaaS)을 사용하여 호스팅합니다.
+
 #### Vercel
 프론트엔드 및 서버리스 애플리케이션을 위한 클라우드 플랫폼입니다. GitHub와 연동하여 자동 배포를 지원합니다.
 - **이 앱에서**: GitHub에 푸시하면 Vercel이 자동으로 빌드하고 배포합니다.
 - **특징**: 서버리스 함수(Serverless Functions)로 Node.js 백엔드를 실행합니다.
+- **장점**: 무료 티어, 자동 HTTPS, 전역 CDN, 프리뷰 배포
+
+#### Netlify
+정적 사이트 및 서버리스 함수 호스팅 플랫폼입니다. Vercel과 유사한 서비스입니다.
+- **특징**: 폼 처리, 인증, 서버리스 함수 지원
+- **비교**: Vercel은 Next.js에 최적화, Netlify는 범용적
+
+#### Heroku
+PaaS(Platform as a Service) 플랫폼입니다. 다양한 언어와 프레임워크를 지원합니다.
+- **특징**: 다양한 애드온(DB, 캐시 등), 쉬운 스케일링
+- **비교**: Vercel보다 백엔드 중심, 유료 플랜 필요한 경우 많음
+
+#### AWS (Amazon Web Services)
+아마존의 클라우드 컴퓨팅 플랫폼입니다. 가장 광범위한 서비스를 제공합니다.
+- **주요 서비스**:
+  - EC2: 가상 서버
+  - S3: 파일 저장소
+  - Lambda: 서버리스 함수
+  - RDS: 관계형 데이터베이스
 
 #### 서버리스 (Serverless)
 서버 관리 없이 코드를 실행하는 클라우드 컴퓨팅 모델입니다. 요청이 있을 때만 함수가 실행됩니다.
 - **이 앱에서**: `app.js`가 Vercel 서버리스 함수로 실행됩니다.
 - **장점**: 서버 관리 불필요, 사용한 만큼만 비용 지불, 자동 스케일링
+- **단점**: 콜드 스타트 지연, 실행 시간 제한
 
 #### 배포 (Deployment)
 코드를 실제 서비스 환경에 적용하는 과정입니다.
 - **이 앱에서**: `git push` → Vercel 자동 빌드 → 배포 완료 (약 1-2분 소요)
 
+#### CI/CD (Continuous Integration / Continuous Deployment)
+코드 변경 시 자동으로 테스트하고 배포하는 프로세스입니다.
+- **이 앱에서**: GitHub에 푸시하면 Vercel이 자동으로 빌드/배포 (CD)
+- **도구**: GitHub Actions, Jenkins, CircleCI, Vercel
+
+#### 프리뷰 배포 (Preview Deployment)
+Pull Request나 브랜치별로 독립적인 미리보기 환경을 제공하는 기능입니다.
+- **이 앱에서**: Vercel이 브랜치별 프리뷰 URL 자동 생성
+
 #### CDN (Content Delivery Network)
 전 세계에 분산된 서버 네트워크로 콘텐츠를 빠르게 전달합니다.
 - **이 앱에서**: Bootstrap CSS/JS, Bootstrap Icons를 CDN에서 로드합니다.
 - **예시**: `https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css`
+- **장점**: 빠른 로딩 속도, 서버 부하 감소, 캐싱
+
+#### 도메인 (Domain)
+웹사이트의 주소입니다. (예: `example.com`)
+- **구성요소**:
+  - TLD (Top Level Domain): `.com`, `.kr`, `.io` 등
+  - 서브도메인: `www`, `api`, `blog` 등
+- **이 앱에서**: Vercel이 기본 도메인(`*.vercel.app`) 제공, 커스텀 도메인 연결 가능
+
+#### SSL/TLS (HTTPS)
+웹 통신을 암호화하는 보안 프로토콜입니다.
+- **이 앱에서**: Vercel이 자동으로 HTTPS 인증서 발급/갱신
+- **중요성**: 데이터 보호, SEO 순위, 브라우저 경고 방지
 
 ---
 
-### 1.3 데이터베이스 (Database)
+### 1.3 프레임워크 및 라이브러리 (Frameworks & Libraries)
+
+#### Next.js
+React 기반의 풀스택 웹 프레임워크입니다. Vercel에서 개발했습니다.
+- **특징**:
+  - SSR (Server-Side Rendering) 지원
+  - SSG (Static Site Generation) 지원
+  - 파일 기반 라우팅
+  - API Routes로 백엔드 구현
+  - 이미지 최적화
+- **비교**: 이 앱은 Express.js + EJS를 사용하지만, Next.js로 마이그레이션하면 React 기반 SPA로 전환 가능
+
+#### React
+Facebook(Meta)이 개발한 UI 라이브러리입니다. 컴포넌트 기반으로 UI를 구축합니다.
+- **특징**:
+  - Virtual DOM으로 효율적인 렌더링
+  - JSX 문법 사용
+  - 단방향 데이터 흐름
+  - 풍부한 생태계 (Redux, React Router 등)
+
+#### Vue.js
+프로그레시브 JavaScript 프레임워크입니다. 점진적 도입이 가능합니다.
+- **특징**:
+  - 템플릿 기반 문법
+  - 양방향 데이터 바인딩
+  - 컴포넌트 시스템
+  - 학습 곡선이 완만함
+
+#### Angular
+Google이 개발한 TypeScript 기반 프레임워크입니다.
+- **특징**:
+  - 완전한 프레임워크 (라우팅, HTTP 클라이언트 내장)
+  - TypeScript 필수
+  - 의존성 주입
+  - 엔터프라이즈급 애플리케이션에 적합
+
+#### SSR (Server-Side Rendering)
+서버에서 HTML을 생성하여 클라이언트에 전송하는 방식입니다.
+- **장점**: SEO 최적화, 빠른 초기 로딩
+- **단점**: 서버 부하 증가
+- **이 앱에서**: EJS 템플릿으로 서버에서 HTML 렌더링 (SSR 방식)
+
+#### SSG (Static Site Generation)
+빌드 시점에 HTML을 미리 생성하는 방식입니다.
+- **장점**: 빠른 응답, CDN 캐싱 용이
+- **단점**: 동적 콘텐츠 처리 제한
+- **도구**: Next.js, Gatsby, Hugo, Jekyll
+
+#### SPA (Single Page Application)
+하나의 HTML 페이지에서 JavaScript로 동적 콘텐츠를 렌더링하는 방식입니다.
+- **장점**: 빠른 페이지 전환, 앱 같은 경험
+- **단점**: 초기 로딩 느림, SEO 불리
+- **프레임워크**: React, Vue, Angular
+
+#### MPA (Multi Page Application)
+각 페이지가 별도의 HTML 파일로 구성되는 전통적인 방식입니다.
+- **장점**: SEO 유리, 간단한 구조
+- **단점**: 페이지 전환 시 깜빡임
+- **이 앱에서**: Express.js + EJS로 MPA 방식 사용
+
+#### TypeScript
+JavaScript에 정적 타입을 추가한 프로그래밍 언어입니다.
+- **장점**: 타입 안정성, IDE 자동완성, 리팩토링 용이
+- **단점**: 학습 곡선, 컴파일 필요
+- **비교**: 이 앱은 JavaScript를 사용하지만, 대규모 프로젝트에서는 TypeScript 권장
+
+#### jQuery
+DOM 조작을 쉽게 해주는 JavaScript 라이브러리입니다.
+- **특징**: 간단한 문법, 크로스 브라우저 호환
+- **현재 상태**: 모던 프레임워크(React, Vue)에 의해 대체되는 추세
+- **이 앱에서**: 사용하지 않음 (Vanilla JavaScript 사용)
+
+#### Tailwind CSS
+유틸리티 우선(Utility-first) CSS 프레임워크입니다.
+- **특징**: 미리 정의된 클래스 조합, 커스터마이징 용이
+- **비교**: Bootstrap은 컴포넌트 중심, Tailwind는 유틸리티 중심
+- **이 앱에서**: Bootstrap 사용 (유사한 역할)
+
+#### Webpack
+JavaScript 모듈 번들러입니다. 여러 파일을 하나로 묶어줍니다.
+- **기능**: 코드 분할, 트리 쉐이킹, 로더(CSS, 이미지 처리)
+- **대안**: Vite, Rollup, esbuild
+
+#### Vite
+차세대 프론트엔드 빌드 도구입니다. 빠른 개발 서버가 특징입니다.
+- **장점**: 빠른 HMR (Hot Module Replacement), ES 모듈 기반
+- **사용처**: Vue, React, Svelte 프로젝트
+
+---
+
+### 1.4 데이터베이스 (Database)
 
 #### MongoDB Atlas
 클라우드 기반 NoSQL 데이터베이스 서비스입니다. JSON과 유사한 문서(Document) 형태로 데이터를 저장합니다.
@@ -67,7 +208,7 @@
 
 ---
 
-### 1.4 백엔드 (Backend)
+### 1.5 백엔드 (Backend)
 
 #### Node.js
 JavaScript 런타임 환경입니다. 서버 측 애플리케이션을 JavaScript로 개발할 수 있습니다.
@@ -108,7 +249,7 @@ HTTP 메서드(GET, POST, PUT, DELETE)를 사용하여 리소스를 조작하는
 
 ---
 
-### 1.5 프론트엔드 (Frontend)
+### 1.6 프론트엔드 (Frontend)
 
 #### EJS (Embedded JavaScript)
 JavaScript 코드를 HTML에 삽입할 수 있는 템플릿 엔진입니다.
@@ -126,7 +267,7 @@ JavaScript 코드를 HTML에 삽입할 수 있는 템플릿 엔진입니다.
 
 ---
 
-### 1.6 보안 (Security)
+### 1.7 보안 (Security)
 
 #### CSRF (Cross-Site Request Forgery)
 사용자의 의도와 무관하게 공격자가 요청을 보내는 공격입니다.
@@ -147,7 +288,7 @@ Express.js 보안 미들웨어입니다. 다양한 HTTP 헤더를 설정하여 �
 
 ---
 
-### 1.7 외부 서비스 연동
+### 1.8 외부 서비스 연동
 
 #### Cloudinary
 클라우드 기반 이미지/동영상 관리 서비스입니다.
@@ -164,7 +305,7 @@ Express.js 보안 미들웨어입니다. 다양한 HTTP 헤더를 설정하여 �
 
 ---
 
-### 1.8 개발 도구
+### 1.9 개발 도구
 
 #### npm (Node Package Manager)
 Node.js 패키지 관리자입니다. 라이브러리 설치, 스크립트 실행 등을 담당합니다.

@@ -959,13 +959,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (title || image) {
           container.innerHTML = `
-            <a href="${targetUrl}" target="_blank" rel="noopener noreferrer" class="text-decoration-none">
-              <div class="card border" style="max-width: 360px;">
-                ${image ? `<img src="${image}" class="card-img-top" alt="" loading="lazy" style="max-height: 180px; object-fit: contain; background: #f8f9fa;" onerror="this.style.display='none'">` : ''}
-                <div class="px-2 py-1" style="line-height: 1;">
-                  <span class="text-muted" style="font-size: 0.65rem;">${siteName}</span>
-                  <span class="text-dark text-truncate d-block" style="font-size: 0.75rem;">${title || ''}</span>
-                </div>
+            <a href="${targetUrl}" target="_blank" rel="noopener noreferrer" class="text-decoration-none d-inline-block" style="max-width: 360px; border: 1px solid #dee2e6; border-radius: 0.375rem; overflow: hidden;">
+              ${image ? `<img src="${image}" alt="" loading="lazy" style="display: block; width: 100%; max-height: 180px; object-fit: contain; background: #f8f9fa;" onerror="this.style.display='none'">` : ''}
+              <div style="padding: 4px 8px; line-height: 1.2;">
+                <span class="text-muted" style="font-size: 0.65rem;">${siteName}</span>
+                <span class="text-dark text-truncate d-block" style="font-size: 0.75rem;">${title || ''}</span>
               </div>
             </a>
           `;

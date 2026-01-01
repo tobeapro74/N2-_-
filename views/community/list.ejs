@@ -261,6 +261,8 @@ document.addEventListener('DOMContentLoaded', function() {
       return;
     }
 
+    // 로딩 인디케이터 표시
+    if (window.showGlobalLoading) window.showGlobalLoading();
     imageLabel.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
     imageLabel.style.pointerEvents = 'none';
 
@@ -289,6 +291,7 @@ document.addEventListener('DOMContentLoaded', function() {
       resetImageUpload();
     } finally {
       imageLabel.style.pointerEvents = 'auto';
+      if (window.hideGlobalLoading) window.hideGlobalLoading();
     }
   });
 
@@ -515,6 +518,9 @@ document.addEventListener('DOMContentLoaded', function() {
   async function deletePost(postId, card) {
     if (!confirm('정말 삭제하시겠습니까?')) return;
 
+    // 로딩 인디케이터 표시
+    if (window.showGlobalLoading) window.showGlobalLoading();
+
     try {
       const response = await fetch(`/community/posts/${postId}`, {
         method: 'DELETE',
@@ -529,6 +535,8 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     } catch (error) {
       console.error('삭제 오류:', error);
+    } finally {
+      if (window.hideGlobalLoading) window.hideGlobalLoading();
     }
   }
 

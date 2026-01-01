@@ -12,6 +12,7 @@
 7. [모바일 터치 이벤트 문제](#7-모바일-터치-이벤트-문제)
 8. [로딩 인디케이터 문제](#8-로딩-인디케이터-문제)
 9. [이미지 업로드 실패 (Service Worker POST 캐싱)](#9-이미지-업로드-실패-service-worker-post-캐싱)
+10. [커뮤니티 이미지 표시 안됨 (Template onload 이벤트)](#10-커뮤니티-이미지-표시-안됨-template-onload-이벤트)
 
 ---
 
@@ -890,6 +891,89 @@ navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unre
 ### 연관 이슈
 - POST 외에도 PUT, DELETE 요청에서 동일한 문제 발생 가능
 - 댓글 작성, 수정, 삭제 API 모두 영향받음
+
+---
+
+## 10. 커뮤니티 이미지 표시 안됨 (Template onload 이벤트)
+
+### 증상
+- 커뮤니티 댓글/게시글에 이미지 업로드는 성공 (Cloudinary URL 반환)
+- 서버에 image_url이 정상 저장됨
+- 하지만 화면에 이미지가 표시되지 않음
+- 개발자 도구에서 확인하면 `d-none` 클래스가 그대로 남아있음
+
+```html
+<!-- 문제 상황: src는 설정되었지만 d-none이 제거되지 않음 -->
+<div class="comment-image-container d-none mb-2">
+  <img class="comment-image" src="https://res.cloudinary.com/...">
+</div>
+```
+
+### 원인
+HTML `<template>` 요소에서 `cloneNode()`로 복사한 요소는 **DocumentFragment** 상태입니다.
+DocumentFragment는 실제 DOM에 추가되기 전까지 이미지의 `onload` 이벤트가 발생하지 않습니다.
+
+```javascript
+// 문제의 코드
+function createCommentElement(comment) {
+  const clone = commentTemplate.content.cloneNode(true);
+  const card = clone.querySelector('.comment-card');
+
+  // 이미지 표시
+  if (comment.image_url) {
+    const imageContainer = card.querySelector('.comment-image-container');
+    const imageEl = card.querySelector('.comment-image');
+
+    // onload 이벤트에 의존 → DocumentFragment에서는 발생 안 함!
+    imageEl.onload = () => {
+      imageContainer.classList.remove('d-none');
+    };
+    imageEl.src = comment.image_url;
+  }
+
+  return clone; // DOM에 추가되기 전이므로 onload 미발생
+}
+```
+
+### 해결 방법
+`onload` 이벤트에 의존하지 않고, `image_url`이 있으면 **즉시** `d-none`을 제거합니다.
+에러 발생 시에만 `onerror`로 다시 숨깁니다.
+
+```javascript
+// 수정된 코드
+if (comment.image_url) {
+  const imageContainer = card.querySelector('.comment-image-container');
+  const imageEl = card.querySelector('.comment-image');
+
+  // 에러 핸들러만 설정 (로드 실패 시 숨김)
+  imageEl.onerror = () => {
+    console.error('이미지 로드 실패:', comment.image_url);
+    imageContainer.classList.add('d-none');
+  };
+
+  // src 설정 및 즉시 표시 (onload 이벤트에 의존하지 않음)
+  imageEl.src = comment.image_url;
+  imageContainer.classList.remove('d-none');
+}
+```
+
+### 적용 파일
+- `views/schedules/community.ejs` - 골프일정 톡톡 (댓글/대댓글)
+- `views/community/list.ejs` - 일상톡톡 (게시글)
+
+### 디버깅 방법
+콘솔에서 이미지 컨테이너 상태 확인:
+```javascript
+document.querySelectorAll('.comment-image-container').forEach((el, i) => {
+  const img = el.querySelector('img');
+  console.log(i, el.classList.contains('d-none'), img?.src);
+});
+```
+
+### 관련 개념
+- **DocumentFragment**: 메모리상에만 존재하는 가벼운 DOM 컨테이너
+- **Template Element**: HTML5의 `<template>` 태그, 내용이 즉시 렌더링되지 않음
+- **onload 이벤트 타이밍**: 이미지가 실제 DOM에 있어야 정상 발생
 
 ---
 

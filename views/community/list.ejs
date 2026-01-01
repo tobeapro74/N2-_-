@@ -960,12 +960,12 @@ document.addEventListener('DOMContentLoaded', function() {
         if (title || image) {
           container.innerHTML = `
             <a href="${targetUrl}" target="_blank" rel="noopener noreferrer" class="text-decoration-none">
-              <div class="card border" style="max-width: 320px; font-size: 0.75rem;">
-                ${image ? `<img src="${image}" class="card-img-top" alt="" loading="lazy" style="max-height: 100px; object-fit: cover;" onerror="this.style.display='none'">` : ''}
-                <div class="card-body py-1 px-2">
-                  <div class="text-muted" style="font-size: 0.65rem;">${siteName}</div>
-                  <div class="fw-bold text-dark text-truncate" style="font-size: 0.75rem;">${title || targetUrl}</div>
-                  ${description ? `<div class="text-muted text-truncate" style="font-size: 0.7rem;">${description}</div>` : ''}
+              <div class="card border" style="max-width: 280px;">
+                ${image ? `<img src="${image}" class="card-img-top" alt="" loading="lazy" style="max-height: 80px; object-fit: contain; background: #f8f9fa;" onerror="this.style.display='none'">` : ''}
+                <div class="p-1">
+                  <div class="text-muted" style="font-size: 0.6rem; line-height: 1.2;">${siteName}</div>
+                  <div class="fw-bold text-dark text-truncate" style="font-size: 0.7rem; line-height: 1.3;">${title || targetUrl}</div>
+                  ${description ? `<div class="text-muted text-truncate" style="font-size: 0.65rem; line-height: 1.2;">${description}</div>` : ''}
                 </div>
               </div>
             </a>

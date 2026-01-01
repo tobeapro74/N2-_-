@@ -609,4 +609,173 @@ router.post('/upload-image', requireAuth, upload.single('image'), async (req, re
   }
 });
 
+// ============================================
+// URL 메타데이터 조회 API (Open Graph)
+// ============================================
+router.post('/url-preview', requireAuth, async (req, res) => {
+  try {
+    const { url } = req.body;
+
+    if (!url) {
+      return res.status(400).json({ error: 'URL이 필요합니다.' });
+    }
+
+    // URL 유효성 검사
+    let targetUrl = url;
+    if (!targetUrl.startsWith('http://') && !targetUrl.startsWith('https://')) {
+      targetUrl = 'https://' + targetUrl;
+    }
+
+    // 유튜브 URL 특별 처리
+    const youtubeMatch = targetUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/);
+    if (youtubeMatch) {
+      const videoId = youtubeMatch[1];
+      return res.json({
+        success: true,
+        data: {
+          url: `https://www.youtube.com/watch?v=${videoId}`,
+          title: 'YouTube 동영상',
+          description: '',
+          image: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
+          siteName: 'YouTube'
+        }
+      });
+    }
+
+    // 틱톡 URL 특별 처리
+    const tiktokMatch = targetUrl.match(/(?:tiktok\.com|vm\.tiktok\.com)/);
+    if (tiktokMatch) {
+      try {
+        const oembedUrl = `https://www.tiktok.com/oembed?url=${encodeURIComponent(targetUrl)}`;
+        const oembedResponse = await fetch(oembedUrl, {
+          headers: { 'User-Agent': 'Mozilla/5.0' }
+        });
+        if (oembedResponse.ok) {
+          const oembedData = await oembedResponse.json();
+          return res.json({
+            success: true,
+            data: {
+              url: targetUrl,
+              title: oembedData.title || 'TikTok 동영상',
+              description: `@${oembedData.author_unique_id || oembedData.author_name || ''}의 TikTok`,
+              image: oembedData.thumbnail_url || 'https://upload.wikimedia.org/wikipedia/en/thumb/a/a9/TikTok_logo.svg/200px-TikTok_logo.svg.png',
+              siteName: 'TikTok'
+            }
+          });
+        }
+      } catch (e) {
+        // oEmbed 실패 시 기본 로고 사용
+      }
+      return res.json({
+        success: true,
+        data: {
+          url: targetUrl,
+          title: 'TikTok 동영상',
+          description: 'TikTok에서 공유된 동영상',
+          image: 'https://upload.wikimedia.org/wikipedia/en/thumb/a/a9/TikTok_logo.svg/200px-TikTok_logo.svg.png',
+          siteName: 'TikTok'
+        }
+      });
+    }
+
+    // 인스타그램 URL 특별 처리
+    const instagramMatch = targetUrl.match(/instagram\.com\/(p|reel|reels)\/([A-Za-z0-9_-]+)/);
+    if (instagramMatch) {
+      return res.json({
+        success: true,
+        data: {
+          url: targetUrl,
+          title: 'Instagram 게시물',
+          description: instagramMatch[1] === 'reel' || instagramMatch[1] === 'reels' ? 'Instagram 릴스' : 'Instagram 게시물',
+          image: 'https://static.cdninstagram.com/rsrc.php/v3/yR/r/lam-fZmwmvn.png',
+          siteName: 'Instagram'
+        }
+      });
+    }
+
+    // fetch로 HTML 가져오기
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000);
+
+    const fetchOptions = {
+      signal: controller.signal,
+      redirect: 'follow',
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Accept-Language': 'ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7'
+      }
+    };
+
+    let response = await fetch(targetUrl, fetchOptions);
+
+    if (response.url && response.url !== targetUrl) {
+      targetUrl = response.url;
+    }
+    clearTimeout(timeout);
+
+    if (!response.ok) {
+      return res.json({ success: false, error: '페이지를 가져올 수 없습니다.' });
+    }
+
+    const html = await response.text();
+
+    // Open Graph 메타태그 파싱
+    const getMetaContent = (html, property) => {
+      const patterns = [
+        new RegExp(`<meta[^>]*property\\s*=\\s*["']?og:${property}["']?[^>]*content\\s*=\\s*["']([^"']+)["']`, 'i'),
+        new RegExp(`<meta[^>]*content\\s*=\\s*["']([^"']+)["'][^>]*property\\s*=\\s*["']?og:${property}["']?`, 'i'),
+        new RegExp(`<meta[^>]*name\\s*=\\s*["']?twitter:${property}["']?[^>]*content\\s*=\\s*["']([^"']+)["']`, 'i'),
+      ];
+
+      for (const pattern of patterns) {
+        const match = html.match(pattern);
+        if (match && match[1]) {
+          return match[1].trim();
+        }
+      }
+      return null;
+    };
+
+    const getTitleTag = (html) => {
+      const match = html.match(/<title[^>]*>([^<]+)<\/title>/i);
+      return match ? match[1].trim() : null;
+    };
+
+    const getDescription = (html) => {
+      let match = html.match(/<meta[^>]*name=["']description["'][^>]*content=["']([^"']+)["']/i);
+      if (match) return match[1];
+      match = html.match(/<meta[^>]*content=["']([^"']+)["'][^>]*name=["']description["']/i);
+      return match ? match[1] : null;
+    };
+
+    const title = getMetaContent(html, 'title') || getTitleTag(html) || '';
+    const description = getMetaContent(html, 'description') || getDescription(html) || '';
+    let image = getMetaContent(html, 'image') || '';
+    const siteName = getMetaContent(html, 'site_name') || new URL(targetUrl).hostname;
+
+    // 상대 경로 이미지를 절대 경로로 변환
+    if (image && !image.startsWith('http')) {
+      const urlObj = new URL(targetUrl);
+      image = image.startsWith('/')
+        ? `${urlObj.protocol}//${urlObj.host}${image}`
+        : `${urlObj.protocol}//${urlObj.host}/${image}`;
+    }
+
+    res.json({
+      success: true,
+      data: {
+        url: targetUrl,
+        title: title.substring(0, 100),
+        description: description.substring(0, 200),
+        image,
+        siteName
+      }
+    });
+  } catch (error) {
+    console.error('URL 미리보기 오류:', error.message);
+    res.json({ success: false, error: '미리보기를 가져올 수 없습니다.' });
+  }
+});
+
 module.exports = router;

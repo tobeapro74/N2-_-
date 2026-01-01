@@ -283,6 +283,11 @@ document.addEventListener('DOMContentLoaded', function() {
         headers: { 'X-CSRF-Token': csrfToken }
       });
       const data = await response.json();
+      // 이미지가 있는 댓글 확인
+      const commentsWithImages = data.comments?.filter(c => c.image_url) || [];
+      if (commentsWithImages.length > 0) {
+        console.log('이미지가 있는 댓글:', commentsWithImages.map(c => ({ id: c.id, image_url: c.image_url })));
+      }
 
       if (data.comments) {
         renderComments(data.comments);
@@ -559,11 +564,13 @@ document.addEventListener('DOMContentLoaded', function() {
       });
 
       const data = await response.json();
+      console.log('댓글 작성 응답:', data);
 
       if (data.success) {
         commentInput.value = '';
         commentInput.style.height = 'auto'; // 높이 리셋
         resetImageUpload(); // 이미지 초기화
+        console.log('댓글 목록 새로고침 시작');
         loadComments();
       } else {
         alert(data.error || '댓글 작성에 실패했습니다.');

@@ -332,7 +332,8 @@ document.addEventListener('DOMContentLoaded', function() {
     if (comment.image_url) {
       const imageContainer = card.querySelector('.comment-image-container');
       const imageEl = card.querySelector('.comment-image');
-      // 이미지 로드 성공 시 표시
+
+      // 먼저 이벤트 핸들러 설정
       imageEl.onload = () => {
         imageContainer.classList.remove('d-none');
       };
@@ -340,11 +341,16 @@ document.addEventListener('DOMContentLoaded', function() {
         console.error('이미지 로드 실패:', comment.image_url);
         imageContainer.classList.add('d-none');
       };
+
+      // src 설정 후 바로 표시 (캐시된 이미지 대응)
       imageEl.src = comment.image_url;
-      // 이미지가 이미 캐시되어 있으면 바로 표시
-      if (imageEl.complete && imageEl.naturalHeight > 0) {
-        imageContainer.classList.remove('d-none');
-      }
+
+      // setTimeout으로 캐시된 이미지 처리 (onload가 동기적으로 실행되는 경우 대응)
+      setTimeout(() => {
+        if (imageEl.complete && imageEl.naturalHeight > 0) {
+          imageContainer.classList.remove('d-none');
+        }
+      }, 0);
     }
 
     // 좋아요/싫어요 상태 반영
@@ -400,7 +406,8 @@ document.addEventListener('DOMContentLoaded', function() {
     if (reply.image_url) {
       const imageContainer = card.querySelector('.reply-image-container');
       const imageEl = card.querySelector('.reply-image');
-      // 이미지 로드 성공 시 표시
+
+      // 먼저 이벤트 핸들러 설정
       imageEl.onload = () => {
         imageContainer.classList.remove('d-none');
       };
@@ -408,11 +415,16 @@ document.addEventListener('DOMContentLoaded', function() {
         console.error('이미지 로드 실패:', reply.image_url);
         imageContainer.classList.add('d-none');
       };
+
+      // src 설정 후 바로 표시 (캐시된 이미지 대응)
       imageEl.src = reply.image_url;
-      // 이미지가 이미 캐시되어 있으면 바로 표시
-      if (imageEl.complete && imageEl.naturalHeight > 0) {
-        imageContainer.classList.remove('d-none');
-      }
+
+      // setTimeout으로 캐시된 이미지 처리
+      setTimeout(() => {
+        if (imageEl.complete && imageEl.naturalHeight > 0) {
+          imageContainer.classList.remove('d-none');
+        }
+      }, 0);
     }
 
     // 좋아요/싫어요 상태 반영

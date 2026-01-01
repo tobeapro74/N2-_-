@@ -121,8 +121,12 @@
   <!-- Pull-to-Refresh 스크립트 -->
   <script>
     (function() {
-      // 홈 페이지에서만 동작 (모바일만)
-      if (window.location.pathname !== '/' || !('ontouchstart' in window)) return;
+      // 홈, 일상톡톡, 골프일정 톡톡 페이지에서 동작 (모바일만)
+      var path = window.location.pathname;
+      var isPullToRefreshPage = path === '/' ||
+                                 path === '/community' ||
+                                 /^\/schedules\/\d+\/community$/.test(path);
+      if (!isPullToRefreshPage || !('ontouchstart' in window)) return;
 
       var indicator = document.getElementById('pullToRefreshIndicator');
       var textEl = indicator ? indicator.querySelector('.pull-to-refresh-text') : null;

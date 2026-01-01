@@ -345,7 +345,7 @@ document.addEventListener('DOMContentLoaded', function() {
     card.id = `post-${post.id}`;
     card.querySelector('.post-author').textContent = post.member_name;
     card.querySelector('.post-time').textContent = formatTime(post.created_at);
-    card.querySelector('.post-content').innerHTML = linkify(post.content || '', post.id, 'post');
+    card.querySelector('.post-content').innerHTML = linkify(post.content || '', post.id);
     card.querySelector('.likes-count').textContent = post.likes || 0;
     card.querySelector('.dislikes-count').textContent = post.dislikes || 0;
     card.querySelector('.comments-count').textContent = post.comment_count || 0;
@@ -499,7 +499,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
       const data = await response.json();
       if (data.success) {
-        contentEl.innerHTML = linkify(content, postId, 'post');
+        contentEl.innerHTML = linkify(content, postId);
         form.classList.add('d-none');
         contentEl.classList.remove('d-none');
         loadAllUrlPreviews();
@@ -568,7 +568,7 @@ document.addEventListener('DOMContentLoaded', function() {
     item.dataset.commentId = comment.id;
     item.querySelector('.comment-author').textContent = comment.member_name;
     item.querySelector('.comment-time').textContent = formatTime(comment.created_at);
-    item.querySelector('.comment-content').innerHTML = linkify(comment.content || '', comment.id, 'comment');
+    item.querySelector('.comment-content').innerHTML = linkify(comment.content || '', comment.id);
     item.querySelector('.likes-count').textContent = comment.likes || 0;
     item.querySelector('.dislikes-count').textContent = comment.dislikes || 0;
 
@@ -609,7 +609,7 @@ document.addEventListener('DOMContentLoaded', function() {
     item.dataset.commentId = reply.id;
     item.querySelector('.reply-author').textContent = reply.member_name;
     item.querySelector('.reply-time').textContent = formatTime(reply.created_at);
-    item.querySelector('.reply-content').innerHTML = linkify(reply.content || '', reply.id, 'reply');
+    item.querySelector('.reply-content').innerHTML = linkify(reply.content || '', reply.id);
     item.querySelector('.likes-count').textContent = reply.likes || 0;
     item.querySelector('.dislikes-count').textContent = reply.dislikes || 0;
 
@@ -811,7 +811,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
       const data = await response.json();
       if (data.success) {
-        contentEl.innerHTML = linkify(content, commentId, 'comment');
+        contentEl.innerHTML = linkify(content, commentId);
         form.classList.add('d-none');
         contentEl.classList.remove('d-none');
         loadAllUrlPreviews();
@@ -906,8 +906,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
-  // URL을 클릭 가능한 링크로 변환 + 줄바꿈 처리
-  function linkify(text, targetId, targetType) {
+  // URL을 클릭 가능한 링크로 변환 + 줄바꿈 처리 (골프일정 톡톡과 동일)
+  function linkify(text, targetId) {
     // HTML 특수문자 이스케이프 (XSS 방지)
     const escapeHtml = (str) => {
       const div = document.createElement('div');
@@ -931,14 +931,82 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 첫 번째 URL에 대해 프리뷰 컨테이너 추가
     if (urls.length > 0 && targetId) {
+      result += `<div class="url-preview-container mt-2" data-comment-id="${targetId}" data-url="${urls[0]}"></div>`;
+    }
+
+    return result;
+  }
+
+  // URL 프리뷰 로드 (골프일정 톡톡과 동일)
+  async function loadUrlPreview(container) {
+    const url = container.dataset.url;
+    if (!url) return;
+
+    try {
+      const response = await fetch('/community/url-preview', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken
+        },
+        body: JSON.stringify({ url })
+      });
+
+      const data = await response.json();
+
+      if (data.success && data.data) {
+        const { title, description, image, siteName, url: targetUrl } = data.data;
+
+        // 썸네일이 있거나 제목이 있는 경우만 표시
+        if (title || image) {
+          container.innerHTML = `
+            <a href="${targetUrl}" target="_blank" rel="noopener noreferrer" class="text-decoration-none">
+              <div class="card border" style="max-width: 400px; font-size: 0.8rem;">
+                ${image ? `<img src="${image}" class="card-img-top" alt="" loading="lazy" style="max-height: 150px; object-fit: cover;" onerror="this.style.display='none'">` : ''}
+                <div class="card-body py-2 px-3">
+                  <div class="text-muted" style="font-size: 0.7rem;">${siteName}</div>
+                  <div class="fw-bold text-dark text-truncate">${title || targetUrl}</div>
+                  ${description ? `<div class="text-muted text-truncate" style="font-size: 0.75rem;">${description}</div>` : ''}
+                </div>
+              </div>
+            </a>
+          `;
+        }
+      }
+    } catch (error) {
+      console.error('URL 프리뷰 로드 실패:', error);
+    }
+  }
+
+  /* ========================================
+   * 기존 커스텀 URL 미리보기 코드 (주석 처리)
+   * ========================================
+  function linkify_old(text, targetId, targetType) {
+    const escapeHtml = (str) => {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    };
+
+    const escaped = escapeHtml(text);
+    const urlPattern = /(https?:\/\/[^\s<]+|www\.[^\s<]+)/gi;
+    const urls = text.match(urlPattern) || [];
+
+    let result = escaped.replace(urlPattern, (url) => {
+      const href = url.startsWith('www.') ? 'https://' + url : url;
+      return `<a href="${href}" target="_blank" rel="noopener noreferrer" class="text-primary">${url}</a>`;
+    });
+
+    result = result.replace(/\n/g, '<br>');
+
+    if (urls.length > 0 && targetId) {
       result += `<div class="url-preview-container" style="margin-top: 4px;" data-target-id="${targetId}" data-target-type="${targetType}" data-url="${urls[0]}"></div>`;
     }
 
     return result;
   }
 
-  // URL 프리뷰 로드
-  async function loadUrlPreview(container) {
+  async function loadUrlPreview_old(container) {
     const url = container.dataset.url;
     if (!url) return;
 
@@ -969,6 +1037,7 @@ document.addEventListener('DOMContentLoaded', function() {
       console.error('URL 프리뷰 로드 실패:', error);
     }
   }
+  ======================================== */
 
   // 모든 URL 프리뷰 로드
   function loadAllUrlPreviews() {

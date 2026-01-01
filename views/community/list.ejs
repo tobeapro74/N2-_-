@@ -57,7 +57,7 @@
       <!-- 게시글 헤더 -->
       <div class="d-flex align-items-center justify-content-between mb-1">
         <div class="d-flex align-items-center">
-          <span class="fw-bold post-author" style="font-size: 0.9rem;"></span>
+          <span class="fw-bold post-author" style="font-size: 0.85rem;"></span>
           <small class="text-muted ms-2 post-time"></small>
         </div>
         <div class="post-actions">
@@ -71,10 +71,10 @@
       </div>
       <!-- 게시글 이미지 -->
       <div class="post-image-container d-none mb-2">
-        <img class="post-image rounded" src="" alt="첨부 이미지" loading="lazy" style="max-height: 400px; max-width: 100%; cursor: pointer;" onclick="window.open(this.src, '_blank')" onerror="this.parentElement.classList.add('d-none')">
+        <img class="post-image rounded" src="" alt="첨부 이미지" loading="lazy" style="max-height: 300px; max-width: 100%; cursor: pointer;" onclick="window.open(this.src, '_blank')" onerror="this.parentElement.classList.add('d-none')">
       </div>
       <!-- 게시글 내용 -->
-      <p class="mb-1 post-content" style="font-size: 0.85rem; white-space: pre-wrap;"></p>
+      <p class="mb-2 post-content" style="font-size: 0.9rem;"></p>
       <!-- 수정 폼 (숨김) -->
       <div class="edit-form d-none mb-2">
         <div class="d-flex gap-2 align-items-end">
@@ -168,7 +168,7 @@
 
 <!-- 대댓글 템플릿 -->
 <template id="replyTemplate">
-  <div class="reply-item ps-2 py-1 mb-1" data-comment-id="" style="border-left: 1px solid #dee2e6;">
+  <div class="reply-item border-start border-2 border-success ps-3 py-1 mb-1" data-comment-id="">
     <div class="d-flex align-items-center justify-content-between">
       <div class="d-flex align-items-center">
         <span class="fw-bold reply-author" style="font-size: 0.75rem;"></span>

@@ -350,13 +350,13 @@ document.addEventListener('DOMContentLoaded', function() {
     card.querySelector('.dislikes-count').textContent = post.dislikes || 0;
     card.querySelector('.comments-count').textContent = post.comment_count || 0;
 
-    // 이미지 표시
+    // 이미지 표시 - image_url이 있으면 바로 표시, 에러시에만 숨김
     if (post.image_url) {
       const imageContainer = card.querySelector('.post-image-container');
       const imageEl = card.querySelector('.post-image');
-      imageEl.onload = () => imageContainer.classList.remove('d-none');
       imageEl.onerror = () => imageContainer.classList.add('d-none');
       imageEl.src = post.image_url;
+      imageContainer.classList.remove('d-none');
     }
 
     // 좋아요/싫어요 상태

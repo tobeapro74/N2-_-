@@ -931,7 +931,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 첫 번째 URL에 대해 프리뷰 컨테이너 추가
     if (urls.length > 0 && targetId) {
-      result += `<div class="url-preview-container mt-1" data-target-id="${targetId}" data-target-type="${targetType}" data-url="${urls[0]}"></div>`;
+      result += `<div class="url-preview-container" style="margin-top: 4px;" data-target-id="${targetId}" data-target-type="${targetType}" data-url="${urls[0]}"></div>`;
     }
 
     return result;

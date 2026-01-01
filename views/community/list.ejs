@@ -52,10 +52,10 @@
 
 <!-- 게시글 템플릿 -->
 <template id="postTemplate">
-  <div class="card border-0 shadow-sm mb-3 post-card" data-post-id="">
+  <div class="card border-0 shadow-sm mb-2 post-card" data-post-id="">
     <div class="card-body py-2 px-3">
       <!-- 게시글 헤더 -->
-      <div class="d-flex align-items-center justify-content-between mb-2">
+      <div class="d-flex align-items-center justify-content-between mb-1">
         <div class="d-flex align-items-center">
           <span class="fw-bold post-author" style="font-size: 0.9rem;"></span>
           <small class="text-muted ms-2 post-time"></small>
@@ -74,7 +74,7 @@
         <img class="post-image rounded" src="" alt="첨부 이미지" loading="lazy" style="max-height: 400px; max-width: 100%; cursor: pointer;" onclick="window.open(this.src, '_blank')" onerror="this.parentElement.classList.add('d-none')">
       </div>
       <!-- 게시글 내용 -->
-      <p class="mb-2 post-content" style="font-size: 0.9rem; white-space: pre-wrap;"></p>
+      <p class="mb-1 post-content" style="font-size: 0.85rem; white-space: pre-wrap;"></p>
       <!-- 수정 폼 (숨김) -->
       <div class="edit-form d-none mb-2">
         <div class="d-flex gap-2 align-items-end">
@@ -931,7 +931,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 첫 번째 URL에 대해 프리뷰 컨테이너 추가
     if (urls.length > 0 && targetId) {
-      result += `<div class="url-preview-container mt-2" data-target-id="${targetId}" data-target-type="${targetType}" data-url="${urls[0]}"></div>`;
+      result += `<div class="url-preview-container mt-1" data-target-id="${targetId}" data-target-type="${targetType}" data-url="${urls[0]}"></div>`;
     }
 
     return result;
@@ -960,12 +960,12 @@ document.addEventListener('DOMContentLoaded', function() {
         if (title || image) {
           container.innerHTML = `
             <a href="${targetUrl}" target="_blank" rel="noopener noreferrer" class="text-decoration-none">
-              <div class="card border" style="max-width: 400px; font-size: 0.8rem;">
-                ${image ? `<img src="${image}" class="card-img-top" alt="" loading="lazy" style="max-height: 150px; object-fit: cover;" onerror="this.style.display='none'">` : ''}
-                <div class="card-body py-2 px-3">
-                  <div class="text-muted" style="font-size: 0.7rem;">${siteName}</div>
-                  <div class="fw-bold text-dark text-truncate">${title || targetUrl}</div>
-                  ${description ? `<div class="text-muted text-truncate" style="font-size: 0.75rem;">${description}</div>` : ''}
+              <div class="card border" style="max-width: 320px; font-size: 0.75rem;">
+                ${image ? `<img src="${image}" class="card-img-top" alt="" loading="lazy" style="max-height: 100px; object-fit: cover;" onerror="this.style.display='none'">` : ''}
+                <div class="card-body py-1 px-2">
+                  <div class="text-muted" style="font-size: 0.65rem;">${siteName}</div>
+                  <div class="fw-bold text-dark text-truncate" style="font-size: 0.75rem;">${title || targetUrl}</div>
+                  ${description ? `<div class="text-muted text-truncate" style="font-size: 0.7rem;">${description}</div>` : ''}
                 </div>
               </div>
             </a>

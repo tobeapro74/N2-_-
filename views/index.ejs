@@ -245,7 +245,7 @@
                   <span class="home-card-title d-block text-dark"><%= schedule.course_name %></span>
                   <span class="home-card-subtitle d-block"><%= schedule.location %></span>
                 </div>
-                <div class="text-end me-3">
+                <div class="text-end">
                   <span class="badge <%= schedule.status === 'pending' ? 'bg-info' : 'bg-success' %> home-card-badge"><%= moment(schedule.play_date).format('MM/DD (ddd)') %></span>
                   <% if (schedule.status === 'pending') { %>
                   <span class="home-card-meta text-info d-block">오픈전</span>
@@ -255,10 +255,6 @@
                 </div>
               </div>
             </a>
-            <a href="/schedules/<%= schedule.id %>/community" class="btn btn-outline-success btn-sm py-0 d-flex align-items-center gap-1" style="font-size: 0.75rem;" title="커뮤니티">
-              <i class="bi bi-chat-dots"></i> 톡톡
-              <% if (schedule.has_new_comments) { %><span class="badge bg-danger" style="font-size: 0.6rem;">NEW</span><% } %>
-            </a>
           </div>
           <% }) %>
         </div>
@@ -266,25 +262,19 @@
         <div class="d-md-none">
           <div class="d-flex gap-2 overflow-auto pb-1" style="scrollbar-width: thin;">
             <% upcomingSchedules.forEach(schedule => { %>
-            <div class="flex-shrink-0 schedule-mobile-card" style="width: 140px;">
-              <div class="border rounded bg-light h-100 schedule-card-inner">
-                <a href="/schedules/<%= schedule.id %>" class="text-decoration-none d-block p-2 schedule-card-link">
-                  <div class="d-flex justify-content-between align-items-start mb-1">
-                    <span class="badge <%= schedule.status === 'pending' ? 'bg-info' : 'bg-success' %> home-card-badge"><%= moment(schedule.play_date).format('MM/DD') %></span>
-                    <% if (schedule.status === 'pending') { %>
-                    <span class="home-card-meta text-info">오픈전</span>
-                    <% } else { %>
-                    <span class="home-card-meta text-muted"><%= schedule.reserved_count %>/<%= schedule.max_members %></span>
-                    <% } %>
-                  </div>
-                  <div class="home-card-title text-dark text-truncate"><%= schedule.course_name %></div>
-                </a>
-                <a href="/schedules/<%= schedule.id %>/community" class="btn btn-outline-success btn-sm w-100 rounded-0 rounded-bottom py-0 d-flex align-items-center justify-content-center gap-1 schedule-talk-btn" style="font-size: 0.65rem; border-top: 1px solid rgba(0,0,0,0.1); line-height: 1.5;">
-                  <i class="bi bi-chat-dots"></i> 톡톡
-                  <% if (schedule.has_new_comments) { %><span class="badge bg-danger" style="font-size: 0.5rem;">NEW</span><% } %>
-                </a>
+            <a href="/schedules/<%= schedule.id %>" class="flex-shrink-0 schedule-mobile-card text-decoration-none" style="width: 120px;">
+              <div class="border rounded bg-light h-100 schedule-card-inner p-2">
+                <div class="d-flex justify-content-between align-items-start mb-1">
+                  <span class="badge <%= schedule.status === 'pending' ? 'bg-info' : 'bg-success' %> home-card-badge"><%= moment(schedule.play_date).format('MM/DD') %></span>
+                  <% if (schedule.status === 'pending') { %>
+                  <span class="home-card-meta text-info">오픈전</span>
+                  <% } else { %>
+                  <span class="home-card-meta text-muted"><%= schedule.reserved_count %>/<%= schedule.max_members %></span>
+                  <% } %>
+                </div>
+                <div class="home-card-title text-dark text-truncate"><%= schedule.course_name %></div>
               </div>
-            </div>
+            </a>
             <% }) %>
           </div>
         </div>

@@ -960,7 +960,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (title || image) {
           container.innerHTML = `
             <a href="${targetUrl}" target="_blank" rel="noopener noreferrer" class="text-decoration-none d-inline-block" style="max-width: 360px; border: 1px solid #dee2e6; border-radius: 0.375rem; overflow: hidden;">
-              ${image ? `<img src="${image}" alt="" loading="lazy" style="display: block; width: 100%; max-height: 180px; object-fit: contain; background: #f8f9fa;" onerror="this.style.display='none'">` : ''}
+              ${image ? `<img src="${image}" alt="" loading="lazy" style="display: block; width: 100%; max-height: 180px; object-fit: contain; background: #f8f9fa;" onerror="this.parentElement.style.display='none'">` : ''}
               <div style="padding: 2px 6px; line-height: 1.1;">
                 <span class="text-muted" style="font-size: 0.6rem;">${siteName}</span>
                 <span class="text-dark text-truncate d-block" style="font-size: 0.7rem;">${title || ''}</span>

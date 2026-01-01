@@ -11,6 +11,7 @@
 6. [웹사이트 속도 느림](#6-웹사이트-속도-느림)
 7. [모바일 터치 이벤트 문제](#7-모바일-터치-이벤트-문제)
 8. [로딩 인디케이터 문제](#8-로딩-인디케이터-문제)
+9. [이미지 업로드 실패 (Service Worker POST 캐싱)](#9-이미지-업로드-실패-service-worker-post-캐싱)
 
 ---
 
@@ -794,3 +795,102 @@ git push
 6. [ ] touchcancel 이벤트에서 pressed 클래스 제거
 7. [ ] pageshow, load, visibilitychange에서 hideLoading 호출
 8. [ ] Service Worker 캐시 버전 업데이트
+
+---
+
+## 9. 이미지 업로드 실패 (Service Worker POST 캐싱)
+
+### 증상
+```
+sw.js:60 Uncaught (in promise) TypeError: Failed to execute 'put' on 'Cache':
+Request method 'POST' is unsupported
+```
+
+이미지 업로드 시 스피너가 돌다가 멈추거나, 업로드가 실패하는 것처럼 보임.
+
+### 원인
+Service Worker의 fetch 이벤트 핸들러에서 **모든 요청**을 캐시하려고 시도.
+HTTP Cache API는 GET 요청만 캐싱 가능하며, POST 요청을 캐싱하려고 하면 에러 발생.
+
+```javascript
+// 문제의 코드
+event.respondWith(
+  fetch(event.request)
+    .then(response => {
+      // POST 요청도 캐싱 시도 → 에러!
+      cache.put(event.request, responseClone);
+      return response;
+    })
+);
+```
+
+### 해결 방법
+
+**public/sw.js 수정:**
+```javascript
+self.addEventListener('fetch', event => {
+  const url = new URL(event.request.url);
+
+  // 외부 도메인 요청은 Service Worker가 처리하지 않음
+  if (url.origin !== self.location.origin) {
+    return;
+  }
+
+  // POST 요청은 캐시할 수 없으므로 그대로 네트워크로 전달
+  if (event.request.method !== 'GET') {
+    return;  // 핵심: POST, PUT, DELETE 등은 처리하지 않음
+  }
+
+  event.respondWith(
+    fetch(event.request)
+      .then(response => {
+        if (response.status === 200) {
+          const responseClone = response.clone();
+          caches.open(CACHE_NAME)
+            .then(cache => {
+              cache.put(event.request, responseClone);
+            });
+        }
+        return response;
+      })
+      .catch(() => {
+        return caches.match(event.request);
+      })
+  );
+});
+```
+
+**캐시 버전 업데이트:**
+```javascript
+const CACHE_NAME = 'n2golf-v13';  // 버전 증가
+```
+
+### 브라우저 캐시 정리 (사용자)
+
+수정 후에도 문제가 지속되면 이전 Service Worker가 캐시되어 있음.
+
+**방법 1: 개발자 도구**
+1. F12 → Application 탭
+2. Service Workers → Update on reload 체크
+3. Storage → Clear site data
+
+**방법 2: 콘솔에서 직접 해제**
+```javascript
+navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister())).then(() => location.reload())
+```
+
+**방법 3: 브라우저 설정**
+설정 → 개인정보 → 사이트 데이터 → 해당 사이트 삭제
+
+### 확인 방법
+1. 개발자 도구 Console 탭에서 에러 확인
+2. `Request method 'POST' is unsupported` 메시지가 없어야 함
+3. 이미지 업로드 후 체크 아이콘(✓) 표시 확인
+
+### 연관 이슈
+- POST 외에도 PUT, DELETE 요청에서 동일한 문제 발생 가능
+- 댓글 작성, 수정, 삭제 API 모두 영향받음
+
+---
+
+*마지막 업데이트: 2026-01-01*

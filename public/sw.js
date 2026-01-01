@@ -1,4 +1,4 @@
-const CACHE_NAME = 'n2golf-v12';
+const CACHE_NAME = 'n2golf-v13';
 const urlsToCache = [
   '/',
   '/css/style.css',
@@ -49,10 +49,15 @@ self.addEventListener('fetch', event => {
     return;
   }
 
+  // POST 요청은 캐시할 수 없으므로 그대로 네트워크로 전달
+  if (event.request.method !== 'GET') {
+    return;
+  }
+
   event.respondWith(
     fetch(event.request)
       .then(response => {
-        // 성공적인 응답이면 캐시에 저장
+        // 성공적인 응답이면 캐시에 저장 (GET 요청만)
         if (response.status === 200) {
           const responseClone = response.clone();
           caches.open(CACHE_NAME)

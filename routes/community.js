@@ -57,7 +57,8 @@ router.get('/', requireAuth, async (req, res) => {
   try {
     res.render('community/list', {
       title: '일상톡톡',
-      user: req.session.user
+      user: req.session.user,
+      cloudinaryCloudName: process.env.CLOUDINARY_CLOUD_NAME || ''
     });
   } catch (error) {
     console.error('커뮤니티 페이지 오류:', error);

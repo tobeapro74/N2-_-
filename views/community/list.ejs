@@ -223,6 +223,10 @@ document.addEventListener('DOMContentLoaded', function() {
   const imageLabel = document.querySelector('label[for="imageInput"]');
   let selectedImageUrl = null;
 
+  // Cloudinary 직접 업로드 설정
+  const CLOUDINARY_CLOUD_NAME = '<%= cloudinaryCloudName || "" %>';
+  const CLOUDINARY_UPLOAD_PRESET = 'n2golf_unsigned';
+
   let currentPage = 1;
   let hasMore = true;
 
@@ -250,7 +254,7 @@ document.addEventListener('DOMContentLoaded', function() {
     return div.innerHTML;
   }
 
-  // 이미지 업로드
+  // 이미지 업로드 - Cloudinary 직접 업로드 (서버 거치지 않음)
   imageInput.addEventListener('change', async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -266,24 +270,47 @@ document.addEventListener('DOMContentLoaded', function() {
     imageLabel.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
     imageLabel.style.pointerEvents = 'none';
 
-    const formData = new FormData();
-    formData.append('image', file);
-
     try {
-      const response = await fetch('/community/upload-image', {
-        method: 'POST',
-        headers: { 'X-CSRF-Token': csrfToken },
-        body: formData
-      });
+      // Cloudinary 직접 업로드 가능 여부 확인
+      if (CLOUDINARY_CLOUD_NAME) {
+        // Cloudinary 직접 업로드
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+        formData.append('folder', 'n2golf/community');
 
-      const data = await response.json();
+        const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
+          method: 'POST',
+          body: formData
+        });
 
-      if (data.success) {
-        selectedImageUrl = data.imageUrl;
-        imageLabel.innerHTML = '<i class="bi bi-check-circle-fill text-success"></i>';
+        const data = await response.json();
+
+        if (data.secure_url) {
+          selectedImageUrl = data.secure_url;
+          imageLabel.innerHTML = '<i class="bi bi-check-circle-fill text-success"></i>';
+        } else {
+          throw new Error(data.error?.message || '업로드 실패');
+        }
       } else {
-        alert(data.error || '이미지 업로드에 실패했습니다.');
-        resetImageUpload();
+        // 서버 업로드로 폴백 (Cloudinary 미설정 시)
+        const formData = new FormData();
+        formData.append('image', file);
+
+        const response = await fetch('/community/upload-image', {
+          method: 'POST',
+          headers: { 'X-CSRF-Token': csrfToken },
+          body: formData
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          selectedImageUrl = data.imageUrl;
+          imageLabel.innerHTML = '<i class="bi bi-check-circle-fill text-success"></i>';
+        } else {
+          throw new Error(data.error || '업로드 실패');
+        }
       }
     } catch (error) {
       console.error('이미지 업로드 오류:', error);

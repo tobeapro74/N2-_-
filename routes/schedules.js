@@ -493,7 +493,8 @@ router.get('/:id/community', requireAuth, async (req, res) => {
         ...schedule,
         course_name: golfCourse.name,
         location: golfCourse.location
-      }
+      },
+      cloudinaryCloudName: process.env.CLOUDINARY_CLOUD_NAME || ''
     });
   } catch (error) {
     console.error('커뮤니티 페이지 오류:', error);

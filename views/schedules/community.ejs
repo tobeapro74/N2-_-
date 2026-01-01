@@ -328,29 +328,20 @@ document.addEventListener('DOMContentLoaded', function() {
     card.querySelector('.likes-count').textContent = comment.likes || 0;
     card.querySelector('.dislikes-count').textContent = comment.dislikes || 0;
 
-    // 이미지 표시
+    // 이미지 표시 - image_url이 있으면 바로 표시, 에러시에만 숨김
     if (comment.image_url) {
       const imageContainer = card.querySelector('.comment-image-container');
       const imageEl = card.querySelector('.comment-image');
 
-      // 먼저 이벤트 핸들러 설정
-      imageEl.onload = () => {
-        imageContainer.classList.remove('d-none');
-      };
+      // 에러 핸들러만 설정 (로드 실패 시 숨김)
       imageEl.onerror = () => {
         console.error('이미지 로드 실패:', comment.image_url);
         imageContainer.classList.add('d-none');
       };
 
-      // src 설정 후 바로 표시 (캐시된 이미지 대응)
+      // src 설정 및 즉시 표시 (onload 이벤트에 의존하지 않음)
       imageEl.src = comment.image_url;
-
-      // setTimeout으로 캐시된 이미지 처리 (onload가 동기적으로 실행되는 경우 대응)
-      setTimeout(() => {
-        if (imageEl.complete && imageEl.naturalHeight > 0) {
-          imageContainer.classList.remove('d-none');
-        }
-      }, 0);
+      imageContainer.classList.remove('d-none');
     }
 
     // 좋아요/싫어요 상태 반영
@@ -402,29 +393,20 @@ document.addEventListener('DOMContentLoaded', function() {
     card.querySelector('.likes-count').textContent = reply.likes || 0;
     card.querySelector('.dislikes-count').textContent = reply.dislikes || 0;
 
-    // 이미지 표시
+    // 이미지 표시 - image_url이 있으면 바로 표시, 에러시에만 숨김
     if (reply.image_url) {
       const imageContainer = card.querySelector('.reply-image-container');
       const imageEl = card.querySelector('.reply-image');
 
-      // 먼저 이벤트 핸들러 설정
-      imageEl.onload = () => {
-        imageContainer.classList.remove('d-none');
-      };
+      // 에러 핸들러만 설정 (로드 실패 시 숨김)
       imageEl.onerror = () => {
         console.error('이미지 로드 실패:', reply.image_url);
         imageContainer.classList.add('d-none');
       };
 
-      // src 설정 후 바로 표시 (캐시된 이미지 대응)
+      // src 설정 및 즉시 표시 (onload 이벤트에 의존하지 않음)
       imageEl.src = reply.image_url;
-
-      // setTimeout으로 캐시된 이미지 처리
-      setTimeout(() => {
-        if (imageEl.complete && imageEl.naturalHeight > 0) {
-          imageContainer.classList.remove('d-none');
-        }
-      }, 0);
+      imageContainer.classList.remove('d-none');
     }
 
     // 좋아요/싫어요 상태 반영

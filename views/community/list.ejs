@@ -957,14 +957,10 @@ document.addEventListener('DOMContentLoaded', function() {
       if (data.success && data.data) {
         const { title, description, image, siteName, url: targetUrl } = data.data;
 
-        if (title || image) {
+        if (image) {
           container.innerHTML = `
             <a href="${targetUrl}" target="_blank" rel="noopener noreferrer" class="text-decoration-none d-inline-block" style="max-width: 360px; border: 1px solid #dee2e6; border-radius: 0.375rem; overflow: hidden;">
-              ${image ? `<img src="${image}" alt="" loading="lazy" style="display: block; width: 100%; max-height: 180px; object-fit: contain; background: #f8f9fa;" onerror="this.parentElement.style.display='none'">` : ''}
-              <div style="padding: 1px 4px; line-height: 1;">
-                <span class="text-muted" style="font-size: 0.55rem;">${siteName}</span>
-                <span class="text-dark text-truncate d-block" style="font-size: 0.65rem;">${title || ''}</span>
-              </div>
+              <img src="${image}" alt="" loading="lazy" style="display: block; width: 100%; max-height: 180px; object-fit: contain; background: #f8f9fa;" onerror="this.parentElement.style.display='none'">
             </a>
           `;
         }

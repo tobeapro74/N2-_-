@@ -127,23 +127,27 @@ async function sendToMember(memberId, payload, type = 'general') {
  * @param {string} type - 알림 유형 (선택적)
  */
 async function sendToAll(payload, excludeMembers = [], type = 'general') {
+  // 모든 활성 회원에게 알림 내역 저장
+  const members = await db.getTableAsync('members');
+  const activeMembers = members
+    .filter(m => m.status === 'active' && !excludeMembers.includes(m.id))
+    .map(m => m.id);
+
+  // 알림 내역 저장 (모든 활성 회원)
+  if (activeMembers.length > 0) {
+    await saveNotification(activeMembers, payload, type);
+  }
+
+  // 푸시 알림은 구독한 사람에게만 발송
   const subscriptions = await db.getTableAsync('push_subscriptions');
   const targetSubs = subscriptions.filter(s => !excludeMembers.includes(s.member_id));
-
-  // 대상 회원 ID 목록 (중복 제거)
-  const targetMemberIds = [...new Set(targetSubs.map(s => s.member_id))];
-
-  // 알림 내역 저장
-  if (targetMemberIds.length > 0) {
-    await saveNotification(targetMemberIds, payload, type);
-  }
 
   const results = await Promise.all(
     targetSubs.map(sub => sendPush(sub, payload))
   );
 
   const successCount = results.filter(r => r).length;
-  console.log(`전체 푸시 발송: ${successCount}/${targetSubs.length} 성공`);
+  console.log(`전체 알림 저장: ${activeMembers.length}명, 푸시 발송: ${successCount}/${targetSubs.length} 성공`);
 
   return successCount;
 }

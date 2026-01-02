@@ -336,23 +336,8 @@ router.get('/admin', requireAuth, requireAdmin, async (req, res) => {
   }
 });
 
-// 관리자: 예약 상태 변경
-router.post('/admin/update-status', requireAuth, requireAdmin, async (req, res) => {
-  try {
-    const { reservation_id, status } = req.body;
-    await db.update('reservations', parseInt(reservation_id), { status });
-
-    // 캐시 새로고침
-    if (db.refreshCache) {
-      await db.refreshCache('reservations');
-    }
-
-    res.json({ success: true });
-  } catch (error) {
-    console.error('예약 상태 변경 오류:', error);
-    res.status(500).json({ error: '상태 변경 중 오류가 발생했습니다.' });
-  }
-});
+// 관리자: 예약 상태 변경 (간단 버전 - 상세 버전으로 대체됨)
+// NOTE: 아래 /admin/update-status 라우트가 실제로 사용됨
 
 // 관리자: 대리 예약
 router.post('/admin/book-for', requireAuth, requireAdmin, async (req, res) => {

@@ -302,6 +302,8 @@
     (function() {
       // 마지막으로 확인한 알림 ID (세션 스토리지에 저장)
       const LAST_SEEN_KEY = 'lastSeenNotificationId';
+      // 페이지 로드 시 토스트 표시 여부 (세션당 1회)
+      const TOAST_SHOWN_KEY = 'toastShownThisSession';
 
       // 알림 배지 업데이트
       function updateUnreadBadge(count) {
@@ -343,33 +345,36 @@
       }
 
       // 알림 개수 조회 및 새 알림 확인
-      async function checkNotifications() {
+      async function checkNotifications(isInitialLoad = false) {
         try {
           const response = await fetch('/notifications/unread-count');
           const data = await response.json();
-          console.log('알림 개수:', data);
 
           if (data.success) {
             updateUnreadBadge(data.count);
 
-            // 새 알림이 있으면 최신 알림 내용 조회해서 토스트 표시
+            // 읽지 않은 알림이 있을 때 토스트 표시 조건 확인
             if (data.count > 0) {
               const lastSeenId = parseInt(sessionStorage.getItem(LAST_SEEN_KEY) || '0');
-              console.log('lastSeenId:', lastSeenId);
+              const toastShown = sessionStorage.getItem(TOAST_SHOWN_KEY);
 
               // 최신 알림 조회
               const latestResponse = await fetch('/notifications/latest');
               const latestData = await latestResponse.json();
-              console.log('최신 알림:', latestData);
 
               if (latestData.success && latestData.notification) {
                 const latest = latestData.notification;
-                console.log('알림 ID 비교:', latest.id, '>', lastSeenId, '=', latest.id > lastSeenId);
 
-                // 새로운 알림인 경우에만 토스트 표시
-                if (latest.id > lastSeenId) {
+                // 토스트 표시 조건:
+                // 1. 새로운 알림 ID (기존 로직)
+                // 2. 또는 페이지 첫 로드 시 아직 토스트를 안 보여준 경우
+                const isNewNotification = latest.id > lastSeenId;
+                const shouldShowOnFirstLoad = isInitialLoad && !toastShown && data.count > 0;
+
+                if (isNewNotification || shouldShowOnFirstLoad) {
                   showToast(latest.title, latest.body, latest.url);
                   sessionStorage.setItem(LAST_SEEN_KEY, latest.id.toString());
+                  sessionStorage.setItem(TOAST_SHOWN_KEY, 'true');
                 }
               }
             }
@@ -384,10 +389,13 @@
         // 로그인 상태인 경우에만 실행
         const unreadBadge = document.getElementById('unreadBadge');
         if (unreadBadge) {
-          checkNotifications();
+          // 첫 로드 시 토스트 표시 플래그 초기화 (페이지 새로고침마다)
+          sessionStorage.removeItem(TOAST_SHOWN_KEY);
 
-          // 30초마다 새 알림 확인 (선택적)
-          setInterval(checkNotifications, 30000);
+          checkNotifications(true); // isInitialLoad = true
+
+          // 30초마다 새 알림 확인
+          setInterval(() => checkNotifications(false), 30000);
         }
       });
     })();

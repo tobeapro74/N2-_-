@@ -145,6 +145,19 @@ router.post('/apply', requireAuth, async (req, res) => {
       await db.refreshCache('reservations');
     }
 
+    // 마감 임박 알림 (80% 이상 찼을 때, 한 번만 발송)
+    const newCount = currentCount + 1;
+    const threshold = Math.floor(maxMembers * 0.8);
+    if (newCount === threshold && pushService.isEnabled()) {
+      // 이미 예약한 회원 ID 목록
+      const reservedMemberIds = db.getTable('reservations')
+        .filter(r => r.schedule_id === scheduleId && ['pending', 'confirmed'].includes(r.status))
+        .map(r => r.member_id);
+
+      pushService.notifyReservationAlmostFull(schedule, golfCourse, newCount, maxMembers, reservedMemberIds)
+        .catch(err => console.error('마감 임박 푸시 오류:', err));
+    }
+
     const statusMessage = reservationStatus === 'waitlist'
       ? '대기자로 등록되었습니다.'
       : '예약 신청이 완료되었습니다.';
@@ -184,6 +197,10 @@ router.post('/cancel', requireAuth, async (req, res) => {
       return res.status(400).json({ error: '완료된 일정은 취소할 수 없습니다.' });
     }
 
+    // 취소 전 정보 저장 (대기자 승격용)
+    const scheduleId = reservation.schedule_id;
+    const wasConfirmedOrPending = ['confirmed', 'pending'].includes(reservation.status);
+
     // 예약 취소 (비동기)
     await db.update('reservations', reservationId, { status: 'cancelled' });
 
@@ -192,7 +209,48 @@ router.post('/cancel', requireAuth, async (req, res) => {
       await db.refreshCache('reservations');
     }
 
-    res.json({ success: true, message: '예약이 취소되었습니다.' });
+    // 대기자 승격 처리 (확정/신청 취소 시에만)
+    let promotedMember = null;
+    if (wasConfirmedOrPending) {
+      const golfCourse = schedule ? db.findById('golf_courses', schedule.golf_course_id) : null;
+      const maxMembers = schedule?.max_members || golfCourse?.max_members || 12;
+
+      // 현재 확정/신청 인원 수
+      const currentCount = db.getTable('reservations')
+        .filter(r => r.schedule_id === scheduleId && ['pending', 'confirmed'].includes(r.status))
+        .length;
+
+      // 자리가 생겼고 대기자가 있으면 첫 번째 대기자 승격
+      if (currentCount < maxMembers) {
+        const waitlistReservations = db.getTable('reservations')
+          .filter(r => r.schedule_id === scheduleId && r.status === 'waitlist')
+          .sort((a, b) => (a.applied_at || '').localeCompare(b.applied_at || ''));
+
+        if (waitlistReservations.length > 0) {
+          const firstWaitlist = waitlistReservations[0];
+          await db.update('reservations', firstWaitlist.id, { status: 'pending' });
+
+          // 캐시 새로고침
+          if (db.refreshCache) {
+            await db.refreshCache('reservations');
+          }
+
+          promotedMember = firstWaitlist.member_id;
+
+          // 대기자 → 확정 전환 푸시 알림
+          if (pushService.isEnabled() && schedule && golfCourse) {
+            pushService.notifyWaitlistToConfirmed(firstWaitlist.member_id, schedule, golfCourse)
+              .catch(err => console.error('대기자 승격 푸시 오류:', err));
+          }
+        }
+      }
+    }
+
+    const message = promotedMember
+      ? '예약이 취소되었습니다. 대기자가 자동으로 승격되었습니다.'
+      : '예약이 취소되었습니다.';
+
+    res.json({ success: true, message, promotedMember });
   } catch (error) {
     console.error('예약 취소 오류:', error);
     res.status(500).json({ error: '예약 취소 중 오류가 발생했습니다.' });
@@ -658,6 +716,10 @@ router.post('/admin/delete', requireAuth, requireAdmin, async (req, res) => {
       return res.status(404).json({ error: '예약을 찾을 수 없습니다.' });
     }
 
+    // 삭제 전 정보 저장 (대기자 승격용)
+    const scheduleId = reservation.schedule_id;
+    const wasConfirmedOrPending = ['confirmed', 'pending'].includes(reservation.status);
+
     // 실제 삭제 대신 상태를 'deleted'로 변경
     await db.update('reservations', reservationId, { status: 'deleted' });
 
@@ -666,7 +728,46 @@ router.post('/admin/delete', requireAuth, requireAdmin, async (req, res) => {
       await db.refreshCache('reservations');
     }
 
-    res.json({ success: true, message: '예약이 삭제 처리되었습니다.' });
+    // 대기자 승격 처리 (확정/신청 삭제 시에만)
+    let promotedMember = null;
+    if (wasConfirmedOrPending) {
+      const schedule = db.findById('schedules', scheduleId);
+      const golfCourse = schedule ? db.findById('golf_courses', schedule.golf_course_id) : null;
+      const maxMembers = schedule?.max_members || golfCourse?.max_members || 12;
+
+      const currentCount = db.getTable('reservations')
+        .filter(r => r.schedule_id === scheduleId && ['pending', 'confirmed'].includes(r.status))
+        .length;
+
+      if (currentCount < maxMembers) {
+        const waitlistReservations = db.getTable('reservations')
+          .filter(r => r.schedule_id === scheduleId && r.status === 'waitlist')
+          .sort((a, b) => (a.applied_at || '').localeCompare(b.applied_at || ''));
+
+        if (waitlistReservations.length > 0) {
+          const firstWaitlist = waitlistReservations[0];
+          await db.update('reservations', firstWaitlist.id, { status: 'pending' });
+
+          if (db.refreshCache) {
+            await db.refreshCache('reservations');
+          }
+
+          promotedMember = firstWaitlist.member_id;
+
+          // 대기자 → 확정 전환 푸시 알림
+          if (pushService.isEnabled() && schedule && golfCourse) {
+            pushService.notifyWaitlistToConfirmed(firstWaitlist.member_id, schedule, golfCourse)
+              .catch(err => console.error('대기자 승격 푸시 오류:', err));
+          }
+        }
+      }
+    }
+
+    const message = promotedMember
+      ? '예약이 삭제 처리되었습니다. 대기자가 자동으로 승격되었습니다.'
+      : '예약이 삭제 처리되었습니다.';
+
+    res.json({ success: true, message, promotedMember });
   } catch (error) {
     console.error('예약 삭제 오류:', error);
     res.status(500).json({ error: '예약 삭제 중 오류가 발생했습니다.' });

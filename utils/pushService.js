@@ -175,6 +175,23 @@ async function notifyReservationAlmostFull(schedule, golfCourse, currentCount, m
 }
 
 /**
+ * 대기자에서 확정으로 전환 알림
+ * @param {number} memberId - 예약자 회원 ID
+ * @param {Object} schedule - 일정 정보
+ * @param {Object} golfCourse - 골프장 정보
+ */
+async function notifyWaitlistToConfirmed(memberId, schedule, golfCourse) {
+  const payload = {
+    title: '대기자 → 예약 확정',
+    body: `${schedule.play_date} ${golfCourse.name} 예약이 확정되었습니다! (취소 발생으로 순번 상승)`,
+    url: `/schedules/${schedule.id}`,
+    icon: '/icons/icon-192x192.svg'
+  };
+
+  return await sendToMember(memberId, payload);
+}
+
+/**
  * VAPID 공개키 반환
  */
 function getVapidPublicKey() {
@@ -196,6 +213,7 @@ module.exports = {
   notifyComment,
   notifyReservationConfirmed,
   notifyReservationAlmostFull,
+  notifyWaitlistToConfirmed,
   getVapidPublicKey,
   isEnabled
 };

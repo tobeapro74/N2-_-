@@ -276,8 +276,11 @@
             <a class="nav-link text-dark" href="/members"><i class="bi bi-people-fill me-2" aria-hidden="true"></i>회원</a>
           </li>
           <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle text-dark" href="#" data-bs-toggle="dropdown" aria-expanded="false">
+            <a class="nav-link dropdown-toggle text-dark position-relative" href="#" data-bs-toggle="dropdown" aria-expanded="false">
               <i class="bi bi-bell me-2" aria-hidden="true"></i>알림
+              <span id="unreadBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem; display: none;">
+                0
+              </span>
               <span id="pushStatusBadge" class="badge bg-secondary ms-1" style="font-size: 0.65rem;">확인중</span>
             </a>
             <ul class="dropdown-menu">
@@ -288,7 +291,7 @@
                 </a>
               </li>
               <li><hr class="dropdown-divider"></li>
-              <li><a class="dropdown-item" href="/notifications">알림 내역</a></li>
+              <li><a class="dropdown-item" href="/notifications">알림 내역 <span id="unreadBadgeMenu" class="badge bg-danger" style="display: none;">0</span></a></li>
             </ul>
           </li>
           <% } %>

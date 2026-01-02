@@ -135,4 +135,36 @@ router.get('/unread-count', requireAuth, async (req, res) => {
   }
 });
 
+// 최신 알림 조회 API (토스트용)
+router.get('/latest', requireAuth, async (req, res) => {
+  try {
+    const memberId = req.session.user.id;
+
+    const allNotifications = await db.getTableAsync('notifications');
+    const myNotifications = allNotifications
+      .filter(n => n.member_id === memberId && !n.is_read)
+      .sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''));
+
+    if (myNotifications.length === 0) {
+      return res.json({ success: true, notification: null });
+    }
+
+    const latest = myNotifications[0];
+    res.json({
+      success: true,
+      notification: {
+        id: latest.id,
+        title: latest.title,
+        body: latest.body,
+        url: latest.url,
+        type: latest.type,
+        created_at: latest.created_at
+      }
+    });
+  } catch (error) {
+    console.error('최신 알림 조회 오류:', error);
+    res.status(500).json({ error: '최신 알림 조회 중 오류가 발생했습니다.' });
+  }
+});
+
 module.exports = router;

@@ -66,11 +66,47 @@ async function sendPush(subscription, payload) {
 }
 
 /**
+ * 알림 내역 저장
+ * @param {number|number[]} memberIds - 회원 ID 또는 회원 ID 배열
+ * @param {Object} payload - 알림 내용 { title, body, url, icon }
+ * @param {string} type - 알림 유형 (schedule, comment, reservation, waitlist)
+ */
+async function saveNotification(memberIds, payload, type) {
+  const ids = Array.isArray(memberIds) ? memberIds : [memberIds];
+  const now = new Date().toISOString();
+
+  try {
+    for (const memberId of ids) {
+      await db.insert('notifications', {
+        member_id: memberId,
+        type: type,
+        title: payload.title,
+        body: payload.body,
+        url: payload.url,
+        is_read: false,
+        created_at: now
+      });
+    }
+
+    // 캐시 새로고침
+    if (db.refreshCache) {
+      await db.refreshCache('notifications');
+    }
+  } catch (err) {
+    console.error('알림 내역 저장 오류:', err);
+  }
+}
+
+/**
  * 특정 회원에게 푸시 알림 발송
  * @param {number} memberId - 회원 ID
  * @param {Object} payload - 알림 내용 { title, body, url, icon }
+ * @param {string} type - 알림 유형 (선택적)
  */
-async function sendToMember(memberId, payload) {
+async function sendToMember(memberId, payload, type = 'general') {
+  // 알림 내역 저장
+  await saveNotification(memberId, payload, type);
+
   const subscriptions = await db.getTableAsync('push_subscriptions');
   const memberSubs = subscriptions.filter(s => s.member_id === memberId);
 
@@ -88,10 +124,19 @@ async function sendToMember(memberId, payload) {
  * 전체 회원에게 푸시 알림 발송
  * @param {Object} payload - 알림 내용 { title, body, url, icon }
  * @param {number[]} excludeMembers - 제외할 회원 ID 목록
+ * @param {string} type - 알림 유형 (선택적)
  */
-async function sendToAll(payload, excludeMembers = []) {
+async function sendToAll(payload, excludeMembers = [], type = 'general') {
   const subscriptions = await db.getTableAsync('push_subscriptions');
   const targetSubs = subscriptions.filter(s => !excludeMembers.includes(s.member_id));
+
+  // 대상 회원 ID 목록 (중복 제거)
+  const targetMemberIds = [...new Set(targetSubs.map(s => s.member_id))];
+
+  // 알림 내역 저장
+  if (targetMemberIds.length > 0) {
+    await saveNotification(targetMemberIds, payload, type);
+  }
 
   const results = await Promise.all(
     targetSubs.map(sub => sendPush(sub, payload))
@@ -116,7 +161,7 @@ async function notifyNewSchedule(schedule, golfCourse) {
     icon: '/icons/icon-192x192.svg'
   };
 
-  return await sendToAll(payload);
+  return await sendToAll(payload, [], 'schedule');
 }
 
 /**
@@ -135,7 +180,7 @@ async function notifyComment(targetMemberId, commenterName, type, url) {
     icon: '/icons/icon-192x192.svg'
   };
 
-  return await sendToMember(targetMemberId, payload);
+  return await sendToMember(targetMemberId, payload, 'comment');
 }
 
 /**
@@ -152,7 +197,7 @@ async function notifyReservationConfirmed(memberId, schedule, golfCourse) {
     icon: '/icons/icon-192x192.svg'
   };
 
-  return await sendToMember(memberId, payload);
+  return await sendToMember(memberId, payload, 'reservation');
 }
 
 /**
@@ -171,7 +216,7 @@ async function notifyReservationAlmostFull(schedule, golfCourse, currentCount, m
     icon: '/icons/icon-192x192.svg'
   };
 
-  return await sendToAll(payload, excludeMembers);
+  return await sendToAll(payload, excludeMembers, 'reservation');
 }
 
 /**
@@ -188,7 +233,7 @@ async function notifyWaitlistToConfirmed(memberId, schedule, golfCourse) {
     icon: '/icons/icon-192x192.svg'
   };
 
-  return await sendToMember(memberId, payload);
+  return await sendToMember(memberId, payload, 'waitlist');
 }
 
 /**

@@ -54,6 +54,26 @@
         });
       }
 
+      // UI 업데이트 함수
+      function updatePushUI(isSubscribed) {
+        const statusBadge = document.getElementById('pushStatusBadge');
+        const toggleIcon = document.getElementById('pushToggleIcon');
+
+        if (statusBadge) {
+          statusBadge.textContent = isSubscribed ? 'ON' : 'OFF';
+          statusBadge.className = isSubscribed
+            ? 'badge bg-success ms-1'
+            : 'badge bg-secondary ms-1';
+          statusBadge.style.fontSize = '0.65rem';
+        }
+
+        if (toggleIcon) {
+          toggleIcon.innerHTML = isSubscribed
+            ? '<i class="bi bi-toggle-on text-success"></i>'
+            : '<i class="bi bi-toggle-off text-secondary"></i>';
+        }
+      }
+
       // 푸시 알림 초기화
       async function initPushNotification() {
         const toggleBtn = document.getElementById('pushNotificationToggle');
@@ -64,7 +84,8 @@
         // 푸시 지원 여부 확인
         if (!('PushManager' in window)) {
           statusBadge.textContent = '미지원';
-          statusBadge.className = 'badge bg-secondary ms-2';
+          statusBadge.className = 'badge bg-secondary ms-1';
+          statusBadge.style.fontSize = '0.65rem';
           toggleBtn.onclick = () => alert('이 브라우저는 푸시 알림을 지원하지 않습니다.');
           return;
         }
@@ -73,8 +94,9 @@
         const permission = Notification.permission;
 
         if (permission === 'denied') {
-          statusBadge.textContent = '차단됨';
-          statusBadge.className = 'badge bg-danger ms-2';
+          statusBadge.textContent = '차단';
+          statusBadge.className = 'badge bg-danger ms-1';
+          statusBadge.style.fontSize = '0.65rem';
           toggleBtn.onclick = () => alert('알림이 차단되어 있습니다. 브라우저 설정에서 알림을 허용해주세요.');
           return;
         }
@@ -82,14 +104,7 @@
         // 구독 상태 확인
         try {
           const subscription = await swRegistration?.pushManager.getSubscription();
-
-          if (subscription) {
-            statusBadge.textContent = 'ON';
-            statusBadge.className = 'badge bg-success ms-2';
-          } else {
-            statusBadge.textContent = 'OFF';
-            statusBadge.className = 'badge bg-secondary ms-2';
-          }
+          updatePushUI(!!subscription);
 
           // 토글 클릭 이벤트
           toggleBtn.onclick = async (e) => {
@@ -99,7 +114,8 @@
         } catch (err) {
           console.error('푸시 상태 확인 오류:', err);
           statusBadge.textContent = '오류';
-          statusBadge.className = 'badge bg-warning ms-2';
+          statusBadge.className = 'badge bg-warning ms-1';
+          statusBadge.style.fontSize = '0.65rem';
         }
       }
 
@@ -126,8 +142,6 @@
 
       // 푸시 구독
       async function subscribePush() {
-        const statusBadge = document.getElementById('pushStatusBadge');
-
         try {
           // 알림 권한 요청
           const permission = await Notification.requestPermission();
@@ -161,8 +175,7 @@
           const subscribeData = await subscribeResponse.json();
 
           if (subscribeData.success) {
-            statusBadge.textContent = 'ON';
-            statusBadge.className = 'badge bg-success ms-2';
+            updatePushUI(true);
             alert('알림이 활성화되었습니다.');
           } else {
             throw new Error(subscribeData.error);
@@ -175,8 +188,6 @@
 
       // 푸시 구독 해제
       async function unsubscribePush(subscription) {
-        const statusBadge = document.getElementById('pushStatusBadge');
-
         try {
           // 서버에서 구독 삭제
           await fetch('/api/push/unsubscribe', {
@@ -188,8 +199,7 @@
           // 브라우저에서 구독 해제
           await subscription.unsubscribe();
 
-          statusBadge.textContent = 'OFF';
-          statusBadge.className = 'badge bg-secondary ms-2';
+          updatePushUI(false);
           alert('알림이 비활성화되었습니다.');
         } catch (err) {
           console.error('푸시 구독 해제 오류:', err);

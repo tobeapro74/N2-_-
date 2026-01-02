@@ -32,6 +32,7 @@ const initialData = {
   community_comments: [],
   community_reactions: [],
   push_subscriptions: [],
+  notifications: [],
   _meta: {
     lastId: {
       members: 0,
@@ -49,7 +50,8 @@ const initialData = {
       community_posts: 0,
       community_comments: 0,
       community_reactions: 0,
-      push_subscriptions: 0
+      push_subscriptions: 0,
+      notifications: 0
     }
   }
 };
@@ -170,7 +172,7 @@ class Database {
       const collections = ['members', 'golf_courses', 'income_categories', 'expense_categories',
         'incomes', 'expenses', 'schedules', 'reservations', 'membership_fees', 'course_holes',
         'schedule_comments', 'comment_reactions', 'community_posts', 'community_comments',
-        'community_reactions', 'push_subscriptions'];
+        'community_reactions', 'push_subscriptions', 'notifications'];
 
       for (const name of collections) {
         const data = await db.collection(name).find({}).toArray();

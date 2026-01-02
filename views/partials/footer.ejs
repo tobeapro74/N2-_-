@@ -347,6 +347,7 @@
         try {
           const response = await fetch('/notifications/unread-count');
           const data = await response.json();
+          console.log('알림 개수:', data);
 
           if (data.success) {
             updateUnreadBadge(data.count);
@@ -354,13 +355,16 @@
             // 새 알림이 있으면 최신 알림 내용 조회해서 토스트 표시
             if (data.count > 0) {
               const lastSeenId = parseInt(sessionStorage.getItem(LAST_SEEN_KEY) || '0');
+              console.log('lastSeenId:', lastSeenId);
 
               // 최신 알림 조회
               const latestResponse = await fetch('/notifications/latest');
               const latestData = await latestResponse.json();
+              console.log('최신 알림:', latestData);
 
               if (latestData.success && latestData.notification) {
                 const latest = latestData.notification;
+                console.log('알림 ID 비교:', latest.id, '>', lastSeenId, '=', latest.id > lastSeenId);
 
                 // 새로운 알림인 경우에만 토스트 표시
                 if (latest.id > lastSeenId) {

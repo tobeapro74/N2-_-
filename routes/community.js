@@ -161,11 +161,9 @@ router.post('/posts', requireAuth, async (req, res) => {
       await db.refreshCache('community_posts');
     }
 
-    // 새 게시글 푸시 알림 발송 (작성자 본인 제외 전체)
-    if (pushService.isEnabled()) {
-      pushService.notifyNewCommunityPost(userId, req.session.user.name, newId)
-        .catch(err => console.error('새 게시글 푸시 알림 오류:', err));
-    }
+    // 새 게시글 알림 발송 (작성자 본인 제외 전체)
+    pushService.notifyNewCommunityPost(userId, req.session.user.name, newId)
+      .catch(err => console.error('새 게시글 알림 오류:', err));
 
     res.json({ success: true, id: newId, message: '게시글이 등록되었습니다.' });
   } catch (error) {
@@ -424,25 +422,23 @@ router.post('/posts/:id/comments', requireAuth, async (req, res) => {
       await db.refreshCache('community_comments');
     }
 
-    // 푸시 알림 발송
-    if (pushService.isEnabled()) {
-      const commenterName = req.session.user.name;
-      const url = `/community?post=${postId}#comment-${newId}`;
+    // 알림 발송
+    const commenterName = req.session.user.name;
+    const url = `/community?post=${postId}#comment-${newId}`;
 
-      if (parent_id) {
-        // 대댓글: 부모 댓글 작성자에게 알림
-        const comments = await db.getTableAsync('community_comments');
-        const parentComment = comments.find(c => c.id === parseInt(parent_id));
-        if (parentComment && parentComment.member_id !== userId) {
-          pushService.notifyComment(parentComment.member_id, commenterName, 'comment', url)
-            .catch(err => console.error('일상톡톡 댓글 푸시 오류:', err));
-        }
-      } else {
-        // 일반 댓글: 게시글 작성자에게 알림
-        if (post.member_id !== userId) {
-          pushService.notifyComment(post.member_id, commenterName, 'post', url)
-            .catch(err => console.error('일상톡톡 댓글 푸시 오류:', err));
-        }
+    if (parent_id) {
+      // 대댓글: 부모 댓글 작성자에게 알림
+      const comments = await db.getTableAsync('community_comments');
+      const parentComment = comments.find(c => c.id === parseInt(parent_id));
+      if (parentComment && parentComment.member_id !== userId) {
+        pushService.notifyComment(parentComment.member_id, commenterName, 'comment', url)
+          .catch(err => console.error('일상톡톡 댓글 알림 오류:', err));
+      }
+    } else {
+      // 일반 댓글: 게시글 작성자에게 알림
+      if (post.member_id !== userId) {
+        pushService.notifyComment(post.member_id, commenterName, 'post', url)
+          .catch(err => console.error('일상톡톡 댓글 알림 오류:', err));
       }
     }
 

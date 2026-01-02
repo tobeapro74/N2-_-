@@ -148,14 +148,14 @@ router.post('/apply', requireAuth, async (req, res) => {
     // 마감 임박 알림 (80% 이상 찼을 때, 한 번만 발송)
     const newCount = currentCount + 1;
     const threshold = Math.floor(maxMembers * 0.8);
-    if (newCount === threshold && pushService.isEnabled()) {
+    if (newCount === threshold) {
       // 이미 예약한 회원 ID 목록
       const reservedMemberIds = db.getTable('reservations')
         .filter(r => r.schedule_id === scheduleId && ['pending', 'confirmed'].includes(r.status))
         .map(r => r.member_id);
 
       pushService.notifyReservationAlmostFull(schedule, golfCourse, newCount, maxMembers, reservedMemberIds)
-        .catch(err => console.error('마감 임박 푸시 오류:', err));
+        .catch(err => console.error('마감 임박 알림 오류:', err));
     }
 
     const statusMessage = reservationStatus === 'waitlist'
@@ -237,10 +237,10 @@ router.post('/cancel', requireAuth, async (req, res) => {
 
           promotedMember = firstWaitlist.member_id;
 
-          // 대기자 → 확정 전환 푸시 알림
-          if (pushService.isEnabled() && schedule && golfCourse) {
+          // 대기자 → 확정 전환 알림
+          if (schedule && golfCourse) {
             pushService.notifyWaitlistToConfirmed(firstWaitlist.member_id, schedule, golfCourse)
-              .catch(err => console.error('대기자 승격 푸시 오류:', err));
+              .catch(err => console.error('대기자 승격 알림 오류:', err));
           }
         }
       }
@@ -381,15 +381,13 @@ router.post('/admin/book-for', requireAuth, requireAdmin, async (req, res) => {
       await db.refreshCache('reservations');
     }
 
-    // 대리 예약 시 푸시 알림 발송 (바로 확정 상태)
-    if (pushService.isEnabled()) {
-      const schedule = db.findById('schedules', scheduleId);
-      const golfCourse = schedule ? db.findById('golf_courses', schedule.golf_course_id) : null;
+    // 대리 예약 시 알림 발송 (바로 확정 상태)
+    const schedule = db.findById('schedules', scheduleId);
+    const golfCourse = schedule ? db.findById('golf_courses', schedule.golf_course_id) : null;
 
-      if (schedule && golfCourse) {
-        pushService.notifyReservationConfirmed(memberId, schedule, golfCourse)
-          .catch(err => console.error('대리 예약 푸시 알림 오류:', err));
-      }
+    if (schedule && golfCourse) {
+      pushService.notifyReservationConfirmed(memberId, schedule, golfCourse)
+        .catch(err => console.error('대리 예약 알림 오류:', err));
     }
 
     res.json({ success: true, message: '예약이 등록되었습니다.' });
@@ -754,10 +752,10 @@ router.post('/admin/delete', requireAuth, requireAdmin, async (req, res) => {
 
           promotedMember = firstWaitlist.member_id;
 
-          // 대기자 → 확정 전환 푸시 알림
-          if (pushService.isEnabled() && schedule && golfCourse) {
+          // 대기자 → 확정 전환 알림
+          if (schedule && golfCourse) {
             pushService.notifyWaitlistToConfirmed(firstWaitlist.member_id, schedule, golfCourse)
-              .catch(err => console.error('대기자 승격 푸시 오류:', err));
+              .catch(err => console.error('대기자 승격 알림 오류:', err));
           }
         }
       }
@@ -803,14 +801,14 @@ router.post('/admin/update-status', requireAuth, requireAdmin, async (req, res) 
       await db.refreshCache('reservations');
     }
 
-    // 예약 확정 시 푸시 알림 발송
-    if (status === 'confirmed' && pushService.isEnabled()) {
+    // 예약 확정 시 알림 발송 (인앱 알림은 항상, 푸시는 설정된 경우에만)
+    if (status === 'confirmed') {
       const schedule = db.findById('schedules', reservation.schedule_id);
       const golfCourse = schedule ? db.findById('golf_courses', schedule.golf_course_id) : null;
 
       if (schedule && golfCourse) {
         pushService.notifyReservationConfirmed(reservation.member_id, schedule, golfCourse)
-          .catch(err => console.error('예약 확정 푸시 알림 오류:', err));
+          .catch(err => console.error('예약 확정 알림 오류:', err));
       }
     }
 

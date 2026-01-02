@@ -2234,7 +2234,11 @@
       "expenses": 4,
       "schedules": 18,
       "reservations": 9,
-      "membership_fees": 0
+      "membership_fees": 0,
+      "notifications": 2,
+      "push_subscriptions": 0
     }
-  }
+  },
+  "notifications": [],
+  "push_subscriptions": []
 }

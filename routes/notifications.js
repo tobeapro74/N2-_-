@@ -37,6 +37,7 @@ router.get('/', requireAuth, async (req, res) => {
       comment: { icon: 'bi-chat-dots', color: 'primary', label: '댓글' },
       reservation: { icon: 'bi-calendar-check', color: 'info', label: '예약' },
       waitlist: { icon: 'bi-arrow-up-circle', color: 'warning', label: '대기자 승격' },
+      community_post: { icon: 'bi-chat-square-text', color: 'info', label: '일상톡톡' },
       general: { icon: 'bi-bell', color: 'secondary', label: '알림' }
     };
 

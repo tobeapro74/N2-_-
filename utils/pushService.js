@@ -237,6 +237,24 @@ async function notifyWaitlistToConfirmed(memberId, schedule, golfCourse) {
 }
 
 /**
+ * 새 일상톡톡 게시글 알림
+ * @param {number} authorId - 게시글 작성자 ID
+ * @param {string} authorName - 게시글 작성자 이름
+ * @param {number} postId - 게시글 ID
+ */
+async function notifyNewCommunityPost(authorId, authorName, postId) {
+  const payload = {
+    title: '새 일상톡톡 글',
+    body: `${authorName}님이 새 글을 등록했습니다.`,
+    url: `/community?post=${postId}`,
+    icon: '/icons/icon-192x192.svg'
+  };
+
+  // 작성자 본인 제외하고 전체 알림 발송
+  return await sendToAll(payload, [authorId], 'community_post');
+}
+
+/**
  * VAPID 공개키 반환
  */
 function getVapidPublicKey() {
@@ -259,6 +277,7 @@ module.exports = {
   notifyReservationConfirmed,
   notifyReservationAlmostFull,
   notifyWaitlistToConfirmed,
+  notifyNewCommunityPost,
   getVapidPublicKey,
   isEnabled
 };

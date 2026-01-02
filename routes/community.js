@@ -161,6 +161,12 @@ router.post('/posts', requireAuth, async (req, res) => {
       await db.refreshCache('community_posts');
     }
 
+    // 새 게시글 푸시 알림 발송 (작성자 본인 제외 전체)
+    if (pushService.isEnabled()) {
+      pushService.notifyNewCommunityPost(userId, req.session.user.name, newId)
+        .catch(err => console.error('새 게시글 푸시 알림 오류:', err));
+    }
+
     res.json({ success: true, id: newId, message: '게시글이 등록되었습니다.' });
   } catch (error) {
     console.error('게시글 작성 오류:', error);

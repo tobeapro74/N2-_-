@@ -34,15 +34,181 @@
       }
     })();
   </script>
-  <!-- Service Worker 등록 -->
+  <!-- Service Worker 등록 및 푸시 알림 -->
   <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js')
-          .then(reg => console.log('Service Worker 등록 완료'))
-          .catch(err => console.log('Service Worker 등록 실패:', err));
-      });
-    }
+    (function() {
+      let swRegistration = null;
+
+      // Service Worker 등록
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', async () => {
+          try {
+            swRegistration = await navigator.serviceWorker.register('/sw.js');
+            console.log('Service Worker 등록 완료');
+
+            // 푸시 알림 UI 초기화
+            initPushNotification();
+          } catch (err) {
+            console.log('Service Worker 등록 실패:', err);
+          }
+        });
+      }
+
+      // 푸시 알림 초기화
+      async function initPushNotification() {
+        const toggleBtn = document.getElementById('pushNotificationToggle');
+        const statusBadge = document.getElementById('pushStatusBadge');
+
+        if (!toggleBtn || !statusBadge) return;
+
+        // 푸시 지원 여부 확인
+        if (!('PushManager' in window)) {
+          statusBadge.textContent = '미지원';
+          statusBadge.className = 'badge bg-secondary ms-2';
+          toggleBtn.onclick = () => alert('이 브라우저는 푸시 알림을 지원하지 않습니다.');
+          return;
+        }
+
+        // 현재 권한 상태 확인
+        const permission = Notification.permission;
+
+        if (permission === 'denied') {
+          statusBadge.textContent = '차단됨';
+          statusBadge.className = 'badge bg-danger ms-2';
+          toggleBtn.onclick = () => alert('알림이 차단되어 있습니다. 브라우저 설정에서 알림을 허용해주세요.');
+          return;
+        }
+
+        // 구독 상태 확인
+        try {
+          const subscription = await swRegistration?.pushManager.getSubscription();
+
+          if (subscription) {
+            statusBadge.textContent = 'ON';
+            statusBadge.className = 'badge bg-success ms-2';
+          } else {
+            statusBadge.textContent = 'OFF';
+            statusBadge.className = 'badge bg-secondary ms-2';
+          }
+
+          // 토글 클릭 이벤트
+          toggleBtn.onclick = async (e) => {
+            e.preventDefault();
+            await togglePushSubscription();
+          };
+        } catch (err) {
+          console.error('푸시 상태 확인 오류:', err);
+          statusBadge.textContent = '오류';
+          statusBadge.className = 'badge bg-warning ms-2';
+        }
+      }
+
+      // 푸시 구독 토글
+      async function togglePushSubscription() {
+        const statusBadge = document.getElementById('pushStatusBadge');
+        if (!swRegistration) return;
+
+        try {
+          const subscription = await swRegistration.pushManager.getSubscription();
+
+          if (subscription) {
+            // 구독 해제
+            await unsubscribePush(subscription);
+          } else {
+            // 구독 등록
+            await subscribePush();
+          }
+        } catch (err) {
+          console.error('푸시 토글 오류:', err);
+          alert('알림 설정 변경 중 오류가 발생했습니다.');
+        }
+      }
+
+      // 푸시 구독
+      async function subscribePush() {
+        const statusBadge = document.getElementById('pushStatusBadge');
+
+        try {
+          // 알림 권한 요청
+          const permission = await Notification.requestPermission();
+          if (permission !== 'granted') {
+            alert('알림 권한이 필요합니다.');
+            return;
+          }
+
+          // VAPID 공개키 가져오기
+          const response = await fetch('/api/push/vapid-public-key');
+          const data = await response.json();
+
+          if (!data.success) {
+            alert(data.error || '푸시 서비스를 사용할 수 없습니다.');
+            return;
+          }
+
+          // 구독 생성
+          const subscription = await swRegistration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: urlBase64ToUint8Array(data.publicKey)
+          });
+
+          // 서버에 구독 정보 전송
+          const subscribeResponse = await fetch('/api/push/subscribe', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ subscription })
+          });
+
+          const subscribeData = await subscribeResponse.json();
+
+          if (subscribeData.success) {
+            statusBadge.textContent = 'ON';
+            statusBadge.className = 'badge bg-success ms-2';
+            alert('알림이 활성화되었습니다.');
+          } else {
+            throw new Error(subscribeData.error);
+          }
+        } catch (err) {
+          console.error('푸시 구독 오류:', err);
+          alert('알림 활성화에 실패했습니다: ' + err.message);
+        }
+      }
+
+      // 푸시 구독 해제
+      async function unsubscribePush(subscription) {
+        const statusBadge = document.getElementById('pushStatusBadge');
+
+        try {
+          // 서버에서 구독 삭제
+          await fetch('/api/push/unsubscribe', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ endpoint: subscription.endpoint })
+          });
+
+          // 브라우저에서 구독 해제
+          await subscription.unsubscribe();
+
+          statusBadge.textContent = 'OFF';
+          statusBadge.className = 'badge bg-secondary ms-2';
+          alert('알림이 비활성화되었습니다.');
+        } catch (err) {
+          console.error('푸시 구독 해제 오류:', err);
+          alert('알림 비활성화에 실패했습니다.');
+        }
+      }
+
+      // Base64 URL을 Uint8Array로 변환
+      function urlBase64ToUint8Array(base64String) {
+        const padding = '='.repeat((4 - base64String.length % 4) % 4);
+        const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+        const rawData = window.atob(base64);
+        const outputArray = new Uint8Array(rawData.length);
+        for (let i = 0; i < rawData.length; ++i) {
+          outputArray[i] = rawData.charCodeAt(i);
+        }
+        return outputArray;
+      }
+    })();
   </script>
   <!-- 개인 통계 롤링 카드 -->
   <script>

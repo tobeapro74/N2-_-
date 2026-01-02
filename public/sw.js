@@ -1,4 +1,4 @@
-const CACHE_NAME = 'n2golf-v14';
+const CACHE_NAME = 'n2golf-v15';
 const urlsToCache = [
   '/',
   '/css/style.css',
@@ -72,4 +72,77 @@ self.addEventListener('fetch', event => {
         return caches.match(event.request);
       })
   );
+});
+
+// 푸시 알림 수신
+self.addEventListener('push', event => {
+  console.log('푸시 알림 수신');
+
+  let data = {
+    title: 'N2골프',
+    body: '새로운 알림이 있습니다.',
+    url: '/',
+    icon: '/icons/icon-192x192.svg'
+  };
+
+  try {
+    if (event.data) {
+      data = { ...data, ...event.data.json() };
+    }
+  } catch (e) {
+    console.error('푸시 데이터 파싱 오류:', e);
+  }
+
+  const options = {
+    body: data.body,
+    icon: data.icon || '/icons/icon-192x192.svg',
+    badge: '/icons/icon-72x72.svg',
+    vibrate: [100, 50, 100],
+    data: {
+      url: data.url || '/'
+    },
+    actions: [
+      { action: 'open', title: '열기' },
+      { action: 'close', title: '닫기' }
+    ]
+  };
+
+  event.waitUntil(
+    self.registration.showNotification(data.title, options)
+  );
+});
+
+// 알림 클릭 처리
+self.addEventListener('notificationclick', event => {
+  console.log('알림 클릭:', event.action);
+
+  event.notification.close();
+
+  if (event.action === 'close') {
+    return;
+  }
+
+  const urlToOpen = event.notification.data?.url || '/';
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true })
+      .then(windowClients => {
+        // 이미 열린 창이 있으면 포커스
+        for (const client of windowClients) {
+          if (client.url.includes(self.location.origin) && 'focus' in client) {
+            client.navigate(urlToOpen);
+            return client.focus();
+          }
+        }
+        // 열린 창이 없으면 새 창 열기
+        if (clients.openWindow) {
+          return clients.openWindow(urlToOpen);
+        }
+      })
+  );
+});
+
+// 알림 닫기 처리 (선택적)
+self.addEventListener('notificationclose', event => {
+  console.log('알림 닫힘');
 });

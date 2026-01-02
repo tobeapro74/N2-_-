@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../models/database');
+const pushService = require('../utils/pushService');
 
 // 인증 미들웨어
 const requireAuth = (req, res, next) => {
@@ -320,6 +321,17 @@ router.post('/admin/book-for', requireAuth, requireAdmin, async (req, res) => {
     // 캐시 새로고침
     if (db.refreshCache) {
       await db.refreshCache('reservations');
+    }
+
+    // 대리 예약 시 푸시 알림 발송 (바로 확정 상태)
+    if (pushService.isEnabled()) {
+      const schedule = db.findById('schedules', scheduleId);
+      const golfCourse = schedule ? db.findById('golf_courses', schedule.golf_course_id) : null;
+
+      if (schedule && golfCourse) {
+        pushService.notifyReservationConfirmed(memberId, schedule, golfCourse)
+          .catch(err => console.error('대리 예약 푸시 알림 오류:', err));
+      }
     }
 
     res.json({ success: true, message: '예약이 등록되었습니다.' });
@@ -688,6 +700,17 @@ router.post('/admin/update-status', requireAuth, requireAdmin, async (req, res) 
     // 캐시 새로고침
     if (db.refreshCache) {
       await db.refreshCache('reservations');
+    }
+
+    // 예약 확정 시 푸시 알림 발송
+    if (status === 'confirmed' && pushService.isEnabled()) {
+      const schedule = db.findById('schedules', reservation.schedule_id);
+      const golfCourse = schedule ? db.findById('golf_courses', schedule.golf_course_id) : null;
+
+      if (schedule && golfCourse) {
+        pushService.notifyReservationConfirmed(reservation.member_id, schedule, golfCourse)
+          .catch(err => console.error('예약 확정 푸시 알림 오류:', err));
+      }
     }
 
     const statusLabels = {

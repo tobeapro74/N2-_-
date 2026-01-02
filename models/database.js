@@ -31,6 +31,7 @@ const initialData = {
   community_posts: [],
   community_comments: [],
   community_reactions: [],
+  push_subscriptions: [],
   _meta: {
     lastId: {
       members: 0,
@@ -47,7 +48,8 @@ const initialData = {
       comment_reactions: 0,
       community_posts: 0,
       community_comments: 0,
-      community_reactions: 0
+      community_reactions: 0,
+      push_subscriptions: 0
     }
   }
 };
@@ -167,7 +169,8 @@ class Database {
       const db = await connectMongo();
       const collections = ['members', 'golf_courses', 'income_categories', 'expense_categories',
         'incomes', 'expenses', 'schedules', 'reservations', 'membership_fees', 'course_holes',
-        'schedule_comments', 'comment_reactions', 'community_posts', 'community_comments', 'community_reactions'];
+        'schedule_comments', 'comment_reactions', 'community_posts', 'community_comments',
+        'community_reactions', 'push_subscriptions'];
 
       for (const name of collections) {
         const data = await db.collection(name).find({}).toArray();

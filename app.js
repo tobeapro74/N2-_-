@@ -190,6 +190,7 @@ const schedulesRouter = require('./routes/schedules');
 const weatherRouter = require('./routes/weather');
 const trafficRouter = require('./routes/traffic');
 const communityRouter = require('./routes/community');
+const pushRouter = require('./routes/push');
 
 app.use('/', indexRouter);
 app.use('/auth', authRouter);
@@ -201,6 +202,7 @@ app.use('/api/weather', weatherRouter);
 app.use('/weather', weatherRouter);
 app.use('/api/traffic', trafficRouter);
 app.use('/community', communityRouter);
+app.use('/api/push', pushRouter);
 
 // 404 에러 처리
 app.use((req, res) => {

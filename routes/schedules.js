@@ -3,6 +3,7 @@ const router = express.Router();
 const db = require('../models/database');
 const multer = require('multer');
 const { optimizeCloudinaryUrl } = require('../utils/validator');
+const pushService = require('../utils/pushService');
 
 // ============================================
 // Cloudinary 설정 (무료 플랜 우선 사용)
@@ -168,7 +169,7 @@ router.post('/new', requireAuth, requireAdmin, async (req, res) => {
       });
     }
 
-    await db.insert('schedules', {
+    const scheduleId = await db.insert('schedules', {
       golf_course_id: parseInt(golf_course_id),
       play_date,
       tee_times,
@@ -180,6 +181,13 @@ router.post('/new', requireAuth, requireAdmin, async (req, res) => {
     // 캐시 새로고침
     if (db.refreshCache) {
       await db.refreshCache('schedules');
+    }
+
+    // 푸시 알림 발송 (새 일정 등록)
+    const golfCourse = db.getTable('golf_courses').find(gc => gc.id === parseInt(golf_course_id));
+    if (golfCourse && pushService.isEnabled()) {
+      pushService.notifyNewSchedule({ id: scheduleId, play_date }, golfCourse)
+        .catch(err => console.error('푸시 알림 발송 오류:', err));
     }
 
     res.redirect('/schedules');
@@ -613,6 +621,23 @@ router.post('/:id/comments', requireAuth, async (req, res) => {
     // 캐시 새로고침
     if (db.refreshCache) {
       await db.refreshCache('schedule_comments');
+    }
+
+    // 푸시 알림 발송 (댓글 알림)
+    if (pushService.isEnabled()) {
+      const commenterName = req.session.user.name;
+      const url = `/schedules/${scheduleId}/community#comment-${newId}`;
+
+      if (parent_id) {
+        // 대댓글인 경우: 부모 댓글 작성자에게 알림
+        const parentComment = db.findById('schedule_comments', parseInt(parent_id));
+        if (parentComment && parentComment.member_id !== userId) {
+          pushService.notifyComment(parentComment.member_id, commenterName, 'comment', url)
+            .catch(err => console.error('댓글 푸시 알림 오류:', err));
+        }
+      }
+      // 참고: 게시글(일정)에 댓글이 달렸을 때는 일정 작성자(관리자)에게 알림 가능
+      // 현재는 일정은 관리자가 만들므로 생략
     }
 
     res.json({ success: true, id: newId, message: '댓글이 등록되었습니다.' });

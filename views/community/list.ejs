@@ -12,22 +12,21 @@
 
 <!-- 게시글 작성 폼 -->
 <div class="card border-0 shadow-sm mb-3">
-  <div class="card-body py-2 px-3">
+  <div class="card-body py-3 px-3">
     <form id="postForm">
-      <div class="mb-2">
-        <textarea id="postInput" class="form-control" placeholder="오늘 어떤 일이 있었나요? 자유롭게 이야기해주세요..." maxlength="1000" rows="2" style="resize: none;"></textarea>
-      </div>
+      <textarea id="postInput" class="form-control mb-2" placeholder="오늘 어떤 일이 있었나요? 자유롭게 이야기해주세요..." maxlength="1000" rows="5" style="resize: vertical; min-height: 120px; font-size: 0.95rem; line-height: 1.6;"></textarea>
       <div class="d-flex justify-content-between align-items-center">
         <div class="d-flex align-items-center gap-2">
-          <label for="imageInput" class="btn btn-outline-secondary btn-sm px-2 d-flex align-items-center gap-1" style="cursor: pointer;" title="이미지 첨부">
+          <label for="imageInput" class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1" style="cursor: pointer;" title="이미지 첨부">
             <i class="bi bi-image"></i>
-            <span class="d-none d-md-inline" style="font-size: 0.75rem;">사진</span>
+            <span style="font-size: 0.75rem;">사진</span>
           </label>
           <input type="file" id="imageInput" accept="image/jpeg,image/png,image/gif,image/webp" class="d-none">
-          <small class="text-muted d-none d-md-inline" style="font-size: 0.7rem;">이미지: 최대 5MB</small>
+          <small class="text-muted" style="font-size: 0.7rem;">최대 5MB</small>
         </div>
-        <button type="submit" id="submitBtn" class="btn btn-success btn-sm px-3">
-          <i class="bi bi-send me-1"></i>게시
+        <button type="submit" id="submitBtn" class="btn btn-success btn-sm px-3 d-flex align-items-center gap-1">
+          <i class="bi bi-send"></i>
+          <span>게시</span>
         </button>
       </div>
     </form>
@@ -103,11 +102,14 @@
         <!-- 댓글 목록 -->
         <div class="comments-list"></div>
         <!-- 댓글 작성 폼 -->
-        <div class="d-flex gap-2 align-items-center mt-2">
-          <input type="text" class="form-control form-control-sm comment-input" placeholder="댓글을 입력하세요..." maxlength="500">
-          <button class="btn btn-success btn-sm submit-comment-btn px-2">
-            <i class="bi bi-send"></i>
-          </button>
+        <div class="mt-2">
+          <textarea class="form-control comment-input mb-2" placeholder="댓글을 입력하세요..." maxlength="500" rows="3" style="resize: vertical; min-height: 70px; font-size: 0.85rem; line-height: 1.5;"></textarea>
+          <div class="d-flex justify-content-end">
+            <button class="btn btn-success btn-sm submit-comment-btn px-3 d-flex align-items-center gap-1">
+              <i class="bi bi-send"></i>
+              <span>등록</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>

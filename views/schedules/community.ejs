@@ -85,12 +85,10 @@
       <p class="mb-2 comment-content" style="font-size: 0.9rem;"></p>
       <!-- 수정 폼 (숨김) -->
       <div class="edit-form d-none mb-2">
-        <div class="d-flex gap-2 align-items-end">
-          <textarea class="form-control form-control-sm edit-input" maxlength="500" rows="2" style="resize: none;"></textarea>
-          <div class="d-flex flex-column gap-1">
-            <button class="btn btn-success btn-sm save-edit-btn">저장</button>
-            <button class="btn btn-outline-secondary btn-sm cancel-edit-btn">취소</button>
-          </div>
+        <textarea class="form-control edit-input mb-2" maxlength="500" rows="6" style="resize: vertical; min-height: 150px; font-size: 0.9rem; line-height: 1.5;"></textarea>
+        <div class="d-flex gap-2 justify-content-end">
+          <button class="btn btn-outline-secondary btn-sm cancel-edit-btn">취소</button>
+          <button class="btn btn-success btn-sm save-edit-btn">저장</button>
         </div>
       </div>
       <!-- 액션 버튼 -->
@@ -147,12 +145,10 @@
     <p class="mb-1 reply-content" style="font-size: 0.85rem;"></p>
     <!-- 수정 폼 (숨김) -->
     <div class="edit-form d-none mb-1">
-      <div class="d-flex gap-2 align-items-end">
-        <textarea class="form-control form-control-sm edit-input" maxlength="500" rows="2" style="resize: none;"></textarea>
-        <div class="d-flex gap-1">
-          <button class="btn btn-success btn-sm save-edit-btn" style="font-size: 0.75rem;">저장</button>
-          <button class="btn btn-outline-secondary btn-sm cancel-edit-btn" style="font-size: 0.75rem;">취소</button>
-        </div>
+      <textarea class="form-control edit-input mb-2" maxlength="500" rows="5" style="resize: vertical; min-height: 120px; font-size: 0.85rem; line-height: 1.5;"></textarea>
+      <div class="d-flex gap-2 justify-content-end">
+        <button class="btn btn-outline-secondary btn-sm cancel-edit-btn" style="font-size: 0.75rem;">취소</button>
+        <button class="btn btn-success btn-sm save-edit-btn" style="font-size: 0.75rem;">저장</button>
       </div>
     </div>
     <div class="d-flex align-items-center gap-3">
@@ -507,11 +503,19 @@ document.addEventListener('DOMContentLoaded', function() {
     const cancelEditBtn = card.querySelector('.cancel-edit-btn');
     const contentEl = card.querySelector('.comment-content');
 
+    // 원본 내용 저장
+    let originalContent = comment.content || '';
+
     editBtn.addEventListener('click', () => {
-      editInput.value = contentEl.textContent;
+      editInput.value = originalContent;
       contentEl.classList.add('d-none');
       editForm.classList.remove('d-none');
-      editInput.focus();
+      // 내용에 맞게 높이 자동 조절
+      requestAnimationFrame(() => {
+        editInput.style.height = 'auto';
+        editInput.style.height = Math.max(150, editInput.scrollHeight + 10) + 'px';
+        editInput.focus();
+      });
     });
 
     cancelEditBtn.addEventListener('click', () => {
@@ -519,7 +523,10 @@ document.addEventListener('DOMContentLoaded', function() {
       contentEl.classList.remove('d-none');
     });
 
-    saveEditBtn.addEventListener('click', () => saveEdit(comment.id, editInput, editForm, contentEl));
+    saveEditBtn.addEventListener('click', async () => {
+      const newContent = await saveEdit(comment.id, editInput, editForm, contentEl);
+      if (newContent) originalContent = newContent;
+    });
 
     // 삭제 버튼
     card.querySelector('.delete-btn').addEventListener('click', () => deleteComment(comment.id));
@@ -541,11 +548,19 @@ document.addEventListener('DOMContentLoaded', function() {
     const cancelEditBtn = card.querySelector('.cancel-edit-btn');
     const contentEl = card.querySelector('.reply-content');
 
+    // 원본 내용 저장
+    let originalContent = reply.content || '';
+
     editBtn.addEventListener('click', () => {
-      editInput.value = contentEl.textContent;
+      editInput.value = originalContent;
       contentEl.classList.add('d-none');
       editForm.classList.remove('d-none');
-      editInput.focus();
+      // 내용에 맞게 높이 자동 조절
+      requestAnimationFrame(() => {
+        editInput.style.height = 'auto';
+        editInput.style.height = Math.max(120, editInput.scrollHeight + 10) + 'px';
+        editInput.focus();
+      });
     });
 
     cancelEditBtn.addEventListener('click', () => {
@@ -553,7 +568,10 @@ document.addEventListener('DOMContentLoaded', function() {
       contentEl.classList.remove('d-none');
     });
 
-    saveEditBtn.addEventListener('click', () => saveEdit(reply.id, editInput, editForm, contentEl));
+    saveEditBtn.addEventListener('click', async () => {
+      const newContent = await saveEdit(reply.id, editInput, editForm, contentEl);
+      if (newContent) originalContent = newContent;
+    });
 
     // 삭제 버튼
     card.querySelector('.delete-btn').addEventListener('click', () => deleteComment(reply.id));
@@ -640,10 +658,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
-  // 댓글 수정
+  // 댓글 수정 (성공 시 수정된 내용 반환)
   async function saveEdit(commentId, input, form, contentEl) {
     const content = input.value.trim();
-    if (!content) return;
+    if (!content) return null;
 
     try {
       const response = await fetch(`/schedules/comments/${commentId}`, {
@@ -661,12 +679,15 @@ document.addEventListener('DOMContentLoaded', function() {
         contentEl.textContent = content;
         form.classList.add('d-none');
         contentEl.classList.remove('d-none');
+        return content;
       } else {
         alert(data.error || '댓글 수정에 실패했습니다.');
+        return null;
       }
     } catch (error) {
       console.error('댓글 수정 오류:', error);
       alert('댓글 수정 중 오류가 발생했습니다.');
+      return null;
     }
   }
 

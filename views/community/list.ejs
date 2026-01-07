@@ -77,7 +77,7 @@
       <p class="mb-2 post-content" style="font-size: 0.9rem;"></p>
       <!-- 수정 폼 (숨김) -->
       <div class="edit-form d-none mb-2">
-        <textarea class="form-control edit-input mb-2" maxlength="1000" rows="5" style="resize: vertical; min-height: 120px; font-size: 0.9rem;"></textarea>
+        <textarea class="form-control edit-input mb-2" maxlength="1000" rows="8" style="resize: vertical; min-height: 180px; font-size: 0.9rem; line-height: 1.5;"></textarea>
         <div class="d-flex gap-2 justify-content-end">
           <button class="btn btn-outline-secondary btn-sm cancel-edit-btn">취소</button>
           <button class="btn btn-success btn-sm save-edit-btn">저장</button>
@@ -452,10 +452,13 @@ document.addEventListener('DOMContentLoaded', function() {
       editInput.value = originalContent;
       contentEl.classList.add('d-none');
       editForm.classList.remove('d-none');
-      // 내용 길이에 맞게 textarea 높이 자동 조절
-      editInput.style.height = 'auto';
-      editInput.style.height = Math.max(120, editInput.scrollHeight) + 'px';
-      editInput.focus();
+      // DOM 업데이트 후 내용 길이에 맞게 textarea 높이 자동 조절
+      requestAnimationFrame(() => {
+        editInput.style.height = 'auto';
+        const newHeight = Math.max(150, editInput.scrollHeight + 10);
+        editInput.style.height = newHeight + 'px';
+        editInput.focus();
+      });
     });
 
     card.querySelector('.cancel-edit-btn').addEventListener('click', () => {

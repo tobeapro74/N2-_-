@@ -372,6 +372,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const card = clone.querySelector('.post-card');
 
     card.dataset.postId = post.id;
+    card.dataset.content = post.content || '';  // 원본 내용 저장 (수정 시 사용)
     card.id = `post-${post.id}`;
     card.querySelector('.post-author').textContent = post.member_name;
     card.querySelector('.post-time').textContent = formatTime(post.created_at);
@@ -448,7 +449,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const contentEl = card.querySelector('.post-content');
 
     editBtn.addEventListener('click', () => {
-      editInput.value = contentEl.textContent;
+      // 원본 내용을 data-content에서 가져옴 (linkify로 변환된 HTML이 아닌 원본 텍스트)
+      editInput.value = card.dataset.content || '';
       contentEl.classList.add('d-none');
       editForm.classList.remove('d-none');
       editInput.focus();
@@ -459,7 +461,7 @@ document.addEventListener('DOMContentLoaded', function() {
       contentEl.classList.remove('d-none');
     });
 
-    card.querySelector('.save-edit-btn').addEventListener('click', () => savePostEdit(post.id, editInput, editForm, contentEl));
+    card.querySelector('.save-edit-btn').addEventListener('click', () => savePostEdit(post.id, editInput, editForm, contentEl, card));
 
     // 삭제
     card.querySelector('.delete-btn').addEventListener('click', () => deletePost(post.id, card));
@@ -513,7 +515,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   // 게시글 수정
-  async function savePostEdit(postId, input, form, contentEl) {
+  async function savePostEdit(postId, input, form, contentEl, card) {
     const content = input.value.trim();
     if (!content) return;
 
@@ -530,6 +532,8 @@ document.addEventListener('DOMContentLoaded', function() {
       const data = await response.json();
       if (data.success) {
         contentEl.innerHTML = linkify(content, postId);
+        // 원본 내용도 업데이트 (다음 수정 시 사용)
+        if (card) card.dataset.content = content;
         form.classList.add('d-none');
         contentEl.classList.remove('d-none');
         loadAllUrlPreviews();

@@ -273,10 +273,8 @@ class Database {
 
       await collection.insertOne(newRecord);
 
-      // 캐시 업데이트
-      if (this.mongoCache[table]) {
-        this.mongoCache[table].push(newRecord);
-      }
+      // 캐시 새로고침 (DB에서 다시 로드하여 동기화 보장)
+      this.mongoCache[table] = await collection.find({}).toArray();
 
       return newId;
     } catch (error) {

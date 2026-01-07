@@ -14,7 +14,7 @@
 <div class="card border-0 shadow-sm mb-3">
   <div class="card-body py-3 px-3">
     <form id="postForm">
-      <textarea id="postInput" class="form-control mb-2" placeholder="오늘 어떤 일이 있었나요? 자유롭게 이야기해주세요..." maxlength="1000" rows="12" style="resize: vertical; min-height: 280px; font-size: 1rem; line-height: 1.7;"></textarea>
+      <textarea id="postInput" class="form-control mb-2" placeholder="오늘 어떤 일이 있었나요? 자유롭게 이야기해주세요..." maxlength="1000" rows="20" style="resize: vertical; min-height: 480px; font-size: 1rem; line-height: 1.7;"></textarea>
       <div class="d-flex justify-content-between align-items-center">
         <div class="d-flex align-items-center gap-2">
           <label for="imageInput" class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1" style="cursor: pointer;" title="이미지 첨부">
@@ -76,7 +76,7 @@
       <p class="mb-2 post-content" style="font-size: 0.9rem;"></p>
       <!-- 수정 폼 (숨김) -->
       <div class="edit-form d-none mb-2">
-        <textarea class="form-control edit-input mb-2" maxlength="1000" rows="8" style="resize: vertical; min-height: 180px; font-size: 0.9rem; line-height: 1.5;"></textarea>
+        <textarea class="form-control edit-input mb-2" maxlength="1000" rows="15" style="resize: vertical; min-height: 360px; font-size: 0.9rem; line-height: 1.5;"></textarea>
         <div class="d-flex gap-2 justify-content-end">
           <button class="btn btn-outline-secondary btn-sm cancel-edit-btn">취소</button>
           <button class="btn btn-success btn-sm save-edit-btn">저장</button>
@@ -103,7 +103,7 @@
         <div class="comments-list"></div>
         <!-- 댓글 작성 폼 -->
         <div class="mt-2">
-          <textarea class="form-control comment-input mb-2" placeholder="댓글을 입력하세요..." maxlength="500" rows="3" style="resize: vertical; min-height: 70px; font-size: 0.85rem; line-height: 1.5;"></textarea>
+          <textarea class="form-control comment-input mb-2" placeholder="댓글을 입력하세요..." maxlength="500" rows="8" style="resize: vertical; min-height: 200px; font-size: 0.85rem; line-height: 1.5;"></textarea>
           <div class="d-flex justify-content-end">
             <button class="btn btn-success btn-sm submit-comment-btn px-3 d-flex align-items-center gap-1">
               <i class="bi bi-send"></i>

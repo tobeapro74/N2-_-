@@ -372,7 +372,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const card = clone.querySelector('.post-card');
 
     card.dataset.postId = post.id;
-    card.dataset.content = post.content || '';  // 원본 내용 저장 (수정 시 사용)
     card.id = `post-${post.id}`;
     card.querySelector('.post-author').textContent = post.member_name;
     card.querySelector('.post-time').textContent = formatTime(post.created_at);
@@ -448,9 +447,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const editInput = card.querySelector('.edit-input');
     const contentEl = card.querySelector('.post-content');
 
+    // 원본 내용을 변수에 저장 (클로저로 캡처)
+    let originalContent = post.content || '';
+
     editBtn.addEventListener('click', () => {
-      // 원본 내용을 data-content에서 가져옴 (linkify로 변환된 HTML이 아닌 원본 텍스트)
-      editInput.value = card.dataset.content || '';
+      editInput.value = originalContent;
       contentEl.classList.add('d-none');
       editForm.classList.remove('d-none');
       editInput.focus();
@@ -461,7 +462,12 @@ document.addEventListener('DOMContentLoaded', function() {
       contentEl.classList.remove('d-none');
     });
 
-    card.querySelector('.save-edit-btn').addEventListener('click', () => savePostEdit(post.id, editInput, editForm, contentEl, card));
+    card.querySelector('.save-edit-btn').addEventListener('click', async () => {
+      const newContent = await savePostEdit(post.id, editInput, editForm, contentEl);
+      if (newContent !== null) {
+        originalContent = newContent;  // 원본 내용 업데이트
+      }
+    });
 
     // 삭제
     card.querySelector('.delete-btn').addEventListener('click', () => deletePost(post.id, card));
@@ -514,10 +520,10 @@ document.addEventListener('DOMContentLoaded', function() {
     dislikeBtn.querySelector('.dislikes-count').textContent = data.dislikes;
   }
 
-  // 게시글 수정
-  async function savePostEdit(postId, input, form, contentEl, card) {
+  // 게시글 수정 (성공 시 수정된 내용 반환, 실패 시 null 반환)
+  async function savePostEdit(postId, input, form, contentEl) {
     const content = input.value.trim();
-    if (!content) return;
+    if (!content) return null;
 
     try {
       const response = await fetch(`/community/posts/${postId}`, {
@@ -532,16 +538,17 @@ document.addEventListener('DOMContentLoaded', function() {
       const data = await response.json();
       if (data.success) {
         contentEl.innerHTML = linkify(content, postId);
-        // 원본 내용도 업데이트 (다음 수정 시 사용)
-        if (card) card.dataset.content = content;
         form.classList.add('d-none');
         contentEl.classList.remove('d-none');
         loadAllUrlPreviews();
+        return content;  // 수정된 내용 반환
       } else {
         alert(data.error || '수정에 실패했습니다.');
+        return null;
       }
     } catch (error) {
       console.error('수정 오류:', error);
+      return null;
     }
   }
 

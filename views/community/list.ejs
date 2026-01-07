@@ -77,12 +77,10 @@
       <p class="mb-2 post-content" style="font-size: 0.9rem;"></p>
       <!-- 수정 폼 (숨김) -->
       <div class="edit-form d-none mb-2">
-        <div class="d-flex gap-2 align-items-end">
-          <textarea class="form-control form-control-sm edit-input" maxlength="1000" rows="3" style="resize: none;"></textarea>
-          <div class="d-flex flex-column gap-1">
-            <button class="btn btn-success btn-sm save-edit-btn">저장</button>
-            <button class="btn btn-outline-secondary btn-sm cancel-edit-btn">취소</button>
-          </div>
+        <textarea class="form-control edit-input mb-2" maxlength="1000" rows="5" style="resize: vertical; min-height: 120px; font-size: 0.9rem;"></textarea>
+        <div class="d-flex gap-2 justify-content-end">
+          <button class="btn btn-outline-secondary btn-sm cancel-edit-btn">취소</button>
+          <button class="btn btn-success btn-sm save-edit-btn">저장</button>
         </div>
       </div>
       <!-- 액션 버튼 -->
@@ -454,6 +452,9 @@ document.addEventListener('DOMContentLoaded', function() {
       editInput.value = originalContent;
       contentEl.classList.add('d-none');
       editForm.classList.remove('d-none');
+      // 내용 길이에 맞게 textarea 높이 자동 조절
+      editInput.style.height = 'auto';
+      editInput.style.height = Math.max(120, editInput.scrollHeight) + 'px';
       editInput.focus();
     });
 

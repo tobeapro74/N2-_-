@@ -16,7 +16,7 @@
       "id": 2,
       "name": "강애련",
       "internal_phone": "3986",
-      "department": "Premier Blue 도곡센터",
+      "department": "Premier Blue 삼성동 2센터",
       "email": null,
       "join_date": "2025-10-21",
       "status": "active",
@@ -24,7 +24,7 @@
       "password_hash": "$2a$10$0gYBWMVZjVsteE3wll1PhOoKjLApHSkRQvrRIp6b6ANm5mxtwDSeG",
       "created_at": "2025-12-24T07:21:24.954Z",
       "position": "차장",
-      "updated_at": "2025-12-29T01:07:08.276Z"
+      "updated_at": "2026-01-15T01:51:26.208Z"
     },
     {
       "id": 3,
@@ -44,7 +44,7 @@
       "id": 4,
       "name": "강희령",
       "internal_phone": "6426",
-      "department": "업무혁신부",
+      "department": "상품시스템부",
       "email": null,
       "join_date": "2025-10-21",
       "status": "active",
@@ -52,13 +52,13 @@
       "password_hash": "$2a$10$c6PUrfr/5lBy2bkhtGyYT.f0K05aYzVThjkS.qt0crcQmeXjWoIKC",
       "created_at": "2025-12-24T07:21:25.178Z",
       "position": "차장",
-      "updated_at": "2025-12-29T01:07:08.276Z"
+      "updated_at": "2026-01-15T01:51:26.224Z"
     },
     {
       "id": 5,
       "name": "김경래",
       "internal_phone": "6259",
-      "department": "노동조합",
+      "department": "노동조합부",
       "email": null,
       "join_date": "2025-10-28",
       "status": "active",
@@ -66,7 +66,7 @@
       "password_hash": "$2a$10$F8eoHOfs38Vq1Mn5teEkX.pLuoLGN0ApNS4bKby/IK7dLVwxnXK/a",
       "created_at": "2025-12-24T07:21:25.289Z",
       "position": "부위원장",
-      "updated_at": "2025-12-29T01:07:08.276Z"
+      "updated_at": "2026-01-15T01:51:26.224Z"
     },
     {
       "id": 6,
@@ -86,7 +86,7 @@
       "id": 7,
       "name": "김미정",
       "internal_phone": "6051",
-      "department": "코어뱅킹UX부",
+      "department": "디지털프로덕트본부",
       "email": null,
       "join_date": "2025-10-21",
       "status": "active",
@@ -94,13 +94,13 @@
       "password_hash": "$2a$10$1XedQuOSNWJhZUGPkKoQh.ls5tIcnuu18je0/4oTeUimCi8Wjlq1W",
       "created_at": "2025-12-24T07:21:25.511Z",
       "position": "차장",
-      "updated_at": "2025-12-29T01:07:08.276Z"
+      "updated_at": "2026-01-15T01:51:26.224Z"
     },
     {
       "id": 8,
       "name": "김범준",
       "internal_phone": "8667",
-      "department": "연금자산관리센터",
+      "department": "연금자산관리본부",
       "email": null,
       "join_date": "2025-10-24",
       "status": "active",
@@ -108,7 +108,7 @@
       "password_hash": "$2a$10$Y5E1kyO6zXum/XUIzCI9AOsU7PFqFWujXvO7dbsJpl5HKefgVXYi.",
       "created_at": "2025-12-24T07:21:25.622Z",
       "position": "차장",
-      "updated_at": "2025-12-29T01:07:08.276Z"
+      "updated_at": "2026-01-15T01:51:26.224Z"
     },
     {
       "id": 9,
@@ -128,7 +128,7 @@
       "id": 10,
       "name": "김선영",
       "internal_phone": "6040",
-      "department": "홍보실",
+      "department": "코어뱅킹UX부",
       "email": "",
       "join_date": "2025-10-21",
       "status": "active",
@@ -136,7 +136,7 @@
       "password_hash": "$2a$10$8XnGwYzPQFTskdxVyOa2XOuPpGtzhd0L6dg4be78KXbqplEifmYZK",
       "created_at": "2025-12-24T07:21:25.844Z",
       "position": "차장",
-      "updated_at": "2025-12-29T01:18:05.599Z",
+      "updated_at": "2026-01-15T01:51:26.224Z",
       "role": "총무"
     },
     {
@@ -199,7 +199,7 @@
       "id": 15,
       "name": "김재민",
       "internal_phone": "5739",
-      "department": "파생상품솔루션부",
+      "department": "홍보실",
       "email": null,
       "join_date": "2025-10-21",
       "status": "active",
@@ -207,7 +207,7 @@
       "password_hash": "$2a$10$R8seT0k8DiSD6sSCb1FKo.rK4QPN0vvUyib0yFKQAAaStCnBj1CNO",
       "created_at": "2025-12-24T07:21:26.399Z",
       "position": "과장",
-      "updated_at": "2025-12-29T01:07:08.276Z"
+      "updated_at": "2026-01-15T01:51:26.224Z"
     },
     {
       "id": 16,
@@ -241,7 +241,7 @@
       "id": 18,
       "name": "김혜진",
       "internal_phone": "7937",
-      "department": "HNW지원부",
+      "department": "인재개발부",
       "email": null,
       "join_date": "2025-10-21",
       "status": "active",
@@ -249,13 +249,13 @@
       "password_hash": "$2a$10$lu99dNrNfEdXpv13h0Kk3.mCy94yNLiLCO7jCbv252DUDNvIP92OK",
       "created_at": "2025-12-24T07:21:26.733Z",
       "position": "부부장",
-      "updated_at": "2025-12-29T01:07:08.276Z"
+      "updated_at": "2026-01-15T01:51:26.224Z"
     },
     {
       "id": 19,
       "name": "문연상",
       "internal_phone": "7858",
-      "department": "연금컨설팅1부",
+      "department": "연금컨설팅2부",
       "email": null,
       "join_date": "2025-10-24",
       "status": "active",
@@ -263,13 +263,13 @@
       "password_hash": "$2a$10$7vQmpluqAR8quJFENNBC6.ZN/rvskM2fJkuFN9rb1q3dmfCfRaowy",
       "created_at": "2025-12-24T07:21:26.844Z",
       "position": "부부장",
-      "updated_at": "2025-12-29T01:07:08.276Z"
+      "updated_at": "2026-01-15T01:51:26.224Z"
     },
     {
       "id": 20,
       "name": "박병철",
       "internal_phone": "7277",
-      "department": "코어뱅킹UX부",
+      "department": "HNW지원부",
       "email": null,
       "join_date": "2025-10-21",
       "status": "active",
@@ -278,7 +278,7 @@
       "created_at": "2025-12-24T07:21:26.955Z",
       "avg_score": 78,
       "recent_score": 78,
-      "updated_at": "2025-12-29T01:07:08.276Z",
+      "updated_at": "2026-01-15T01:51:26.224Z",
       "position": "부부장",
       "role": "총무"
     },
@@ -370,7 +370,7 @@
       "id": 27,
       "name": "방미영",
       "internal_phone": "0666",
-      "department": "안산WM센터",
+      "department": "인천금융센터 WM1센터",
       "email": null,
       "join_date": "2025-10-21",
       "status": "active",
@@ -378,7 +378,7 @@
       "password_hash": "$2a$10$1bRNJtCUZf/ZZnHmtmxuW.J0BsBtzDbqgqlgthkmADcIYMwZwLm7i",
       "created_at": "2025-12-24T07:21:27.733Z",
       "position": "부부장",
-      "updated_at": "2025-12-29T01:07:08.276Z"
+      "updated_at": "2026-01-15T01:51:26.224Z"
     },
     {
       "id": 28,
@@ -412,7 +412,7 @@
       "id": 30,
       "name": "성주희",
       "internal_phone": "7761",
-      "department": "코어뱅킹개발부",
+      "department": "디지털프로덕트본부",
       "email": null,
       "join_date": "2025-10-21",
       "status": "active",
@@ -420,7 +420,7 @@
       "password_hash": "$2a$10$NpX2EfTge9GQHFls.1GC0ebnEz3nQBqQofr2gdMf3SDWpShW6vmwG",
       "created_at": "2025-12-24T07:21:28.067Z",
       "position": "대리",
-      "updated_at": "2025-12-29T01:07:08.276Z"
+      "updated_at": "2026-01-15T01:51:26.224Z"
     },
     {
       "id": 31,
@@ -651,7 +651,7 @@
       "id": 47,
       "name": "이도경",
       "internal_phone": "6491",
-      "department": "디지털기획부",
+      "department": "AI&데이터지원부",
       "email": null,
       "join_date": "2025-10-28",
       "status": "active",
@@ -659,13 +659,13 @@
       "password_hash": "$2a$10$s5hTDqMyRK7y1Zqf90HFMuGqzFkKQCFKRAeJaNhF8fT1feSd.DK8i",
       "created_at": "2025-12-24T07:21:29.954Z",
       "position": "대리",
-      "updated_at": "2025-12-29T01:07:08.276Z"
+      "updated_at": "2026-01-15T01:51:26.224Z"
     },
     {
       "id": 48,
       "name": "이상옥",
       "internal_phone": "6039",
-      "department": "AI&데이터지원부",
+      "department": "디지털자산관리추진부",
       "email": null,
       "join_date": "2025-10-21",
       "status": "active",
@@ -673,7 +673,7 @@
       "password_hash": "$2a$10$HmdD2CkLioQqF/a8pPaIgeiybSg20VORgRiQjSbJff6aYXLqxUNl2",
       "created_at": "2025-12-24T07:21:30.066Z",
       "position": "차장",
-      "updated_at": "2025-12-29T01:07:08.276Z"
+      "updated_at": "2026-01-15T01:51:26.224Z"
     },
     {
       "id": 49,
@@ -777,7 +777,7 @@
       "id": 56,
       "name": "이창구",
       "internal_phone": "6066",
-      "department": "코어뱅킹UX부",
+      "department": "디지털프로덕트본부",
       "email": null,
       "join_date": "2025-10-21",
       "status": "active",
@@ -785,7 +785,7 @@
       "password_hash": "$2a$10$jj82hFC2LYmLpY3hZYH6deuERCnKjvjhx5pIu4yB1oUW3u8kDxdNG",
       "created_at": "2025-12-24T07:21:30.954Z",
       "position": "부부장",
-      "updated_at": "2025-12-29T01:07:08.276Z"
+      "updated_at": "2026-01-15T01:51:26.224Z"
     },
     {
       "id": 57,
@@ -819,7 +819,7 @@
       "id": 59,
       "name": "장유락",
       "internal_phone": "6826",
-      "department": "NH금융PLUS 영업부금융센터 WM1센터",
+      "department": "반포금융센터 WM1센터",
       "email": null,
       "join_date": "2025-10-24",
       "status": "active",
@@ -827,7 +827,7 @@
       "password_hash": "$2a$10$.0H4KcLsnzl2Af1GjTbBteSLgFKiAjTGe1VJJjefXqweFLj6OapnO",
       "created_at": "2025-12-24T07:21:31.287Z",
       "position": "차장",
-      "updated_at": "2025-12-29T01:07:08.276Z"
+      "updated_at": "2026-01-15T01:51:26.224Z"
     },
     {
       "id": 60,
@@ -875,7 +875,7 @@
       "id": 63,
       "name": "정요안",
       "internal_phone": "6891",
-      "department": "디지털자산관리추진부",
+      "department": "자산관리컨설팅부",
       "email": null,
       "join_date": "2025-10-21",
       "status": "active",
@@ -883,7 +883,7 @@
       "password_hash": "$2a$10$88lpF21G43Cs9UYGuGYtXeR029VVp49KjjK7HiiastLokRC94dNDi",
       "created_at": "2025-12-24T07:21:31.730Z",
       "position": "부장",
-      "updated_at": "2025-12-29T01:07:08.276Z"
+      "updated_at": "2026-01-15T01:51:26.224Z"
     },
     {
       "id": 64,
@@ -917,7 +917,7 @@
       "id": 66,
       "name": "정윤희",
       "internal_phone": "7989",
-      "department": "전략운용본부",
+      "department": "신용리스크부",
       "email": null,
       "join_date": "2025-10-21",
       "status": "active",
@@ -925,7 +925,7 @@
       "password_hash": "$2a$10$.rj.RsXUV6BywjaCSecJiuA9fkqMxcrrcJX/aKFXvNBrym584Z0ge",
       "created_at": "2025-12-24T07:21:32.063Z",
       "position": "차장",
-      "updated_at": "2025-12-29T01:07:08.276Z"
+      "updated_at": "2026-01-15T01:51:26.224Z"
     },
     {
       "id": 67,
@@ -1043,7 +1043,7 @@
       "id": 75,
       "name": "황명상",
       "internal_phone": "6376",
-      "department": "상품시스템부",
+      "department": "업무혁신부",
       "email": null,
       "join_date": "2025-10-21",
       "status": "active",
@@ -1051,13 +1051,13 @@
       "password_hash": "$2a$10$sb.QEB.eBY6XQEBJlyG1BOtk7iBX27t3DHSzSJpbdYyQiFdPzfPJu",
       "created_at": "2025-12-24T07:21:33.062Z",
       "position": "차장",
-      "updated_at": "2025-12-29T01:07:08.276Z"
+      "updated_at": "2026-01-15T01:51:26.224Z"
     },
     {
       "id": 76,
       "name": "황선애",
       "internal_phone": "0416",
-      "department": "판교 Biz Plus 금융센터",
+      "department": "NH금융PLUS 분당금융센터 WM2센터",
       "email": null,
       "join_date": "2025-11-03",
       "status": "active",
@@ -1065,20 +1065,21 @@
       "password_hash": "$2a$10$/bnWTQqDSuuvfz46XCt8lOVgSgKT2ts4bf9d.1p7N03ViaoUcquYm",
       "created_at": "2025-12-24T07:21:33.172Z",
       "position": "차장",
-      "updated_at": "2025-12-29T01:07:08.276Z"
+      "updated_at": "2026-01-15T01:51:26.224Z"
     },
     {
       "id": 77,
       "name": "김봉기",
       "internal_phone": null,
-      "department": "인사부소속",
+      "department": "NH인재원",
       "position": "상무",
       "email": null,
       "join_date": "2025-10-24",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$WppxLhadtklphsv2DgkxuO00URWAi83g.zekpgNEVju6Ssf7DkkX2",
-      "created_at": "2025-12-29T01:07:08.276Z"
+      "created_at": "2025-12-29T01:07:08.276Z",
+      "updated_at": "2026-01-15T01:51:26.224Z"
     },
     {
       "id": 78,
@@ -1136,14 +1137,15 @@
       "id": 82,
       "name": "조현하",
       "internal_phone": "7763",
-      "department": "영업부법인센터",
+      "department": "영업부법인금융센터",
       "position": "대리",
       "email": null,
       "join_date": "2025-12-04",
       "status": "active",
       "is_admin": false,
       "password_hash": "$2a$10$WppxLhadtklphsv2DgkxuO00URWAi83g.zekpgNEVju6Ssf7DkkX2",
-      "created_at": "2025-12-29T01:07:08.276Z"
+      "created_at": "2025-12-29T01:07:08.276Z",
+      "updated_at": "2026-01-15T01:51:26.224Z"
     },
     {
       "id": 83,

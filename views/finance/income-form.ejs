@@ -77,12 +77,39 @@ function formatAmount(input) {
   let value = input.value.replace(/[^\d]/g, '');
   if (value) {
     document.getElementById('amountValue').value = value;
-    input.value = parseInt(value).toLocaleString();
+    // 세자리 콤마 적용
+    input.value = value.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   } else {
     document.getElementById('amountValue').value = '';
     input.value = '';
   }
 }
+
+// 폼 제출 전 금액 값 동기화
+document.querySelector('form').addEventListener('submit', function(e) {
+  const displayInput = document.getElementById('amountDisplay');
+  const valueInput = document.getElementById('amountValue');
+
+  // 표시 입력값에서 숫자만 추출하여 hidden input에 설정
+  let value = displayInput.value.replace(/[^\d]/g, '');
+  valueInput.value = value;
+
+  // 금액이 비어있으면 제출 방지
+  if (!value) {
+    e.preventDefault();
+    displayInput.focus();
+    alert('금액을 입력해주세요.');
+    return false;
+  }
+});
+
+// 페이지 로드 시 초기값 동기화 (수정 모드)
+document.addEventListener('DOMContentLoaded', function() {
+  const displayInput = document.getElementById('amountDisplay');
+  if (displayInput.value) {
+    formatAmount(displayInput);
+  }
+});
 </script>
 
 <%- include('../partials/footer') %>

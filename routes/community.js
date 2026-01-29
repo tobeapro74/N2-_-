@@ -4,6 +4,8 @@ const db = require('../models/database');
 const multer = require('multer');
 const { optimizeCloudinaryUrl } = require('../utils/validator');
 const pushService = require('../utils/pushService');
+const { cacheManager, TTL } = require('../models/cache');
+const crypto = require('crypto');
 
 // ============================================
 // Cloudinary 설정
@@ -637,6 +639,7 @@ router.post('/upload-image', requireAuth, upload.single('image'), async (req, re
 
 // ============================================
 // URL 메타데이터 조회 API (Open Graph)
+// 캐싱: 1시간 TTL로 동일 URL 재요청 방지
 // ============================================
 router.post('/url-preview', requireAuth, async (req, res) => {
   try {
@@ -650,6 +653,17 @@ router.post('/url-preview', requireAuth, async (req, res) => {
     let targetUrl = url;
     if (!targetUrl.startsWith('http://') && !targetUrl.startsWith('https://')) {
       targetUrl = 'https://' + targetUrl;
+    }
+
+    // 캐시 키 생성 (URL 해시)
+    const urlHash = crypto.createHash('md5').update(targetUrl).digest('hex').substring(0, 16);
+    const cacheKey = `url_preview_${urlHash}`;
+
+    // 캐시 확인
+    const cached = cacheManager.get(cacheKey);
+    if (cached) {
+      console.log(`[URL Preview] 캐시 히트: ${targetUrl.substring(0, 50)}...`);
+      return res.json({ ...cached, cached: true });
     }
 
     // 유튜브 URL 특별 처리
@@ -788,7 +802,7 @@ router.post('/url-preview', requireAuth, async (req, res) => {
         : `${urlObj.protocol}//${urlObj.host}/${image}`;
     }
 
-    res.json({
+    const result = {
       success: true,
       data: {
         url: targetUrl,
@@ -797,7 +811,13 @@ router.post('/url-preview', requireAuth, async (req, res) => {
         image,
         siteName
       }
-    });
+    };
+
+    // 캐시 저장 (1시간)
+    cacheManager.set(cacheKey, result, TTL.ONE_HOUR);
+    console.log(`[URL Preview] 캐시 저장: ${targetUrl.substring(0, 50)}... (TTL: 1시간)`);
+
+    res.json(result);
   } catch (error) {
     console.error('URL 미리보기 오류:', error.message);
     res.json({ success: false, error: '미리보기를 가져올 수 없습니다.' });

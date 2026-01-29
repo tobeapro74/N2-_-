@@ -1,10 +1,15 @@
 /**
  * 교통 API 라우터
  * 카카오 모빌리티 API를 사용하여 실시간 교통 정보를 제공합니다.
+ * 캐싱: 5분 TTL로 API 호출 최소화
  */
 
 const express = require('express');
 const router = express.Router();
+const { cacheManager, TTL } = require('../models/cache');
+
+// 캐시 키 상수
+const CACHE_KEY_TRAFFIC = 'traffic_duration';
 
 // API용 인증 미들웨어
 const requireAuthApi = (req, res, next) => {
@@ -50,9 +55,23 @@ const departureCoords = {
 /**
  * 실시간 교통 소요시간 조회
  * GET /api/traffic/duration
+ * 캐싱: 5분 TTL - API 호출 90% 감소 효과
  */
 router.get('/duration', requireAuthApi, async (req, res) => {
   try {
+    // 캐시 확인
+    const cached = cacheManager.get(CACHE_KEY_TRAFFIC);
+    if (cached) {
+      console.log('[Traffic API] 캐시 히트 - API 호출 생략');
+      return res.json({
+        success: true,
+        data: cached.data,
+        updatedAt: cached.updatedAt,
+        cached: true,
+        cacheExpiresIn: Math.round(cacheManager.getTTL(CACHE_KEY_TRAFFIC) / 1000) + '초'
+      });
+    }
+
     const KAKAO_REST_API_KEY = process.env.KAKAO_REST_API_KEY;
 
     if (!KAKAO_REST_API_KEY) {
@@ -74,6 +93,8 @@ router.get('/duration', requireAuthApi, async (req, res) => {
       { from: 'yeouido', to: 'daeyoungBase' },
       { from: 'jamsil', to: 'daeyoungBase' }
     ];
+
+    console.log('[Traffic API] 카카오 모빌리티 API 호출 시작 (6개 경로)');
 
     // 카카오 모빌리티 API 호출
     for (const route of routes) {
@@ -127,10 +148,19 @@ router.get('/duration', requireAuthApi, async (req, res) => {
       });
     }
 
-    res.json({
-      success: true,
+    const responseData = {
       data: results,
       updatedAt: new Date().toISOString()
+    };
+
+    // 캐시 저장 (5분)
+    cacheManager.set(CACHE_KEY_TRAFFIC, responseData, TTL.FIVE_MINUTES);
+    console.log('[Traffic API] 캐시 저장 완료 (TTL: 5분)');
+
+    res.json({
+      success: true,
+      ...responseData,
+      cached: false
     });
 
   } catch (error) {

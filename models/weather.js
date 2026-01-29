@@ -2,7 +2,10 @@
  * 날씨 서비스 모듈
  * 골프장별 위치 정보와 날씨 데이터를 제공합니다.
  * Open-Meteo API 사용 (무료, API키 불필요)
+ * 캐싱: 30분 TTL로 API 호출 최소화
  */
+
+const { cacheManager, TTL } = require('./cache');
 
 // 골프장별 위치 정보 (위도/경도)
 const golfCourseLocations = {
@@ -105,18 +108,30 @@ function getDayOfWeek(date) {
 
 /**
  * 특정 날짜의 날씨 정보 조회 (비동기)
+ * 캐싱: 30분 TTL
  */
 async function getWeatherForDateAsync(courseName, date) {
   const location = getGolfCourseLocation(courseName);
   if (!location) return null;
 
+  // 캐시 키 생성 (골프장명 + 날짜)
+  const targetDate = date || new Date().toISOString().split('T')[0];
+  const cacheKey = `weather_${courseName}_${targetDate}`;
+
+  // 캐시 확인
+  const cached = cacheManager.get(cacheKey);
+  if (cached) {
+    console.log(`[Weather API] 캐시 히트: ${courseName} (${targetDate})`);
+    return cached;
+  }
+
   try {
+    console.log(`[Weather API] API 호출: ${courseName}`);
     const apiData = await fetchWeatherFromAPI(location.lat, location.lon);
     const current = apiData.current;
     const daily = apiData.daily;
 
     // 오늘 날짜 인덱스 찾기
-    const targetDate = date || new Date().toISOString().split('T')[0];
     const dateIndex = daily.time.indexOf(targetDate);
     const idx = dateIndex >= 0 ? dateIndex : 0;
 
@@ -141,13 +156,19 @@ async function getWeatherForDateAsync(courseName, date) {
       humidity: current.relative_humidity_2m
     };
 
-    return {
+    const result = {
       course: location.name,
       region: location.region,
       city: location.city,
       ...weather,
       golfAdvice: generateGolfAdvice(weather)
     };
+
+    // 캐시 저장 (30분)
+    cacheManager.set(cacheKey, result, TTL.THIRTY_MINUTES);
+    console.log(`[Weather API] 캐시 저장: ${courseName} (TTL: 30분)`);
+
+    return result;
   } catch (error) {
     console.error('날씨 API 오류:', error);
     return null;
@@ -156,12 +177,24 @@ async function getWeatherForDateAsync(courseName, date) {
 
 /**
  * 1주일 날씨 예보 조회 (비동기)
+ * 캐싱: 30분 TTL
  */
 async function getWeeklyForecastAsync(courseName, startDate) {
   const location = getGolfCourseLocation(courseName);
   if (!location) return null;
 
+  // 캐시 키 생성 (골프장명 + weekly)
+  const cacheKey = `weather_weekly_${courseName}`;
+
+  // 캐시 확인
+  const cached = cacheManager.get(cacheKey);
+  if (cached) {
+    console.log(`[Weather API] 캐시 히트: ${courseName} (주간예보)`);
+    return cached;
+  }
+
   try {
+    console.log(`[Weather API] API 호출: ${courseName} (주간예보)`);
     const apiData = await fetchWeatherFromAPI(location.lat, location.lon);
     const current = apiData.current;
     const daily = apiData.daily;
@@ -192,12 +225,18 @@ async function getWeeklyForecastAsync(courseName, startDate) {
       });
     }
 
-    return {
+    const result = {
       course: location.name,
       region: location.region,
       city: location.city,
       forecast: forecast
     };
+
+    // 캐시 저장 (30분)
+    cacheManager.set(cacheKey, result, TTL.THIRTY_MINUTES);
+    console.log(`[Weather API] 캐시 저장: ${courseName} 주간예보 (TTL: 30분)`);
+
+    return result;
   } catch (error) {
     console.error('날씨 API 오류:', error);
     return null;

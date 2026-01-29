@@ -271,10 +271,18 @@ class Database {
         created_at: new Date().toISOString()
       };
 
-      await collection.insertOne(newRecord);
+      const result = await collection.insertOne(newRecord);
 
-      // 캐시 새로고침 (DB에서 다시 로드하여 동기화 보장)
-      this.mongoCache[table] = await collection.find({}).toArray();
+      // 증분 캐시 업데이트 (전체 새로고침 대신 새 레코드만 추가)
+      if (this.mongoCache[table]) {
+        // MongoDB에서 삽입된 문서 조회 (_id 포함)
+        const insertedDoc = await collection.findOne({ _id: result.insertedId });
+        this.mongoCache[table].push(insertedDoc);
+        console.log(`[MongoDB] 캐시 증분 업데이트: ${table}에 id=${newId} 추가`);
+      } else {
+        // 캐시가 없으면 초기화
+        this.mongoCache[table] = await collection.find({}).toArray();
+      }
 
       return newId;
     } catch (error) {
@@ -323,9 +331,21 @@ class Database {
 
       console.log(`[MongoDB] 실제 업데이트 성공 여부:`, updateSuccess);
 
-      // 캐시 새로고침 (전체 다시 로드)
-      this.mongoCache[table] = await collection.find({}).toArray();
-      console.log(`[MongoDB] 캐시 새로고침 완료, 총 ${this.mongoCache[table].length}건`);
+      // 증분 캐시 업데이트 (전체 새로고침 대신 해당 레코드만 업데이트)
+      if (this.mongoCache[table] && updateSuccess) {
+        const cacheIndex = this.mongoCache[table].findIndex(
+          r => r.id === numericId || r.id === stringId
+        );
+        if (cacheIndex !== -1) {
+          // 캐시에서 해당 레코드 업데이트
+          this.mongoCache[table][cacheIndex] = updatedDoc;
+          console.log(`[MongoDB] 캐시 증분 업데이트: ${table}의 id=${id} 수정`);
+        } else {
+          // 캐시에 없으면 전체 새로고침
+          this.mongoCache[table] = await collection.find({}).toArray();
+          console.log(`[MongoDB] 캐시 전체 새로고침: ${table}`);
+        }
+      }
 
       return updateSuccess;
     } catch (error) {

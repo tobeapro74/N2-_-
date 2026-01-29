@@ -313,6 +313,111 @@ function showDayOfWeek(dateStr) {
   return days[date.getDay()];
 }
 
+// =============================================
+// 클라이언트 캐시 시스템
+// =============================================
+
+// 클라이언트 메모리 캐시
+const clientCache = new Map();
+
+// TTL 상수 (밀리초)
+const CLIENT_CACHE_TTL = {
+  SHORT: 60 * 1000,          // 1분
+  MEDIUM: 5 * 60 * 1000,     // 5분
+  LONG: 30 * 60 * 1000       // 30분
+};
+
+/**
+ * 캐시된 API 호출
+ * 동일한 GET 요청의 중복 호출 방지
+ * @param {string} url - API URL
+ * @param {number} ttlMs - 캐시 유효 시간 (기본 5분)
+ * @returns {Promise<any>}
+ */
+async function cachedApiCall(url, ttlMs = CLIENT_CACHE_TTL.MEDIUM) {
+  const cacheKey = url;
+  const cached = clientCache.get(cacheKey);
+
+  // 캐시 히트 및 유효성 검사
+  if (cached && Date.now() < cached.expiry) {
+    console.log('[Cache] 캐시 히트:', url);
+    return cached.data;
+  }
+
+  // 캐시 미스 - API 호출
+  console.log('[Cache] API 호출:', url);
+  const data = await apiCall(url, 'GET');
+
+  // 캐시 저장
+  clientCache.set(cacheKey, {
+    data,
+    expiry: Date.now() + ttlMs
+  });
+
+  return data;
+}
+
+/**
+ * 캐시 무효화
+ * 데이터 변경 시 관련 캐시 삭제
+ * @param {string} pattern - URL 패턴 (시작 부분 매칭)
+ */
+function invalidateCache(pattern) {
+  let count = 0;
+  for (const key of clientCache.keys()) {
+    if (key.startsWith(pattern) || key.includes(pattern)) {
+      clientCache.delete(key);
+      count++;
+    }
+  }
+  if (count > 0) {
+    console.log(`[Cache] ${count}개 캐시 무효화:`, pattern);
+  }
+}
+
+/**
+ * 전체 캐시 삭제
+ */
+function clearClientCache() {
+  clientCache.clear();
+  console.log('[Cache] 전체 캐시 삭제');
+}
+
+/**
+ * Debounce 유틸리티
+ * 연속 호출 시 마지막 호출만 실행
+ * @param {Function} func - 실행할 함수
+ * @param {number} wait - 대기 시간 (ms)
+ */
+function debounce(func, wait = 300) {
+  let timeout;
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+}
+
+/**
+ * Throttle 유틸리티
+ * 일정 시간 간격으로만 함수 실행
+ * @param {Function} func - 실행할 함수
+ * @param {number} limit - 최소 실행 간격 (ms)
+ */
+function throttle(func, limit = 1000) {
+  let inThrottle;
+  return function executedFunction(...args) {
+    if (!inThrottle) {
+      func(...args);
+      inThrottle = true;
+      setTimeout(() => inThrottle = false, limit);
+    }
+  };
+}
+
 // API 호출 헬퍼
 async function apiCall(url, method = 'GET', data = null) {
   const options = {

@@ -84,6 +84,18 @@ router.post('/apply', requireAuth, async (req, res) => {
 
     // 일정 확인
     const schedule = db.findById('schedules', scheduleId);
+
+    // open_at 시간이 지난 pending 스케줄은 자동으로 open 처리 (Cron 지연 대비)
+    if (schedule && schedule.status === 'pending' && schedule.open_at) {
+      if (new Date() >= new Date(schedule.open_at)) {
+        await db.update('schedules', scheduleId, { status: 'open' });
+        if (db.refreshCache) {
+          await db.refreshCache('schedules');
+        }
+        schedule.status = 'open';
+      }
+    }
+
     if (!schedule || schedule.status !== 'open') {
       return res.status(400).json({ error: '신청할 수 없는 일정입니다.' });
     }

@@ -7,8 +7,18 @@
   },
   "rewrites": [
     {
+      "source": "/api/cron/open-schedules",
+      "destination": "/api/cron/open-schedules.js"
+    },
+    {
       "source": "/(.*)",
       "destination": "/api/index.js"
+    }
+  ],
+  "crons": [
+    {
+      "path": "/api/cron/open-schedules",
+      "schedule": "0 0 * * *"
     }
   ]
 }

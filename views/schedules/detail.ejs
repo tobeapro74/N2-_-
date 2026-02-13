@@ -118,11 +118,18 @@
         <% if (user && user.is_admin) { %>
         <div class="alert alert-info mb-0 text-center">
           <i class="bi bi-info-circle"></i> 오픈전 상태입니다. 상태를 '예약가능'으로 변경하면 예약이 시작됩니다.
+          <% if (schedule.open_at) { %>
+          <br><small class="text-muted"><i class="bi bi-clock-history"></i> 자동 오픈 예정: <%= moment(schedule.open_at).utcOffset(9).format('M월 D일 (ddd) HH:mm') %></small>
+          <% } %>
         </div>
         <% } else { %>
         <div class="alert alert-info mb-0 text-center">
           <i class="bi bi-clock"></i> 아직 예약이 오픈되지 않았습니다.<br>
+          <% if (schedule.open_at) { %>
+          <small class="text-muted"><i class="bi bi-bell"></i> 오픈 예정: <strong><%= moment(schedule.open_at).utcOffset(9).format('M월 D일 (ddd) HH:mm') %></strong></small>
+          <% } else { %>
           <small class="text-muted">오픈되면 알림을 받으시려면 커뮤니티에서 댓글을 남겨주세요.</small>
+          <% } %>
         </div>
         <% } %>
         <% } else if (schedule.status === 'open') { %>

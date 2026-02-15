@@ -10,10 +10,10 @@
   </div>
   <% if (user && user.is_admin) { %>
   <div class="d-flex gap-2">
-    <a href="/finance/income/new" class="btn btn-primary btn-sm py-1 px-3 d-flex align-items-center gap-1" style="font-size: 0.8rem;">
+    <a href="/finance/income/new" class="btn btn-primary btn-sm py-1 px-3 d-flex align-items-center gap-1" style="font-size: 0.85rem;">
       <i class="bi bi-plus-lg"></i> 입금등록
     </a>
-    <a href="/finance/expense/new" class="btn btn-danger btn-sm py-1 px-3 d-flex align-items-center gap-1" style="font-size: 0.8rem;">
+    <a href="/finance/expense/new" class="btn btn-danger btn-sm py-1 px-3 d-flex align-items-center gap-1" style="font-size: 0.85rem;">
       <i class="bi bi-dash-lg"></i> 출금등록
     </a>
   </div>
@@ -25,7 +25,7 @@
   <div class="card-body py-2 px-3">
     <form method="GET" class="row g-2 align-items-end">
       <div class="col-4 col-md-2">
-        <label class="form-label mb-1" style="font-size: 0.75rem; color: #6c757d;">연도</label>
+        <label class="form-label mb-1" style="font-size: 0.85rem; color: #6c757d;">연도</label>
         <select name="year" class="form-select form-select-sm" style="font-size: 0.85rem;">
           <% years.forEach(y => { %>
           <option value="<%= y %>" <%= selectedYear == y ? 'selected' : '' %>><%= y %>년</option>
@@ -33,7 +33,7 @@
         </select>
       </div>
       <div class="col-4 col-md-2">
-        <label class="form-label mb-1" style="font-size: 0.75rem; color: #6c757d;">월</label>
+        <label class="form-label mb-1" style="font-size: 0.85rem; color: #6c757d;">월</label>
         <select name="month" class="form-select form-select-sm" style="font-size: 0.85rem;">
           <option value="">전체</option>
           <% for (let m = 1; m <= 12; m++) { %>
@@ -42,7 +42,7 @@
         </select>
       </div>
       <div class="col-4 col-md-2">
-        <button type="submit" class="btn btn-primary btn-sm w-100" style="font-size: 0.8rem;">
+        <button type="submit" class="btn btn-primary btn-sm w-100" style="font-size: 0.85rem;">
           <i class="bi bi-search"></i> 조회
         </button>
       </div>
@@ -55,7 +55,7 @@
   <div class="col-4">
     <div class="card border-0 shadow-sm bg-success bg-opacity-10">
       <div class="card-body text-center py-2 px-1">
-        <small class="text-muted" style="font-size: 0.7rem;">총 잔액</small>
+        <small class="text-muted" style="font-size: 0.85rem;">총 잔액</small>
         <h6 class="mb-0 fw-bold text-success" style="font-size: 0.9rem;"><%= balance.toLocaleString() %></h6>
       </div>
     </div>
@@ -63,7 +63,7 @@
   <div class="col-4">
     <div class="card border-0 shadow-sm bg-primary bg-opacity-10">
       <div class="card-body text-center py-2 px-1">
-        <small class="text-muted" style="font-size: 0.7rem;">총 수입</small>
+        <small class="text-muted" style="font-size: 0.85rem;">총 수입</small>
         <h6 class="mb-0 fw-bold text-primary" style="font-size: 0.9rem;"><%= totalIncome.toLocaleString() %></h6>
       </div>
     </div>
@@ -71,7 +71,7 @@
   <div class="col-4">
     <div class="card border-0 shadow-sm bg-danger bg-opacity-10">
       <div class="card-body text-center py-2 px-1">
-        <small class="text-muted" style="font-size: 0.7rem;">총 지출</small>
+        <small class="text-muted" style="font-size: 0.85rem;">총 지출</small>
         <h6 class="mb-0 fw-bold text-danger" style="font-size: 0.9rem;"><%= totalExpense.toLocaleString() %></h6>
       </div>
     </div>
@@ -99,7 +99,7 @@
       </div>
       <div class="card-body py-2">
         <% incomeByCategory.forEach(cat => { %>
-        <div class="d-flex justify-content-between mb-1" style="font-size: 0.8rem;">
+        <div class="d-flex justify-content-between mb-1" style="font-size: 0.85rem;">
           <span><%= cat.name %></span>
           <strong class="text-primary"><%= cat.total.toLocaleString() %></strong>
         </div>
@@ -113,7 +113,7 @@
       </div>
       <div class="card-body py-2">
         <% expenseByCategory.forEach(cat => { %>
-        <div class="d-flex justify-content-between mb-1" style="font-size: 0.8rem;">
+        <div class="d-flex justify-content-between mb-1" style="font-size: 0.85rem;">
           <span><%= cat.name %></span>
           <strong class="text-danger"><%= cat.total.toLocaleString() %></strong>
         </div>
@@ -128,17 +128,17 @@
   <div class="card-body py-2">
     <div class="row g-2 text-center">
       <div class="col-4">
-        <a href="/finance/income" class="btn btn-outline-primary btn-sm w-100 d-flex align-items-center justify-content-center gap-1" style="font-size: 0.8rem;">
+        <a href="/finance/income" class="btn btn-outline-primary btn-sm w-100 d-flex align-items-center justify-content-center gap-1" style="font-size: 0.85rem;">
           <i class="bi bi-arrow-down-circle"></i> 입금내역
         </a>
       </div>
       <div class="col-4">
-        <a href="/finance/expense" class="btn btn-outline-danger btn-sm w-100 d-flex align-items-center justify-content-center gap-1" style="font-size: 0.8rem;">
+        <a href="/finance/expense" class="btn btn-outline-danger btn-sm w-100 d-flex align-items-center justify-content-center gap-1" style="font-size: 0.85rem;">
           <i class="bi bi-arrow-up-circle"></i> 출금내역
         </a>
       </div>
       <div class="col-4">
-        <a href="/finance/fees" class="btn btn-outline-success btn-sm w-100 d-flex align-items-center justify-content-center gap-1" style="font-size: 0.8rem;">
+        <a href="/finance/fees" class="btn btn-outline-success btn-sm w-100 d-flex align-items-center justify-content-center gap-1" style="font-size: 0.85rem;">
           <i class="bi bi-wallet2"></i> 회비관리
         </a>
       </div>

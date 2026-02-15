@@ -9,7 +9,7 @@
     <h5 class="mb-0 fw-bold"><i class="bi bi-people text-primary me-2" aria-hidden="true"></i>회원 관리</h5>
   </div>
   <% if (user && user.is_admin) { %>
-  <a href="/members/new" class="btn btn-success btn-sm py-1 px-3 d-flex align-items-center gap-1" style="font-size: 0.8rem;">
+  <a href="/members/new" class="btn btn-success btn-sm py-1 px-3 d-flex align-items-center gap-1" style="font-size: 0.85rem;">
     <i class="bi bi-person-plus-fill" aria-hidden="true"></i> 회원등록
   </a>
   <% } %>
@@ -20,7 +20,7 @@
   <div class="card-body py-2 px-3">
     <form method="GET" class="row g-2 align-items-end" role="search" aria-label="회원 검색">
       <div class="col-4 col-md-2">
-        <label for="status-filter" class="form-label mb-1" style="font-size: 0.75rem; color: #6c757d;">상태</label>
+        <label for="status-filter" class="form-label mb-1" style="font-size: 0.85rem; color: #6c757d;">상태</label>
         <select name="status" id="status-filter" class="form-select form-select-sm" style="font-size: 0.85rem;">
           <option value="">전체</option>
           <option value="active" <%= filters.status === 'active' ? 'selected' : '' %>>활동</option>
@@ -29,16 +29,16 @@
         </select>
       </div>
       <div class="col-8 col-md-4">
-        <label for="search-input" class="form-label mb-1" style="font-size: 0.75rem; color: #6c757d;">검색</label>
+        <label for="search-input" class="form-label mb-1" style="font-size: 0.85rem; color: #6c757d;">검색</label>
         <input type="text" name="search" id="search-input" class="form-control form-control-sm" style="font-size: 0.85rem;" placeholder="이름, 구내번호, 부서" value="<%= filters.search || '' %>">
       </div>
       <div class="col-6 col-md-2">
-        <button type="submit" class="btn btn-primary btn-sm w-100" style="font-size: 0.8rem;">
+        <button type="submit" class="btn btn-primary btn-sm w-100" style="font-size: 0.85rem;">
           <i class="bi bi-search" aria-hidden="true"></i> 검색
         </button>
       </div>
       <div class="col-6 col-md-2">
-        <a href="/members" class="btn btn-outline-secondary btn-sm w-100" style="font-size: 0.8rem;" aria-label="검색 조건 초기화">
+        <a href="/members" class="btn btn-outline-secondary btn-sm w-100" style="font-size: 0.85rem;" aria-label="검색 조건 초기화">
           초기화
         </a>
       </div>
@@ -78,28 +78,28 @@
           <tr data-href="/members/<%= member.id %>" tabindex="0" role="button" aria-label="<%= member.name %> 회원 상세 보기">
             <td class="py-2 ps-3">
               <strong><%= member.name %></strong>
-              <% if (member.role) { %><span class="badge bg-primary ms-1" style="font-size: 0.65rem;"><%= member.role %></span><% } %>
+              <% if (member.role) { %><span class="badge bg-primary ms-1" style="font-size: 0.85rem;"><%= member.role %></span><% } %>
             </td>
             <td class="py-2"><%= member.internal_phone || '-' %></td>
             <td class="py-2"><small class="text-muted"><%= member.department || '-' %></small></td>
             <td class="py-2"><small><%= member.position || '-' %></small></td>
             <td class="py-2 text-center" data-value="<%= member.total_rounds || 0 %>">
-              <span class="badge bg-success bg-opacity-75" style="font-size: 0.75rem;"><%= member.total_rounds || 0 %></span>
+              <span class="badge bg-success bg-opacity-75" style="font-size: 0.85rem;"><%= member.total_rounds || 0 %></span>
             </td>
             <td class="py-2 text-center" data-value="<%= member.avg_score || 0 %>">
               <% if (member.avg_score) { %>
-              <span class="badge bg-primary bg-opacity-75" style="font-size: 0.75rem;"><%= member.avg_score %></span>
+              <span class="badge bg-primary bg-opacity-75" style="font-size: 0.85rem;"><%= member.avg_score %></span>
               <% } else { %>
               <span class="text-muted">-</span>
               <% } %>
             </td>
             <td class="py-2 text-center">
               <% if (member.status === 'active') { %>
-              <span class="badge bg-success" style="font-size: 0.75rem;">활동</span>
+              <span class="badge bg-success" style="font-size: 0.85rem;">활동</span>
               <% } else if (member.status === 'inactive') { %>
-              <span class="badge bg-secondary" style="font-size: 0.75rem;">비활동</span>
+              <span class="badge bg-secondary" style="font-size: 0.85rem;">비활동</span>
               <% } else { %>
-              <span class="badge bg-warning text-dark" style="font-size: 0.75rem;">대기</span>
+              <span class="badge bg-warning text-dark" style="font-size: 0.85rem;">대기</span>
               <% } %>
             </td>
             <td class="py-2 pe-3 text-end">
@@ -124,7 +124,7 @@
         <div class="item-header">
           <h3 class="item-title">
             <%= member.name %>
-            <% if (member.role) { %><span class="badge bg-primary ms-1" style="font-size: 0.65rem;"><%= member.role %></span><% } %>
+            <% if (member.role) { %><span class="badge bg-primary ms-1" style="font-size: 0.85rem;"><%= member.role %></span><% } %>
           </h3>
           <% if (member.status === 'active') { %>
           <span class="badge bg-success">활동</span>

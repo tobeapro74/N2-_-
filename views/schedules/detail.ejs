@@ -31,7 +31,7 @@
 /* 티타임 input 스타일 */
 .tee-time-input {
   text-align: center !important;
-  font-size: 0.75rem !important;
+  font-size: 0.85rem !important;
   padding: 2px 4px !important;
 }
 </style>
@@ -262,7 +262,7 @@
                           data-reservation-id="<%= r.id %>"
                           data-member-name="<%= r.member_name %>"
                           data-original-status="<%= currentStatus %>"
-                          style="width: 65px; height: 28px; font-size: 0.7rem; padding: 0.1rem 0.2rem; min-height: unset; -webkit-appearance: none;">
+                          style="width: 65px; height: 28px; font-size: 0.85rem; padding: 0.1rem 0.2rem; min-height: unset; -webkit-appearance: none;">
                     <option value="confirmed" <%= r.status === 'confirmed' ? 'selected' : '' %>>확정</option>
                     <option value="pending" <%= r.status === 'pending' ? 'selected' : '' %>>신청</option>
                     <option value="waitlist" <%= r.status === 'waitlist' || isOverCapacity ? 'selected' : '' %>>대기자</option>
@@ -293,7 +293,7 @@
                           data-swap-partner-id="<%= r.swap_partner_id || '' %>"
                           data-swap-original-team="<%= r.swap_original_team || '' %>"
                           data-member-name="<%= r.member_name %>"
-                          style="width: 60px; height: 28px; font-size: 0.7rem; padding: 0.1rem 0.2rem; min-height: unset; -webkit-appearance: none;">
+                          style="width: 60px; height: 28px; font-size: 0.85rem; padding: 0.1rem 0.2rem; min-height: unset; -webkit-appearance: none;">
                     <% if (r.swap_partner_id) { %>
                     <option value="revert">원복</option>
                     <% } %>

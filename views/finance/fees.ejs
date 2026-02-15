@@ -15,7 +15,7 @@
   <div class="card-body py-2 px-3">
     <form method="GET" class="row g-2 align-items-end">
       <div class="col-6 col-md-2">
-        <label class="form-label mb-1" style="font-size: 0.75rem; color: #6c757d;">연도</label>
+        <label class="form-label mb-1" style="font-size: 0.85rem; color: #6c757d;">연도</label>
         <select name="year" class="form-select form-select-sm" style="font-size: 0.85rem;" onchange="this.form.submit()">
           <% years.forEach(y => { %>
           <option value="<%= y %>" <%= year == y ? 'selected' : '' %>><%= y %>년</option>
@@ -34,7 +34,7 @@
   </div>
   <div class="card-body p-0">
     <div class="table-responsive">
-      <table class="table table-bordered table-sm mb-0" style="font-size: 0.8rem;">
+      <table class="table table-bordered table-sm mb-0" style="font-size: 0.85rem;">
         <thead class="table-light">
           <tr>
             <th class="py-2 ps-2">회원</th>
@@ -64,22 +64,22 @@
             %>
             <td class="py-1 text-center">
               <% if (isPaid) { %>
-              <span class="badge bg-success bg-opacity-75" style="font-size: 0.65rem;" title="<%= fee.amount ? fee.amount.toLocaleString() + '원' : '' %>">
+              <span class="badge bg-success bg-opacity-75" style="font-size: 0.85rem;" title="<%= fee.amount ? fee.amount.toLocaleString() + '원' : '' %>">
                 <i class="bi bi-check"></i>
               </span>
               <% } else if (user && user.is_admin) { %>
-              <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-1" style="font-size: 0.65rem;"
+              <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-1" style="font-size: 0.85rem;"
                       onclick="payFee(<%= member.id %>, <%= year %>, <%= m %>, '<%= member.name %>')">
                 <i class="bi bi-plus"></i>
               </button>
               <% } else { %>
-              <span class="badge bg-light text-muted" style="font-size: 0.65rem;">-</span>
+              <span class="badge bg-light text-muted" style="font-size: 0.85rem;">-</span>
               <% } %>
             </td>
             <% } %>
             <td class="py-1 text-center pe-2">
               <div class="progress" style="height: 16px;">
-                <div class="progress-bar bg-success" style="width: <%= (paidCount / 12) * 100 %>%; font-size: 0.7rem;">
+                <div class="progress-bar bg-success" style="width: <%= (paidCount / 12) * 100 %>%; font-size: 0.85rem;">
                   <%= Math.round((paidCount / 12) * 100) %>%
                 </div>
               </div>

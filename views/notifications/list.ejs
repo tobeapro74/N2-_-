@@ -52,7 +52,7 @@ Object.keys(groupedNotifications).sort().reverse().forEach(dateKey => {
             <h6 class="mb-1 <%= notification.is_read ? 'text-muted' : '' %>">
               <%= notification.title %>
               <% if (!notification.is_read) { %>
-              <span class="badge bg-danger ms-1" style="font-size: 0.6rem;">NEW</span>
+              <span class="badge bg-danger ms-1" style="font-size: 0.85rem;">NEW</span>
               <% } %>
             </h6>
             <small class="text-muted">

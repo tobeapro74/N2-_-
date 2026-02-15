@@ -249,19 +249,19 @@
       <div class="d-flex gap-2 overflow-auto pb-1" style="scrollbar-width: thin;">
         <% weekly.forecast.forEach((day, index) => { %>
         <div class="flex-shrink-0 border rounded text-center <%= index === 0 ? 'border-success border-2' : '' %>" style="width: 75px;">
-          <div class="<%= index === 0 ? 'bg-success text-white' : 'bg-light' %> py-1" style="font-size: 0.7rem;">
+          <div class="<%= index === 0 ? 'bg-success text-white' : 'bg-light' %> py-1" style="font-size: 0.85rem;">
             <strong><%= day.date.substring(5) %></strong>
             <span>(<%= day.dayOfWeek %>)</span>
           </div>
           <div class="py-2">
             <i class="bi <%= day.icon %> text-<%= day.color %>" style="font-size: 1.3rem;"></i>
-            <div style="font-size: 0.75rem;">
+            <div style="font-size: 0.85rem;">
               <span class="text-primary"><%= day.temperature.low %>°</span>/<span class="text-danger"><%= day.temperature.high %>°</span>
             </div>
-            <div style="font-size: 0.65rem;" class="text-muted">
+            <div style="font-size: 0.85rem;" class="text-muted">
               <i class="bi bi-droplet"></i><%= day.precipitation %>%
             </div>
-            <span class="badge bg-<%= day.golfAdvice.rating >= 4 ? 'success' : day.golfAdvice.rating >= 3 ? 'warning' : 'danger' %>" style="font-size: 0.6rem;">
+            <span class="badge bg-<%= day.golfAdvice.rating >= 4 ? 'success' : day.golfAdvice.rating >= 3 ? 'warning' : 'danger' %>" style="font-size: 0.85rem;">
               <%= day.golfAdvice.ratingText %>
             </span>
           </div>
@@ -272,7 +272,7 @@
   </div>
 </div>
 
-<div class="alert alert-info py-2 mb-3" style="font-size: 0.8rem;">
+<div class="alert alert-info py-2 mb-3" style="font-size: 0.85rem;">
   <i class="bi bi-info-circle"></i>
   Open-Meteo API를 통해 실시간 날씨 정보를 제공합니다.
 </div>

@@ -38,7 +38,7 @@
           <tr>
             <td class="py-2 ps-3" data-value="<%= schedule.play_date %>">
               <span class="fw-bold"><%= moment(schedule.play_date).format('MM/DD') %></span>
-              <span class="badge bg-light text-dark" style="font-size: 0.7rem;"><%= moment(schedule.play_date).format('ddd') %></span>
+              <span class="badge bg-light text-dark" style="font-size: 0.85rem;"><%= moment(schedule.play_date).format('ddd') %></span>
             </td>
             <td class="py-2"><%= schedule.course_name %></td>
             <td class="py-2" data-value="<%= schedule.reserved_count %>">
@@ -54,13 +54,13 @@
             </td>
             <td class="py-2 text-center">
               <% if (schedule.status === 'open') { %>
-              <span class="badge bg-success bg-opacity-75" style="font-size: 0.7rem;">예약가능</span>
+              <span class="badge bg-success bg-opacity-75" style="font-size: 0.85rem;">예약가능</span>
               <% } else { %>
-              <span class="badge bg-secondary" style="font-size: 0.7rem;"><%= schedule.status %></span>
+              <span class="badge bg-secondary" style="font-size: 0.85rem;"><%= schedule.status %></span>
               <% } %>
             </td>
             <td class="py-2 pe-3 text-end">
-              <a href="/reservations/admin?schedule_id=<%= schedule.id %>" class="btn btn-primary btn-sm py-0 px-2 d-inline-flex align-items-center gap-1" style="font-size: 0.75rem;">
+              <a href="/reservations/admin?schedule_id=<%= schedule.id %>" class="btn btn-primary btn-sm py-0 px-2 d-inline-flex align-items-center gap-1" style="font-size: 0.85rem;">
                 <i class="bi bi-people-fill"></i> 예약관리
               </a>
               <a href="/schedules/<%= schedule.id %>" class="text-muted ms-1">

@@ -10,10 +10,10 @@
   </div>
   <% if (user && user.is_admin) { %>
   <div class="d-flex gap-1">
-    <a href="/schedules/generate" class="btn btn-outline-success btn-sm py-0 px-2 d-flex align-items-center gap-1" style="font-size: 0.75rem;">
+    <a href="/schedules/generate" class="btn btn-outline-success btn-sm py-0 px-2 d-flex align-items-center gap-1" style="font-size: 0.85rem;">
       <i class="bi bi-calendar-range"></i> 연간생성
     </a>
-    <a href="/schedules/new" class="btn btn-success btn-sm py-0 px-2 d-flex align-items-center gap-1" style="font-size: 0.75rem;">
+    <a href="/schedules/new" class="btn btn-success btn-sm py-0 px-2 d-flex align-items-center gap-1" style="font-size: 0.85rem;">
       <i class="bi bi-plus-lg"></i> 일정추가
     </a>
   </div>
@@ -25,8 +25,8 @@
   <div class="card-body py-2 px-2">
     <form method="GET" class="row g-1 align-items-end">
       <div class="col-3 col-md-2">
-        <label class="form-label mb-0" style="font-size: 0.7rem; color: #6c757d;">연도</label>
-        <select name="year" class="form-select form-select-sm py-1" style="font-size: 0.8rem;">
+        <label class="form-label mb-0" style="font-size: 0.85rem; color: #6c757d;">연도</label>
+        <select name="year" class="form-select form-select-sm py-1" style="font-size: 0.85rem;">
           <option value="">전체</option>
           <% years.forEach(y => { %>
           <option value="<%= y %>" <%= filters.year == y ? 'selected' : '' %>><%= y %></option>
@@ -34,8 +34,8 @@
         </select>
       </div>
       <div class="col-3 col-md-2">
-        <label class="form-label mb-0" style="font-size: 0.7rem; color: #6c757d;">월</label>
-        <select name="month" class="form-select form-select-sm py-1" style="font-size: 0.8rem;">
+        <label class="form-label mb-0" style="font-size: 0.85rem; color: #6c757d;">월</label>
+        <select name="month" class="form-select form-select-sm py-1" style="font-size: 0.85rem;">
           <option value="">전체</option>
           <% for (let m = 1; m <= 12; m++) { %>
           <option value="<%= m %>" <%= filters.month == m ? 'selected' : '' %>><%= m %>월</option>
@@ -43,8 +43,8 @@
         </select>
       </div>
       <div class="col-6 col-md-3">
-        <label class="form-label mb-0" style="font-size: 0.7rem; color: #6c757d;">골프장</label>
-        <select name="course" class="form-select form-select-sm py-1" style="font-size: 0.8rem;">
+        <label class="form-label mb-0" style="font-size: 0.85rem; color: #6c757d;">골프장</label>
+        <select name="course" class="form-select form-select-sm py-1" style="font-size: 0.85rem;">
           <option value="">전체</option>
           <% golfCourses.forEach(gc => { %>
           <option value="<%= gc.id %>" <%= filters.course == gc.id ? 'selected' : '' %>><%= gc.name %></option>
@@ -52,12 +52,12 @@
         </select>
       </div>
       <div class="col-6 col-md-2">
-        <button type="submit" class="btn btn-primary btn-sm w-100 py-1" style="font-size: 0.75rem;">
+        <button type="submit" class="btn btn-primary btn-sm w-100 py-1" style="font-size: 0.85rem;">
           <i class="bi bi-search"></i> 조회
         </button>
       </div>
       <div class="col-6 col-md-2">
-        <a href="/schedules" class="btn btn-outline-secondary btn-sm w-100 py-1" style="font-size: 0.75rem;">초기화</a>
+        <a href="/schedules" class="btn btn-outline-secondary btn-sm w-100 py-1" style="font-size: 0.85rem;">초기화</a>
       </div>
     </form>
   </div>
@@ -94,13 +94,13 @@
           <tr class="<%= new Date(schedule.play_date) < new Date() ? 'text-muted' : '' %>" style="cursor: pointer;" onclick="location.href='/schedules/<%= schedule.id %>'">
             <td class="py-2 ps-3" data-value="<%= schedule.play_date %>">
               <span class="fw-bold"><%= moment(schedule.play_date).format('MM/DD') %></span>
-              <span class="badge bg-light text-dark" style="font-size: 0.7rem;"><%= moment(schedule.play_date).format('ddd') %></span>
+              <span class="badge bg-light text-dark" style="font-size: 0.85rem;"><%= moment(schedule.play_date).format('ddd') %></span>
             </td>
             <td class="py-2 text-center" onclick="event.stopPropagation(); location.href='/schedules/<%= schedule.id %>/community'">
               <a href="/schedules/<%= schedule.id %>/community" class="text-decoration-none">
                 <i class="bi bi-chat-dots text-success"></i>
                 <% if (schedule.comment_count > 0) { %>
-                <span class="badge bg-success bg-opacity-75" style="font-size: 0.65rem;"><%= schedule.comment_count %></span>
+                <span class="badge bg-success bg-opacity-75" style="font-size: 0.85rem;"><%= schedule.comment_count %></span>
                 <% } %>
               </a>
             </td>
@@ -108,23 +108,23 @@
             <td class="py-2 hide-mobile"><small class="text-muted"><%= schedule.location %></small></td>
             <td class="py-2 hide-mobile"><small><%= schedule.tee_times || '-' %></small></td>
             <td class="py-2 text-center" data-value="<%= schedule.reserved_count %>">
-              <span class="badge <%= schedule.reserved_count >= schedule.max_members ? 'bg-danger' : 'bg-success' %> bg-opacity-75" style="font-size: 0.7rem;">
+              <span class="badge <%= schedule.reserved_count >= schedule.max_members ? 'bg-danger' : 'bg-success' %> bg-opacity-75" style="font-size: 0.85rem;">
                 <%= schedule.reserved_count %>/<%= schedule.max_members %>
               </span>
             </td>
             <td class="py-2 text-center">
               <% if (schedule.status === 'pending') { %>
-              <span class="badge bg-info text-white" style="font-size: 0.7rem;">오픈전</span>
+              <span class="badge bg-info text-white" style="font-size: 0.85rem;">오픈전</span>
               <% } else if (schedule.status === 'open' && schedule.reserved_count >= schedule.max_members) { %>
-              <span class="badge bg-warning text-dark" style="font-size: 0.7rem;">대기접수중</span>
+              <span class="badge bg-warning text-dark" style="font-size: 0.85rem;">대기접수중</span>
               <% } else if (schedule.status === 'open') { %>
-              <span class="badge bg-success bg-opacity-75" style="font-size: 0.7rem;">예약가능</span>
+              <span class="badge bg-success bg-opacity-75" style="font-size: 0.85rem;">예약가능</span>
               <% } else if (schedule.status === 'closed') { %>
-              <span class="badge bg-secondary" style="font-size: 0.7rem;">마감</span>
+              <span class="badge bg-secondary" style="font-size: 0.85rem;">마감</span>
               <% } else if (schedule.status === 'completed') { %>
-              <span class="badge bg-secondary" style="font-size: 0.7rem;">완료</span>
+              <span class="badge bg-secondary" style="font-size: 0.85rem;">완료</span>
               <% } else { %>
-              <span class="badge bg-danger" style="font-size: 0.7rem;">취소</span>
+              <span class="badge bg-danger" style="font-size: 0.85rem;">취소</span>
               <% } %>
             </td>
             <td class="py-2 pe-3 text-end">
@@ -149,15 +149,15 @@
     <form id="bulkUpdateForm" class="row g-2 align-items-end">
       <%- include('../partials/csrf') %>
       <div class="col-6 col-md-3">
-        <label class="form-label mb-0" style="font-size: 0.7rem;">시작 날짜</label>
+        <label class="form-label mb-0" style="font-size: 0.85rem;">시작 날짜</label>
         <input type="date" name="fromDate" class="form-control form-control-sm" value="2025-04-01" required>
       </div>
       <div class="col-6 col-md-3">
-        <label class="form-label mb-0" style="font-size: 0.7rem;">종료 날짜 <small class="text-muted">(선택)</small></label>
+        <label class="form-label mb-0" style="font-size: 0.85rem;">종료 날짜 <small class="text-muted">(선택)</small></label>
         <input type="date" name="toDate" class="form-control form-control-sm">
       </div>
       <div class="col-6 col-md-3">
-        <label class="form-label mb-0" style="font-size: 0.7rem;">변경할 상태</label>
+        <label class="form-label mb-0" style="font-size: 0.85rem;">변경할 상태</label>
         <select name="status" class="form-select form-select-sm" required>
           <option value="pending">오픈전</option>
           <option value="open">예약가능</option>

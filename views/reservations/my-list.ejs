@@ -8,7 +8,7 @@
     </a>
     <h5 class="mb-0 fw-bold"><i class="bi bi-calendar-check text-success me-2" aria-hidden="true"></i>내 예약</h5>
   </div>
-  <a href="/reservations/available" class="btn btn-success btn-sm py-1 px-3 d-flex align-items-center gap-1" style="font-size: 0.8rem;">
+  <a href="/reservations/available" class="btn btn-success btn-sm py-1 px-3 d-flex align-items-center gap-1" style="font-size: 0.85rem;">
     <i class="bi bi-calendar-plus"></i> 예약신청
   </a>
 </div>
@@ -46,26 +46,26 @@
           <tr class="<%= r.status === 'cancelled' ? 'text-muted' : '' %> <%= new Date(r.play_date) < new Date() ? 'text-muted' : '' %>">
             <td class="py-2 ps-3">
               <span class="fw-bold"><%= moment(r.play_date).format('MM/DD') %></span>
-              <span class="badge bg-light text-dark" style="font-size: 0.7rem;"><%= moment(r.play_date).format('ddd') %></span>
+              <span class="badge bg-light text-dark" style="font-size: 0.85rem;"><%= moment(r.play_date).format('ddd') %></span>
             </td>
             <td class="py-2"><%= r.course_name %></td>
             <td class="py-2 hide-mobile"><small class="text-muted"><%= r.location %></small></td>
             <td class="py-2 text-center">
               <% if (r.status === 'confirmed') { %>
-              <span class="badge bg-success bg-opacity-75" style="font-size: 0.7rem;">확정</span>
+              <span class="badge bg-success bg-opacity-75" style="font-size: 0.85rem;">확정</span>
               <% } else if (r.status === 'pending') { %>
-              <span class="badge bg-warning text-dark" style="font-size: 0.7rem;">대기</span>
+              <span class="badge bg-warning text-dark" style="font-size: 0.85rem;">대기</span>
               <% } else if (r.status === 'waitlist') { %>
-              <span class="badge bg-info" style="font-size: 0.7rem;">대기자</span>
+              <span class="badge bg-info" style="font-size: 0.85rem;">대기자</span>
               <% } else { %>
-              <span class="badge bg-secondary" style="font-size: 0.7rem;">취소</span>
+              <span class="badge bg-secondary" style="font-size: 0.85rem;">취소</span>
               <% } %>
             </td>
             <td class="py-2 hide-mobile text-center"><small><%= r.team_number ? r.team_number + '팀' : '-' %></small></td>
             <td class="py-2 hide-mobile"><small><%= r.tee_time || '-' %></small></td>
             <td class="py-2 pe-3 text-end">
               <% if (r.status !== 'cancelled' && new Date(r.play_date) >= new Date() && r.schedule_status === 'open') { %>
-              <button type="button" class="btn btn-outline-danger btn-sm py-0 px-1" style="font-size: 0.75rem;" onclick="cancelReservation(<%= r.id %>)">
+              <button type="button" class="btn btn-outline-danger btn-sm py-0 px-1" style="font-size: 0.85rem;" onclick="cancelReservation(<%= r.id %>)">
                 취소
               </button>
               <% } %>

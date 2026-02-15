@@ -1,5 +1,20 @@
 <%- include('partials/header') %>
 
+<!-- 공지사항 배너 -->
+<div class="row mb-3">
+  <div class="col-12">
+    <a href="/schedules/10" class="text-decoration-none">
+      <div class="bg-warning bg-gradient text-dark rounded-2 py-2 px-3" style="cursor: pointer;">
+        <div class="d-flex align-items-center">
+          <i class="bi bi-megaphone-fill me-2" style="font-size: 1rem;"></i>
+          <span style="font-size: 0.9rem; font-weight: 600;">3/14(토) 양지파인CC 예약 안내</span>
+          <i class="bi bi-chevron-right ms-auto" style="font-size: 0.85rem;"></i>
+        </div>
+      </div>
+    </a>
+  </div>
+</div>
+
 <% if (user) { %>
 <!-- 개인 통계 롤링 카드 (로그인 시) -->
 <div class="row mb-3">

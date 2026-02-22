@@ -174,9 +174,12 @@
 
 | 프롬프트                      | 작업 내용                                                                           | 커밋      |
 | ----------------------------- | ----------------------------------------------------------------------------------- | --------- |
-| 속도 최적화 1차               | Fluid Compute, EJS 뷰 캐시, MongoDB 병렬 로딩, CDN Cache-Control, preconnect       | (pending) |
+| 속도 최적화 1차               | Fluid Compute, EJS 뷰 캐시, MongoDB 병렬 로딩, CDN Cache-Control, preconnect       | cf77899 |
+| 속도 최적화 2차 (6-9번)        | MongoDB 인덱스, moment→dayjs, 커넥션풀 최적화, 캐싱 세분화                          | (pending) |
 
 ### 세부 변경사항
+
+**1차 최적화 (1-5번)**
 
 | # | 최적화 항목 | 파일 | 변경 내용 |
 |---|-------------|------|-----------|
@@ -186,6 +189,16 @@
 | 4 | CDN Cache-Control | app.js | 페이지별 Vercel CDN 캐싱 미들웨어 추가 |
 | 5 | CDN preconnect | views/partials/header.ejs | `preconnect` + `dns-prefetch` 태그 추가 |
 | - | SW 캐시 버전 | public/sw.js | v18 → v19 |
+
+**2차 최적화 (6-9번)**
+
+| # | 최적화 항목 | 파일 | 변경 내용 |
+|---|-------------|------|-----------|
+| 6 | MongoDB 인덱스 생성 | scripts/create-indexes.js | 11개 컬렉션 21개 인덱스 생성 |
+| 7 | moment → dayjs 교체 | app.js, views/schedules/detail.ejs | 번들 크기 300KB+ 절감 |
+| 8 | 커넥션 풀 최적화 | models/database.js | maxPoolSize 50→10, minPoolSize 5→0 |
+| 9 | 캐싱 미들웨어 세분화 | app.js | 커뮤니티/예약 라우터별 TTL 세분화, 정적파일 7일 캐시 |
+| - | SW 캐시 버전 | public/sw.js | v19 → v20 |
 
 ---
 

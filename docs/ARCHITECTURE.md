@@ -501,8 +501,8 @@ app.use(express.static(path.join(__dirname, 'public'), {
 ```javascript
 // models/database.js
 mongoClient = new MongoClient(MONGODB_URI, {
-  maxPoolSize: 50,           // 최대 연결 수 (기존 10 → 50)
-  minPoolSize: 5,            // 최소 연결 유지
+  maxPoolSize: 10,           // 서버리스 최적화 (과다 연결 방지)
+  minPoolSize: 0,            // 서버리스: 유휴 연결 즉시 해제
   serverSelectionTimeoutMS: 5000,
   socketTimeoutMS: 45000,
   maxIdleTimeMS: 30000,      // 유휴 연결 30초 후 정리
@@ -538,10 +538,16 @@ mongoClient = new MongoClient(MONGODB_URI, {
 | comment_reactions | comment_id + member_id (unique) | 중복 리액션 방지 |
 | schedules | golf_course_id + play_date | 골프장+날짜 조회 |
 | schedules | play_date | 날짜별 일정 조회 |
-| finances | transaction_date (desc) | 최신 거래 조회 |
-| finances | type + transaction_date | 유형별 거래 조회 |
+| incomes | income_date (desc) | 최신 수입 조회 |
+| incomes | category_id | 카테고리별 수입 조회 |
+| expenses | expense_date (desc) | 최신 지출 조회 |
+| expenses | category_id | 카테고리별 지출 조회 |
 | members | name | 이름 검색 |
-| members | department | 부서별 회원 조회 |
+| members | id (unique) | 회원 ID 조회 |
+| community_posts | created_at (desc) | 최신 게시글 조회 |
+| community_comments | post_id | 게시글별 댓글 조회 |
+| membership_fees | member_id + year | 회원별 연도별 회비 조회 |
+| notifications | created_at (desc) | 최신 알림 조회 |
 
 **인덱스 생성 스크립트:**
 ```bash
@@ -701,13 +707,48 @@ collections.forEach((name, i) => {
 
 **효과:** Bootstrap CSS/Icons 로딩 시간 100-200ms 단축
 
-### 7.14 추가 최적화 방안 (향후)
+### 7.14 moment → dayjs 교체 (2차 최적화)
+
+moment.js(300KB+)를 dayjs(7KB)로 교체하여 번들 크기를 대폭 절감했습니다.
+
+```javascript
+// app.js
+const dayjs = require('dayjs');
+require('dayjs/locale/ko');
+dayjs.locale('ko');
+dayjs.extend(require('dayjs/plugin/relativeTime'));
+dayjs.extend(require('dayjs/plugin/utc'));
+dayjs.extend(require('dayjs/plugin/timezone'));
+```
+
+**주요 변경:**
+- `.utcOffset(9)` → `.tz('Asia/Seoul')` (타임존 플러그인 사용)
+- `.fromNow()` → relativeTime 플러그인으로 동일 동작
+- `.format()` → dayjs 기본 지원 (동일 API)
+
+### 7.15 MongoDB 커넥션 풀 서버리스 최적화 (2차)
+
+서버리스 환경에 맞게 커넥션 풀 설정을 조정했습니다:
+- `maxPoolSize`: 50 → 10 (과다 연결 방지)
+- `minPoolSize`: 5 → 0 (유휴 연결 즉시 해제)
+
+### 7.16 라우터별 CDN 캐싱 세분화 (2차)
+
+커뮤니티, 예약 등 라우터별로 캐시 TTL을 세분화했습니다:
+- `/schedules/community`: 120초 (댓글 등 변경 빈도 높음)
+- `/reservations`: 60초 (실시간 예약 상황 반영)
+- `/api/push`: 캐시 제외
+
+### 7.17 정적 파일 캐싱 강화 (2차)
+
+- 정적 파일 캐시 기간: 1일 → 7일 (Service Worker가 갱신 관리)
+- `sw.js` 파일만 `no-cache`로 설정 (항상 최신 버전 유지)
+
+### 7.18 추가 최적화 방안 (향후)
 
 1. **Redis 캐싱**: 자주 조회되는 데이터를 Redis에 캐시
 2. **번들 최적화**: esbuild로 JavaScript/CSS 번들 크기 최소화
-3. **moment -> dayjs 교체**: 번들 크기 300KB 절감, 콜드스타트 단축
-4. **EJS -> Eta 마이그레이션**: 렌더링 속도 2-3배 향상 (문법 호환)
-5. **MongoDB 인덱스 확대**: 주요 쿼리 필드에 복합 인덱스 추가
+3. **EJS -> Eta 마이그레이션**: 렌더링 속도 2-3배 향상 (문법 호환)
 
 ---
 

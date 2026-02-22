@@ -5,7 +5,15 @@ const compression = require('compression');
 const path = require('path');
 const crypto = require('crypto');
 const helmet = require('helmet');
-const moment = require('moment');
+const dayjs = require('dayjs');
+require('dayjs/locale/ko');
+dayjs.locale('ko');
+const relativeTime = require('dayjs/plugin/relativeTime');
+const utc = require('dayjs/plugin/utc');
+const timezone = require('dayjs/plugin/timezone');
+dayjs.extend(relativeTime);
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 // 환경 변수 및 설정 로드
 require('dotenv').config();
@@ -63,9 +71,15 @@ app.use(compression({
 
 // 정적 파일 제공 (캐싱 헤더 포함)
 app.use(express.static(path.join(__dirname, 'public'), {
-  maxAge: '1d',  // 1일 캐싱
+  maxAge: '7d',  // 7일 캐싱 (SW가 캐시 갱신 관리)
   etag: true,
-  lastModified: true
+  lastModified: true,
+  setHeaders: (res, filePath) => {
+    // Service Worker 자체는 캐시하지 않음 (항상 최신 유지)
+    if (filePath.endsWith('sw.js')) {
+      res.setHeader('Cache-Control', 'no-cache');
+    }
+  }
 }));
 
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
@@ -182,12 +196,18 @@ app.use((req, res, next) => {
   // Vercel CDN에만 적용 (브라우저에는 영향 없음)
   if (p === '/') {
     res.setHeader('Vercel-CDN-Cache-Control', 's-maxage=600, stale-while-revalidate=60');
+  } else if (p.startsWith('/schedules/community')) {
+    res.setHeader('Vercel-CDN-Cache-Control', 's-maxage=120, stale-while-revalidate=30');
   } else if (p.startsWith('/schedules') || p.startsWith('/members')) {
     res.setHeader('Vercel-CDN-Cache-Control', 's-maxage=300, stale-while-revalidate=60');
+  } else if (p.startsWith('/reservations')) {
+    res.setHeader('Vercel-CDN-Cache-Control', 's-maxage=60, stale-while-revalidate=30');
   } else if (p.startsWith('/finance')) {
     res.setHeader('Vercel-CDN-Cache-Control', 's-maxage=60, stale-while-revalidate=30');
   } else if (p.startsWith('/api/weather') || p.startsWith('/api/traffic')) {
     res.setHeader('Vercel-CDN-Cache-Control', 's-maxage=300, stale-while-revalidate=60');
+  } else if (p.startsWith('/api/push')) {
+    return next();
   }
   // 브라우저는 항상 서버에 확인 (최신 데이터 보장)
   res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
@@ -197,7 +217,7 @@ app.use((req, res, next) => {
 // 전역 변수 설정
 app.use((req, res, next) => {
   res.locals.user = req.session?.user || null;
-  res.locals.moment = moment;
+  res.locals.moment = dayjs;
   res.locals.config = {
     appName: config.app.name,
     env: config.env

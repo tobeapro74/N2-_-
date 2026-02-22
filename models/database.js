@@ -74,8 +74,8 @@ async function connectMongo() {
 
   try {
     mongoClient = new MongoClient(MONGODB_URI, {
-      maxPoolSize: 50,  // 연결 풀 증대 (기존 10 -> 50)
-      minPoolSize: 5,   // 최소 연결 유지
+      maxPoolSize: 10,  // 서버리스 최적화 (과다 연결 방지)
+      minPoolSize: 0,   // 서버리스: 유휴 연결 즉시 해제
       serverSelectionTimeoutMS: 5000,
       socketTimeoutMS: 45000,
       maxIdleTimeMS: 30000,  // 유휴 연결 30초 후 정리

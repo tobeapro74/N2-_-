@@ -89,31 +89,76 @@ async function createIndexes() {
     console.log('  - idx_course_date (복합) 생성 완료');
     console.log('  - idx_play_date 생성 완료');
 
-    // 5. finances 컬렉션 인덱스
-    console.log('\n[finances] 인덱스 생성 중...');
-    await db.collection('finances').createIndex(
-      { transaction_date: -1 },
-      { name: 'idx_transaction_date_desc' }
+    // 5. incomes 컬렉션 인덱스
+    console.log('\n[incomes] 인덱스 생성 중...');
+    await db.collection('incomes').createIndex(
+      { income_date: -1 },
+      { name: 'idx_income_date_desc' }
     );
-    await db.collection('finances').createIndex(
-      { type: 1, transaction_date: -1 },
-      { name: 'idx_type_date' }
+    await db.collection('incomes').createIndex(
+      { category_id: 1 },
+      { name: 'idx_category_id' }
     );
-    console.log('  - idx_transaction_date_desc 생성 완료');
-    console.log('  - idx_type_date (복합) 생성 완료');
+    console.log('  - idx_income_date_desc 생성 완료');
+    console.log('  - idx_category_id 생성 완료');
 
-    // 6. members 컬렉션 인덱스
+    // 6. expenses 컬렉션 인덱스
+    console.log('\n[expenses] 인덱스 생성 중...');
+    await db.collection('expenses').createIndex(
+      { expense_date: -1 },
+      { name: 'idx_expense_date_desc' }
+    );
+    await db.collection('expenses').createIndex(
+      { category_id: 1 },
+      { name: 'idx_category_id' }
+    );
+    console.log('  - idx_expense_date_desc 생성 완료');
+    console.log('  - idx_category_id 생성 완료');
+
+    // 7. members 컬렉션 인덱스
     console.log('\n[members] 인덱스 생성 중...');
     await db.collection('members').createIndex(
       { name: 1 },
       { name: 'idx_name' }
     );
     await db.collection('members').createIndex(
-      { department: 1 },
-      { name: 'idx_department' }
+      { id: 1 },
+      { name: 'idx_id', unique: true }
     );
     console.log('  - idx_name 생성 완료');
-    console.log('  - idx_department 생성 완료');
+    console.log('  - idx_id (유니크) 생성 완료');
+
+    // 8. community_posts 컬렉션 인덱스
+    console.log('\n[community_posts] 인덱스 생성 중...');
+    await db.collection('community_posts').createIndex(
+      { created_at: -1 },
+      { name: 'idx_created_at_desc' }
+    );
+    console.log('  - idx_created_at_desc 생성 완료');
+
+    // 9. community_comments 컬렉션 인덱스
+    console.log('\n[community_comments] 인덱스 생성 중...');
+    await db.collection('community_comments').createIndex(
+      { post_id: 1 },
+      { name: 'idx_post_id' }
+    );
+    console.log('  - idx_post_id 생성 완료');
+
+    // 10. membership_fees 컬렉션 인덱스
+    console.log('\n[membership_fees] 인덱스 생성 중...');
+    await db.collection('membership_fees').createIndex(
+      { member_id: 1, year: 1 },
+      { name: 'idx_member_year' }
+    );
+    console.log('  - idx_member_year (복합) 생성 완료');
+
+    // 11. notifications 컬렉션 인덱스
+    console.log('\n[notifications] 인덱스 생성 중...');
+    await db.collection('notifications').createIndex(
+      { created_at: -1 },
+      { name: 'idx_created_at_desc' }
+    );
+    console.log('  - idx_created_at_desc 생성 완료');
 
     // 인덱스 목록 확인
     console.log('\n========================================');
@@ -121,7 +166,8 @@ async function createIndexes() {
     console.log('========================================\n');
 
     // 각 컬렉션 인덱스 확인
-    const collections = ['reservations', 'schedule_comments', 'comment_reactions', 'schedules', 'finances', 'members'];
+    const collections = ['reservations', 'schedule_comments', 'comment_reactions', 'schedules',
+      'incomes', 'expenses', 'members', 'community_posts', 'community_comments', 'membership_fees', 'notifications'];
     for (const collName of collections) {
       const indexes = await db.collection(collName).indexes();
       console.log(`[${collName}] 인덱스 목록:`);

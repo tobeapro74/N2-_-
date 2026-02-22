@@ -273,17 +273,10 @@ router.get('/:id', requireAuth, (req, res) => {
     avgScore = Math.round(totalScore / scoresWithValue.length);
   }
 
-  // 회비 납부 현황
-  const fees = db.getTable('membership_fees')
-    .filter(f => f.member_id === idResult.value)
-    .sort((a, b) => b.year - a.year || b.month - a.month)
-    .slice(0, 24);
-
   res.render('members/detail', {
     title: `회원 정보 - ${member.name}`,
     member,
     participations,
-    fees,
     avgScore
   });
 });

@@ -1560,71 +1560,7 @@
       "created_at": "2025-12-24T07:21:33.173Z"
     }
   ],
-  "reservations": [
-    {
-      "schedule_id": 10,
-      "member_id": 3,
-      "status": "confirmed",
-      "applied_at": "2025-12-26T05:43:59.021Z",
-      "id": 3,
-      "created_at": "2025-12-26T05:43:59.021Z"
-    },
-    {
-      "schedule_id": 10,
-      "member_id": 2,
-      "status": "confirmed",
-      "applied_at": "2025-12-26T05:44:06.636Z",
-      "id": 4,
-      "created_at": "2025-12-26T05:44:06.636Z"
-    },
-    {
-      "schedule_id": 10,
-      "member_id": 4,
-      "status": "confirmed",
-      "applied_at": "2025-12-26T05:44:14.885Z",
-      "id": 5,
-      "created_at": "2025-12-26T05:44:14.886Z"
-    },
-    {
-      "schedule_id": 10,
-      "member_id": 5,
-      "status": "confirmed",
-      "applied_at": "2025-12-26T05:50:03.316Z",
-      "id": 6,
-      "created_at": "2025-12-26T05:50:03.317Z"
-    },
-    {
-      "schedule_id": 10,
-      "member_id": 6,
-      "status": "pending",
-      "applied_at": "2025-12-26T05:50:11.203Z",
-      "id": 7,
-      "created_at": "2025-12-26T05:50:11.203Z",
-      "updated_at": "2025-12-26T05:50:38.076Z"
-    },
-    {
-      "schedule_id": 10,
-      "member_id": 20,
-      "priority": 0,
-      "consecutive_count": 0,
-      "status": "pending",
-      "applied_at": "2025-12-26T07:42:49.084Z",
-      "id": 8,
-      "created_at": "2025-12-26T07:42:49.084Z"
-    },
-    {
-      "schedule_id": 1,
-      "member_id": 20,
-      "priority": 0,
-      "consecutive_count": 0,
-      "status": "pending",
-      "applied_at": "2025-12-27T05:33:27.967Z",
-      "id": 9,
-      "created_at": "2025-12-27T05:33:27.967Z",
-      "score": 78,
-      "updated_at": "2025-12-27T05:47:16.108Z"
-    }
-  ],
+  "reservations": [],
   "membership_fees": [],
   "course_holes": {
     "yangji": {

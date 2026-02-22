@@ -1,9 +1,9 @@
 {
   "version": 2,
+  "fluid": true,
   "functions": {
     "api/index.js": {
-      "maxDuration": 30,
-      "fluid": true
+      "maxDuration": 30
     }
   },
   "rewrites": [

@@ -62,7 +62,7 @@
             <label class="form-label">상태</label>
             <select name="status" class="form-select">
               <option value="active" <%= member.status === 'active' ? 'selected' : '' %>>활동</option>
-              <option value="inactive" <%= member.status === 'inactive' ? 'selected' : '' %>>비활동</option>
+              <option value="inactive" <%= member.status === 'inactive' ? 'selected' : '' %>>탈퇴</option>
               <option value="pending" <%= member.status === 'pending' ? 'selected' : '' %>>대기</option>
             </select>
           </div>

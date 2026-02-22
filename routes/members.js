@@ -229,13 +229,18 @@ router.post('/reservation/:reservationId/score', requireAuth, requireAdmin, asyn
 });
 
 // 회원 상세
-router.get('/:id', requireAuth, (req, res) => {
+router.get('/:id', requireAuth, async (req, res) => {
   const idResult = validateId(req.params.id, '회원 ID');
   if (!idResult.valid) {
     return res.status(400).render('error', {
       title: '잘못된 요청',
       message: idResult.error
     });
+  }
+
+  // 최신 데이터 보장을 위해 캐시 새로고침
+  if (db.refreshCache) {
+    await db.refreshCache('members');
   }
 
   const member = db.findById('members', idResult.value);
@@ -282,13 +287,18 @@ router.get('/:id', requireAuth, (req, res) => {
 });
 
 // 회원 수정 페이지
-router.get('/:id/edit', requireAuth, requireAdmin, (req, res) => {
+router.get('/:id/edit', requireAuth, requireAdmin, async (req, res) => {
   const idResult = validateId(req.params.id, '회원 ID');
   if (!idResult.valid) {
     return res.status(400).render('error', {
       title: '잘못된 요청',
       message: idResult.error
     });
+  }
+
+  // 최신 데이터 보장을 위해 캐시 새로고침
+  if (db.refreshCache) {
+    await db.refreshCache('members');
   }
 
   const member = db.findById('members', idResult.value);

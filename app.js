@@ -26,6 +26,7 @@ const PORT = config.app.port;
 // 미들웨어 설정
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
+app.set('view cache', true);  // EJS 템플릿 컴파일 결과 캐시 (성능 최적화)
 
 // 프록시 신뢰 설정 (Rate Limiting을 위해 필요)
 app.set('trust proxy', 1);
@@ -167,6 +168,30 @@ app.use((req, res, next) => {
     return next();
   }
   verifyCsrf(req, res, next);
+});
+
+// Vercel CDN 캐싱 미들웨어 (페이지별 캐시 전략)
+app.use((req, res, next) => {
+  if (req.method !== 'GET') return next();
+  const p = req.path;
+  // 인증/알림 페이지는 캐시하지 않음
+  if (p.startsWith('/auth') || p.startsWith('/notifications')) return next();
+  // 정적 파일은 express.static이 처리
+  if (p.match(/\.(css|js|png|jpg|svg|ico|woff2?)$/)) return next();
+
+  // Vercel CDN에만 적용 (브라우저에는 영향 없음)
+  if (p === '/') {
+    res.setHeader('Vercel-CDN-Cache-Control', 's-maxage=600, stale-while-revalidate=60');
+  } else if (p.startsWith('/schedules') || p.startsWith('/members')) {
+    res.setHeader('Vercel-CDN-Cache-Control', 's-maxage=300, stale-while-revalidate=60');
+  } else if (p.startsWith('/finance')) {
+    res.setHeader('Vercel-CDN-Cache-Control', 's-maxage=60, stale-while-revalidate=30');
+  } else if (p.startsWith('/api/weather') || p.startsWith('/api/traffic')) {
+    res.setHeader('Vercel-CDN-Cache-Control', 's-maxage=300, stale-while-revalidate=60');
+  }
+  // 브라우저는 항상 서버에 확인 (최신 데이터 보장)
+  res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
+  next();
 });
 
 // 전역 변수 설정

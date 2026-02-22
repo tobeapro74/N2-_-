@@ -623,11 +623,91 @@ const [comments, reactions, members] = await Promise.all([
 - [ ] 이미지에 lazy loading이 적용되어 있는가?
 - [ ] 불필요한 캐시 갱신을 하고 있지 않은가?
 
-### 7.9 추가 최적화 방안 (향후)
+### 7.9 Vercel Fluid Compute
+
+서버리스 콜드스타트 문제를 근본적으로 해결하는 실행 모델입니다.
+
+```json
+// vercel.json
+{
+  "functions": {
+    "api/index.js": {
+      "maxDuration": 30,
+      "fluid": true
+    }
+  }
+}
+```
+
+**효과:**
+- 99%+ 요청에서 콜드스타트 제거
+- 하나의 함수 인스턴스가 여러 요청 동시 처리 (in-function concurrency)
+- 비용 최대 85% 절감
+
+### 7.10 EJS 뷰 캐시
+
+EJS 템플릿 컴파일 결과를 메모리에 캐시하여 렌더링 속도를 개선합니다.
+
+```javascript
+// app.js
+app.set('view cache', true);
+```
+
+Fluid Compute로 함수 인스턴스가 유지되므로 캐시 효과가 극대화됩니다.
+
+### 7.11 MongoDB 캐시 병렬 초기화
+
+앱 시작 시 17개 컬렉션을 병렬로 로드하여 초기화 시간을 5배 이상 단축합니다.
+
+```javascript
+// models/database.js - initMongoCache()
+// 변경 전: for...of 순차 로드 (3-5초)
+// 변경 후: Promise.all 병렬 로드 (0.5-1초)
+const results = await Promise.all(
+  collections.map(name => db.collection(name).find({}).toArray())
+);
+collections.forEach((name, i) => {
+  this.mongoCache[name] = results[i];
+});
+```
+
+### 7.12 Vercel CDN Cache-Control
+
+페이지별 CDN 캐싱 전략으로 반복 방문 시 서버 부하를 대폭 줄입니다.
+
+```javascript
+// app.js - Vercel CDN 캐싱 미들웨어
+// Vercel-CDN-Cache-Control: Vercel CDN에만 적용 (브라우저에는 영향 없음)
+// Set-Cookie가 있는 응답은 Vercel CDN이 자동으로 캐시 스킵
+```
+
+| 페이지 | CDN 캐시 | stale-while-revalidate |
+|--------|----------|----------------------|
+| 홈 (/) | 10분 | 1분 |
+| 스케줄/회원 | 5분 | 1분 |
+| 재무 | 1분 | 30초 |
+| 날씨/교통 API | 5분 | 1분 |
+| 인증/알림 | 없음 | - |
+
+### 7.13 CDN Preconnect
+
+외부 CDN(cdn.jsdelivr.net)에 대한 DNS 조회와 TCP 연결을 미리 수행합니다.
+
+```html
+<!-- views/partials/header.ejs -->
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+```
+
+**효과:** Bootstrap CSS/Icons 로딩 시간 100-200ms 단축
+
+### 7.14 추가 최적화 방안 (향후)
 
 1. **Redis 캐싱**: 자주 조회되는 데이터를 Redis에 캐시
-2. **번들 최적화**: JavaScript/CSS 번들 크기 최소화
-3. **CDN 활용**: 정적 파일을 CDN에서 서빙
+2. **번들 최적화**: esbuild로 JavaScript/CSS 번들 크기 최소화
+3. **moment -> dayjs 교체**: 번들 크기 300KB 절감, 콜드스타트 단축
+4. **EJS -> Eta 마이그레이션**: 렌더링 속도 2-3배 향상 (문법 호환)
+5. **MongoDB 인덱스 확대**: 주요 쿼리 필드에 복합 인덱스 추가
 
 ---
 

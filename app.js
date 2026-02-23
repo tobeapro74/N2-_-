@@ -198,13 +198,14 @@ app.use((req, res, next) => {
     res.setHeader('Vercel-CDN-Cache-Control', 's-maxage=600, stale-while-revalidate=60');
   } else if (p.startsWith('/schedules/community')) {
     res.setHeader('Vercel-CDN-Cache-Control', 's-maxage=120, stale-while-revalidate=30');
-  } else if (p.startsWith('/members')) {
-    // 회원 페이지는 수정 반영을 위해 CDN 캐시 사용하지 않음
+  } else if (p.startsWith('/members') || p.startsWith('/reservations')) {
+    // 회원/예약 페이지는 실시간 반영을 위해 CDN 캐시 사용하지 않음
+    res.setHeader('Vercel-CDN-Cache-Control', 's-maxage=0');
+  } else if (p.match(/^\/schedules\/\d+$/)) {
+    // 일정 상세 페이지는 예약/상태 변경 실시간 반영
     res.setHeader('Vercel-CDN-Cache-Control', 's-maxage=0');
   } else if (p.startsWith('/schedules')) {
     res.setHeader('Vercel-CDN-Cache-Control', 's-maxage=300, stale-while-revalidate=60');
-  } else if (p.startsWith('/reservations')) {
-    res.setHeader('Vercel-CDN-Cache-Control', 's-maxage=60, stale-while-revalidate=30');
   } else if (p.startsWith('/finance')) {
     res.setHeader('Vercel-CDN-Cache-Control', 's-maxage=60, stale-while-revalidate=30');
   } else if (p.startsWith('/api/weather') || p.startsWith('/api/traffic')) {

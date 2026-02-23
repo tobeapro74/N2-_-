@@ -193,21 +193,17 @@ app.use((req, res, next) => {
   // 정적 파일은 express.static이 처리
   if (p.match(/\.(css|js|png|jpg|svg|ico|woff2?)$/)) return next();
 
-  // Vercel CDN에만 적용 (브라우저에는 영향 없음)
-  if (p === '/') {
-    res.setHeader('Vercel-CDN-Cache-Control', 's-maxage=600, stale-while-revalidate=60');
-  } else if (p.startsWith('/schedules/community')) {
-    res.setHeader('Vercel-CDN-Cache-Control', 's-maxage=120, stale-while-revalidate=30');
-  } else if (p.startsWith('/members') || p.startsWith('/reservations')) {
-    // 회원/예약 페이지는 실시간 반영을 위해 CDN 캐시 사용하지 않음
+  // 사용자별 콘텐츠가 포함된 페이지는 CDN 캐시 금지 (보안)
+  // 로그인 사용자에게 다른 사용자의 페이지가 보이는 문제 방지
+  if (p === '/' || p.startsWith('/members') || p.startsWith('/reservations') || p.startsWith('/finance')) {
     res.setHeader('Vercel-CDN-Cache-Control', 's-maxage=0');
   } else if (p.match(/^\/schedules\/\d+$/)) {
     // 일정 상세 페이지는 예약/상태 변경 실시간 반영
     res.setHeader('Vercel-CDN-Cache-Control', 's-maxage=0');
+  } else if (p.startsWith('/schedules/community')) {
+    res.setHeader('Vercel-CDN-Cache-Control', 's-maxage=120, stale-while-revalidate=30');
   } else if (p.startsWith('/schedules')) {
     res.setHeader('Vercel-CDN-Cache-Control', 's-maxage=300, stale-while-revalidate=60');
-  } else if (p.startsWith('/finance')) {
-    res.setHeader('Vercel-CDN-Cache-Control', 's-maxage=60, stale-while-revalidate=30');
   } else if (p.startsWith('/api/weather') || p.startsWith('/api/traffic')) {
     res.setHeader('Vercel-CDN-Cache-Control', 's-maxage=300, stale-while-revalidate=60');
   } else if (p.startsWith('/api/push')) {

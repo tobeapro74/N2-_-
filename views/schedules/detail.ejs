@@ -244,7 +244,7 @@
                   <% } %>
                 </td>
                 <td><small><%= r.department || '-' %></small></td>
-                <td><small><%= moment(r.applied_at).format('MM/DD HH:mm') %></small></td>
+                <td><small><%= moment(r.applied_at).tz('Asia/Seoul').format('MM/DD HH:mm') %></small></td>
                 <td>
                   <% if (user && user.is_admin) { %>
                   <%

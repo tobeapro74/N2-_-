@@ -15,6 +15,11 @@
 10. [커뮤니티 이미지 표시 안됨 (Template onload 이벤트)](#10-커뮤니티-이미지-표시-안됨-template-onload-이벤트)
 11. [커뮤니티 입력창(Textarea) 크기 문제](#11-커뮤니티-입력창textarea-크기-문제)
 12. [성능 최적화 마이그레이션 (캐싱 레이어)](#12-성능-최적화-마이그레이션-캐싱-레이어)
+13. [CDN 캐시로 인한 다른 사용자 정보 노출 (보안)](#13-cdn-캐시로-인한-다른-사용자-정보-노출-보안)
+14. [회원 상태 수정 후 화면 미반영](#14-회원-상태-수정-후-화면-미반영)
+15. [일정 상태가 "오픈전"으로 표시 (Cron 실행 후에도)](#15-일정-상태가-오픈전으로-표시-cron-실행-후에도)
+16. [예약 신청시간이 UTC로 표시](#16-예약-신청시간이-utc로-표시)
+17. [회원 비밀번호 미설정 (로그인 불가)](#17-회원-비밀번호-미설정-로그인-불가)
 
 ---
 
@@ -1351,4 +1356,310 @@ navigator.serviceWorker.getRegistrations()
 
 ---
 
-*마지막 업데이트: 2026-01-30*
+## 13. CDN 캐시로 인한 다른 사용자 정보 노출 (보안)
+
+### 증상
+- 박병철로 로그인했는데 홈 화면에 이건영의 이름과 개인 통계가 표시됨
+- 다른 사용자가 먼저 접속한 페이지가 자신에게도 동일하게 보임
+- 로그아웃 후 재로그인해도 동일한 문제 발생
+
+### 원인
+`app.js`의 Vercel CDN 캐싱 미들웨어에서 **사용자별 콘텐츠가 포함된 페이지**에 CDN 캐시를 설정한 것이 원인.
+
+```javascript
+// 문제의 코드 (app.js)
+if (p === '/') {
+  res.setHeader('Vercel-CDN-Cache-Control', 's-maxage=600, stale-while-revalidate=60');
+  // 홈페이지를 10분간 CDN에 캐시 → 첫 접속자의 HTML이 모든 사용자에게 제공됨
+}
+```
+
+**동작 원리:**
+1. 이건영이 홈페이지(`/`) 접속 → Vercel CDN이 이건영의 HTML을 10분간 캐시
+2. 박병철이 홈페이지(`/`) 접속 → CDN이 이건영의 캐시된 HTML을 반환
+3. 박병철에게 이건영의 이름, 개인 통계가 표시됨
+
+### 영향 범위
+
+| 페이지 | 사용자별 콘텐츠 | 위험도 |
+|--------|----------------|--------|
+| `/` (홈) | 사용자 이름, 라운드 통계, 최근 스코어 | **높음** |
+| `/members` | 회원 목록 (동일 데이터이나 권한별 차이) | 중간 |
+| `/finance` | 자금 내역 (관리자 전용 기능 포함) | 중간 |
+| `/reservations` | 예약 내역 | 중간 |
+| `/schedules/:id` | 일정 상세 (예약 상태 등) | 낮음 |
+
+### 해결 방법
+
+**app.js CDN 캐싱 미들웨어 수정:**
+```javascript
+// 사용자별 콘텐츠가 포함된 페이지는 CDN 캐시 금지 (보안)
+if (p === '/' || p.startsWith('/members') || p.startsWith('/reservations') || p.startsWith('/finance')) {
+  res.setHeader('Vercel-CDN-Cache-Control', 's-maxage=0');
+} else if (p.match(/^\/schedules\/\d+$/)) {
+  res.setHeader('Vercel-CDN-Cache-Control', 's-maxage=0');
+} else if (p.startsWith('/schedules/community')) {
+  res.setHeader('Vercel-CDN-Cache-Control', 's-maxage=120, stale-while-revalidate=30');
+} else if (p.startsWith('/schedules')) {
+  res.setHeader('Vercel-CDN-Cache-Control', 's-maxage=300, stale-while-revalidate=60');
+}
+```
+
+### CDN 캐시 적용 기준
+
+| 조건 | CDN 캐시 가능 여부 | 이유 |
+|------|-------------------|------|
+| 로그인 사용자별 다른 콘텐츠 | **불가** (`s-maxage=0`) | 개인정보 노출 위험 |
+| 실시간 변경이 중요한 페이지 | **불가** (`s-maxage=0`) | 오래된 데이터 표시 |
+| 모든 사용자에게 동일한 콘텐츠 | 가능 | 일정 목록, 커뮤니티 등 |
+| 외부 API 응답 | 가능 | 날씨, 교통 등 |
+
+### 주의사항
+
+1. **SSR(서버사이드 렌더링) + CDN 캐시 = 위험**: EJS 템플릿에서 `req.session.user` 데이터를 HTML에 직접 포함하므로, CDN이 이 HTML을 캐시하면 다른 사용자에게 노출됨
+2. **SPA(React 등)와 다름**: SPA는 API로 데이터를 받아 클라이언트에서 렌더링하므로 CDN 캐시가 안전하지만, SSR은 HTML 자체에 사용자 데이터가 포함됨
+3. **Vercel CDN의 `Set-Cookie` 자동 스킵**: Vercel CDN은 응답에 `Set-Cookie` 헤더가 있으면 캐시하지 않지만, **이미 로그인된 사용자의 요청**은 `Set-Cookie`가 없을 수 있어 캐시됨
+
+---
+
+## 14. 회원 상태 수정 후 화면 미반영
+
+### 증상
+- 관리자가 회원 정보 수정 폼에서 상태를 "탈퇴"로 변경하고 저장
+- 저장 후 리다이렉트된 상세 페이지에서 여전히 "활동"으로 표시
+- MongoDB에는 정상적으로 `inactive`로 저장되어 있음
+
+### 원인
+Vercel 서버리스 환경에서 **POST(수정)와 GET(상세 조회) 요청이 다른 인스턴스에서 처리**됨.
+
+```
+[인스턴스 A] POST /members/76/edit → MongoDB 업데이트 + 자체 캐시 갱신
+                  ↓ redirect
+[인스턴스 B] GET /members/76 → 자체 캐시에서 조회 → 이전 데이터(active) 반환
+```
+
+추가로 CDN 캐시(`s-maxage=300`)가 이전 페이지를 5분간 유지하는 문제도 존재.
+
+### 해결 방법
+
+**1단계: 회원 상세/수정 GET 라우트에서 캐시 강제 새로고침 (routes/members.js)**
+```javascript
+// 회원 상세 페이지
+router.get('/:id', requireAuth, async (req, res) => {
+  // 최신 데이터 보장을 위해 캐시 새로고침
+  if (db.refreshCache) {
+    await db.refreshCache('members');
+  }
+  // ... 기존 로직
+});
+
+// 회원 수정 페이지
+router.get('/:id/edit', requireAuth, requireAdmin, async (req, res) => {
+  if (db.refreshCache) {
+    await db.refreshCache('members');
+  }
+  // ... 기존 로직
+});
+```
+
+**2단계: CDN 캐시 비활성화 (app.js)**
+```javascript
+// 회원 페이지는 CDN 캐시 사용하지 않음
+if (p.startsWith('/members')) {
+  res.setHeader('Vercel-CDN-Cache-Control', 's-maxage=0');
+}
+```
+
+### 적용 대상
+이 패턴은 데이터 변경 후 즉시 반영이 필요한 모든 페이지에 적용:
+- `/members/:id` - 회원 상세
+- `/members/:id/edit` - 회원 수정 폼
+- `/reservations` - 예약 목록
+- `/schedules/:id` - 일정 상세
+
+---
+
+## 15. 일정 상태가 "오픈전"으로 표시 (Cron 실행 후에도)
+
+### 증상
+- Cron Job이 정상 실행되어 MongoDB에서 일정 상태가 `open`으로 변경됨
+- Vercel 로그에서도 Cron 실행 성공 확인 (`푸시 발송: 2/3 성공`)
+- 하지만 일정 상세 페이지에서 "오픈전" 표시, "아직 예약이 오픈되지 않았습니다" 메시지 노출
+- 예약 버튼이 비활성화되어 사용자가 예약할 수 없음
+
+### 원인
+일정 목록 페이지(`/schedules`)에 `s-maxage=300` (5분 CDN 캐시)가 설정되어 있고, 일정 상세 페이지(`/schedules/:id`)에도 동일한 캐시가 적용됨.
+
+Cron이 09:00에 상태를 변경해도, CDN에 캐시된 이전 페이지(status: pending)가 최대 5분간 제공됨.
+
+```
+09:00:00  Cron 실행 → MongoDB status: pending → open
+09:00:01  사용자 접속 → CDN 캐시 반환 (status: pending) → "오픈전" 표시
+09:05:00  CDN 캐시 만료 → 서버에서 새 HTML 렌더링 (status: open) → "예약하기" 표시
+```
+
+### 해결 방법
+
+**일정 상세 페이지 CDN 캐시 비활성화 (app.js):**
+```javascript
+// 일정 상세 페이지는 예약/상태 변경 실시간 반영
+if (p.match(/^\/schedules\/\d+$/)) {
+  res.setHeader('Vercel-CDN-Cache-Control', 's-maxage=0');
+}
+```
+
+**주의:** `/schedules` (목록)는 캐시 유지 가능하나, `/schedules/:id` (상세)는 비활성화 필수.
+
+### CDN 캐시 경로별 설정 최종 정리
+
+| 경로 패턴 | s-maxage | 이유 |
+|-----------|----------|------|
+| `/` | 0 | 사용자별 콘텐츠 (13번 참고) |
+| `/members/**` | 0 | 실시간 반영 필요 (14번 참고) |
+| `/reservations/**` | 0 | 실시간 반영 필요 |
+| `/finance/**` | 0 | 사용자별 콘텐츠 |
+| `/schedules/:id` | 0 | 예약/상태 실시간 반영 |
+| `/schedules/community` | 120초 | 공용 콘텐츠, 실시간성 낮음 |
+| `/schedules` (목록) | 300초 | 공용 콘텐츠 |
+| `/api/weather`, `/api/traffic` | 300초 | 외부 API, 변경 빈도 낮음 |
+
+---
+
+## 16. 예약 신청시간이 UTC로 표시
+
+### 증상
+- 김선영이 오전 9시 5분에 예약 신청
+- 일정 상세 페이지의 예약자 목록에서 신청시간이 `02/23 00:05`로 표시
+- 실제 시간보다 9시간 이른 시간으로 보임
+
+### 원인
+`views/schedules/detail.ejs`에서 `applied_at` 필드를 포맷팅할 때 **타임존 변환 없이** 출력.
+
+MongoDB에 저장된 `applied_at`은 UTC 시간 (`2026-02-23T00:05:00.000Z` = KST 09:05).
+dayjs의 `.format()`은 기본적으로 UTC 기준으로 출력.
+
+```javascript
+// 문제의 코드 (views/schedules/detail.ejs)
+<td><small><%= moment(r.applied_at).format('MM/DD HH:mm') %></small></td>
+// 출력: 02/23 00:05 (UTC)
+```
+
+### 해결 방법
+
+```javascript
+// 수정 후
+<td><small><%= moment(r.applied_at).tz('Asia/Seoul').format('MM/DD HH:mm') %></small></td>
+// 출력: 02/23 09:05 (KST)
+```
+
+### dayjs 타임존 설정 확인
+
+`app.js`에서 dayjs 플러그인이 로드되어 있어야 함:
+```javascript
+const utc = require('dayjs/plugin/utc');
+const timezone = require('dayjs/plugin/timezone');
+dayjs.extend(utc);
+dayjs.extend(timezone);
+```
+
+EJS 템플릿에서는 `res.locals.moment = dayjs`로 매핑되어 `moment()` 형태로 사용.
+
+### 타임존 적용이 필요한 경우 vs 불필요한 경우
+
+| 필드 | 형식 | 타임존 변환 | 이유 |
+|------|------|------------|------|
+| `applied_at` | `2026-02-23T00:05:00.000Z` (ISO) | **필요** (`.tz('Asia/Seoul')`) | UTC로 저장된 타임스탬프 |
+| `created_at` | `2026-02-23T00:05:00.000Z` (ISO) | **필요** (`.tz('Asia/Seoul')`) | UTC로 저장된 타임스탬프 |
+| `play_date` | `2026-03-14` (날짜 문자열) | **불필요** | 시간 정보 없는 날짜 문자열 |
+| `income_date` | `2026-02-01` (날짜 문자열) | **불필요** | 시간 정보 없는 날짜 문자열 |
+
+### 진단 방법
+1. MongoDB에서 해당 필드 값 확인: UTC 타임스탬프인지 날짜 문자열인지 구분
+2. UTC 타임스탬프 (`...T...Z` 형식)이면 `.tz('Asia/Seoul')` 필수
+3. 날짜 문자열 (`YYYY-MM-DD` 형식)이면 타임존 변환 불필요
+
+---
+
+## 17. 회원 비밀번호 미설정 (로그인 불가)
+
+### 증상
+- 특정 회원이 올바른 비밀번호(1234)로 로그인 시도해도 "이름 또는 비밀번호가 일치하지 않습니다" 에러
+- 다른 회원들은 정상 로그인 가능
+
+### 원인
+해당 회원의 MongoDB 문서에 `password_hash` 필드가 없음.
+
+```javascript
+// routes/auth.js 로그인 로직
+const isValid = bcrypt.compareSync(password, member.password_hash || '');
+// password_hash가 undefined → '' → bcrypt 비교 시 항상 false
+```
+
+### 진단 방법
+
+**MongoDB에서 확인:**
+```javascript
+// 비밀번호 없는 회원 조회
+node -e "
+require('dotenv').config({ path: '.env.local' });
+const { MongoClient } = require('mongodb');
+async function check() {
+  const client = new MongoClient(process.env.MONGODB_URI);
+  await client.connect();
+  const db = client.db();
+  const noPassword = await db.collection('members').find({
+    status: 'active',
+    password_hash: { \$exists: false }
+  }).toArray();
+  console.log('비밀번호 없는 활동 회원:', noPassword.length, '명');
+  noPassword.forEach(m => console.log(' -', m.name));
+  await client.close();
+}
+check();
+"
+```
+
+### 해결 방법
+
+**개별 회원 비밀번호 설정:**
+```javascript
+const bcrypt = require('bcryptjs');
+const hash = bcrypt.hashSync('1234', 10);
+await db.collection('members').updateOne(
+  { name: '회원이름' },
+  { $set: { password_hash: hash } }
+);
+```
+
+### 발생 원인 추정
+- 회원 등록 시 비밀번호 설정 단계를 거치지 않은 경우
+- 데이터 마이그레이션 시 `password_hash` 필드가 누락된 경우
+- 관리자가 직접 MongoDB에 회원을 추가하면서 비밀번호 필드를 빠뜨린 경우
+
+### 예방 조치
+- 회원 등록 시 `password_hash` 필드 필수 검증
+- 주기적으로 `password_hash` 없는 회원 점검
+
+---
+
+## 빠른 진단 체크리스트 (종합)
+
+### CDN 캐시 관련 문제
+1. [ ] 다른 사용자의 정보가 보이는가? → CDN 캐시 비활성화 (`s-maxage=0`)
+2. [ ] 데이터 변경 후 이전 페이지가 보이는가? → CDN 캐시 비활성화
+3. [ ] Cron 실행 후에도 이전 상태가 보이는가? → 해당 경로 CDN 캐시 비활성화
+4. [ ] 해당 페이지에 사용자별 콘텐츠가 있는가? → CDN 캐시 절대 금지
+
+### 시간 표시 문제
+1. [ ] 시간이 9시간 빠르게 표시되는가? → UTC→KST 변환 누락 (`.tz('Asia/Seoul')` 추가)
+2. [ ] 해당 필드가 ISO 타임스탬프인가? (`...T...Z`) → 타임존 변환 필요
+3. [ ] 해당 필드가 날짜 문자열인가? (`YYYY-MM-DD`) → 타임존 변환 불필요
+
+### 로그인 문제
+1. [ ] 특정 회원만 로그인 안 되는가? → `password_hash` 필드 존재 여부 확인
+2. [ ] 비밀번호 변경 후 로그인 안 되는가? → `refreshCache('members')` 호출 여부 확인
+3. [ ] 모든 회원이 로그인 안 되는가? → MongoDB 연결 상태 확인
+
+---
+
+*마지막 업데이트: 2026-02-23*

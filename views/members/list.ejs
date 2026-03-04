@@ -22,7 +22,7 @@
       <div class="col-4 col-md-2">
         <label for="status-filter" class="form-label mb-1" style="font-size: 0.85rem; color: #6c757d;">상태</label>
         <select name="status" id="status-filter" class="form-select form-select-sm" style="font-size: 0.85rem;">
-          <option value="">전체</option>
+          <option value="all" <%= filters.status === 'all' ? 'selected' : '' %>>전체</option>
           <option value="active" <%= filters.status === 'active' ? 'selected' : '' %>>활동</option>
           <option value="inactive" <%= filters.status === 'inactive' ? 'selected' : '' %>>탈퇴</option>
           <option value="pending" <%= filters.status === 'pending' ? 'selected' : '' %>>대기</option>

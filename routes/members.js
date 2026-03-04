@@ -9,11 +9,13 @@ const { logger } = require('../utils/logger');
 
 // 회원 목록
 router.get('/', requireAuth, (req, res) => {
-  const { status, search } = req.query;
+  const { search } = req.query;
+  // 기본 필터: active (탈퇴 회원 제외), 'all'이면 전체 표시
+  const status = req.query.status || 'active';
 
   let members = db.getTable('members').filter(m => !m.is_admin);
 
-  if (status) {
+  if (status && status !== 'all') {
     members = members.filter(m => m.status === status);
   }
 

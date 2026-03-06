@@ -429,6 +429,22 @@
             </div>
           </div>
           <div class="col-6 col-md-6">
+            <div class="d-flex align-items-start course-item course-clickable" role="button" tabindex="0" data-course="gunsanCC">
+              <div class="bg-danger bg-opacity-10 text-danger rounded-circle p-2 me-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                <i class="bi bi-pin-map-fill"></i>
+              </div>
+              <div>
+                <p class="course-title mb-0">군산CC <i class="bi bi-info-circle text-muted home-card-meta"></i></p>
+                <p class="course-location mb-1"><i class="bi bi-geo-alt"></i> 전북특별자치도 군산시</p>
+                <p class="mb-0">
+                  <a href="javascript:void(0)" class="badge bg-success text-white course-badge direction-btn" data-course="gunsanCC">
+                    <i class="bi bi-signpost-2"></i> 가는길
+                  </a>
+                </p>
+              </div>
+            </div>
+          </div>
+          <div class="col-6 col-md-6">
             <div class="d-flex align-items-start course-item">
               <div class="bg-secondary bg-opacity-10 text-secondary rounded-circle p-2 me-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
                 <i class="bi bi-pc-display-horizontal"></i>
@@ -615,6 +631,29 @@ const courseDirections = {
         route: '강동IC → 중부고속도로 → 충주IC → 19번 국도',
         distance: '약 98km',
         tips: '충주IC에서 대영힐스와 같은 방향'
+      }
+    ]
+  },
+  gunsanCC: {
+    name: '군산CC',
+    address: '전북특별자치도 군산시 성산면 철새로 280',
+    arrivalTime: '06:00',
+    routes: [
+      {
+        departure: '여의도역',
+        duration: 180,
+        departureTime: '03:00',
+        route: '서해안고속도로 → 동군산IC → 군산CC',
+        distance: '약 220km',
+        tips: '서해안고속도로 이용, 동군산IC에서 약 10분 소요'
+      },
+      {
+        departure: '잠실역',
+        duration: 180,
+        departureTime: '03:00',
+        route: '경부고속도로 → 천안논산고속도로 → 호남고속도로 → 군산',
+        distance: '약 230km',
+        tips: '천안JC에서 논산 방면, 호남고속도로 이용'
       }
     ]
   },
@@ -1315,6 +1354,26 @@ const trafficRoutes = {
         distance: 98,
         baseTime: 110,
         mapUrl: 'https://map.kakao.com/link/from/잠실역,37.5133,127.1001/to/대영베이스CC,37.0056,127.8912'
+      }
+    ]
+  },
+  gunsanCC: {
+    name: '군산CC',
+    color: 'danger',
+    routes: [
+      {
+        departure: '여의도역',
+        destination: '군산CC',
+        distance: 220,
+        baseTime: 180,
+        mapUrl: 'https://map.kakao.com/link/from/여의도역,37.5216,126.9243/to/군산CC,35.9600,126.7300'
+      },
+      {
+        departure: '잠실역',
+        destination: '군산CC',
+        distance: 230,
+        baseTime: 180,
+        mapUrl: 'https://map.kakao.com/link/from/잠실역,37.5133,127.1001/to/군산CC,35.9600,126.7300'
       }
     ]
   }

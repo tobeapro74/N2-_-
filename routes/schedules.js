@@ -149,16 +149,18 @@ router.get('/new', requireAuth, requireAdmin, (req, res) => {
 // 일정 생성 처리
 router.post('/new', requireAuth, requireAdmin, async (req, res) => {
   try {
-    const { golf_course_id, play_date, tee_times, max_members, notes } = req.body;
+    const { golf_course_id, play_date, tee_times, max_members, notes, course } = req.body;
 
     // 캐시 새로고침
     if (db.refreshCache) {
       await db.refreshCache('schedules');
     }
 
-    // 중복 일정 체크
+    // 중복 일정 체크 (골프장 + 날짜 + 코스)
     const existing = db.getTable('schedules').find(
-      s => s.golf_course_id === parseInt(golf_course_id) && s.play_date === play_date
+      s => s.golf_course_id === parseInt(golf_course_id)
+        && s.play_date === play_date
+        && (s.course || '') === (course || '')
     );
 
     if (existing) {
@@ -171,14 +173,17 @@ router.post('/new', requireAuth, requireAdmin, async (req, res) => {
       });
     }
 
-    const scheduleId = await db.insert('schedules', {
+    const scheduleData = {
       golf_course_id: parseInt(golf_course_id),
       play_date,
       tee_times,
       max_members: parseInt(max_members) || 12,
       notes,
       status: 'open'
-    });
+    };
+    if (course) scheduleData.course = course;
+
+    const scheduleId = await db.insert('schedules', scheduleData);
 
     // 캐시 새로고침
     if (db.refreshCache) {
@@ -371,16 +376,23 @@ router.get('/:id/edit', requireAuth, requireAdmin, (req, res) => {
 router.post('/:id/edit', requireAuth, requireAdmin, async (req, res) => {
   try {
     const scheduleId = parseInt(req.params.id);
-    const { golf_course_id, play_date, tee_times, max_members, status, notes } = req.body;
+    const { golf_course_id, play_date, tee_times, max_members, status, notes, course } = req.body;
 
-    await db.update('schedules', scheduleId, {
+    const updateData = {
       golf_course_id: parseInt(golf_course_id),
       play_date,
       tee_times,
       max_members: parseInt(max_members),
       status,
       notes
-    });
+    };
+    if (course) {
+      updateData.course = course;
+    } else {
+      updateData.course = null;
+    }
+
+    await db.update('schedules', scheduleId, updateData);
 
     // 캐시 새로고침
     if (db.refreshCache) {

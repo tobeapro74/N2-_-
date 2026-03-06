@@ -104,7 +104,7 @@
                 <% } %>
               </a>
             </td>
-            <td class="py-2"><%= schedule.course_name %></td>
+            <td class="py-2"><%= schedule.course_name %><% if (schedule.course) { %> <small class="text-muted">(<%= schedule.course %>)</small><% } %></td>
             <td class="py-2 hide-mobile"><small class="text-muted"><%= schedule.location %></small></td>
             <td class="py-2 hide-mobile"><small><%= schedule.tee_times || '-' %></small></td>
             <td class="py-2 text-center" data-value="<%= schedule.reserved_count %>">

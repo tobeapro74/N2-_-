@@ -29,6 +29,12 @@
               <% }) %>
             </select>
           </div>
+          <div class="mb-3" id="courseField" style="display: none;">
+            <label class="form-label">코스</label>
+            <select name="course" class="form-select" id="courseSelect">
+              <option value="">선택하세요</option>
+            </select>
+          </div>
           <div class="mb-3">
             <label class="form-label">날짜 <span class="text-danger">*</span></label>
             <input type="date" name="play_date" class="form-control" required
@@ -73,4 +79,41 @@
   </div>
 </div>
 
+<script>
+// 골프장별 코스 데이터
+var coursesData = <%- JSON.stringify(golfCourses.reduce(function(acc, gc) { if (gc.courses && gc.courses.length > 0) acc[gc.id] = gc.courses; return acc; }, {})) %>;
+var currentCourse = '<%= schedule ? (schedule.course || "") : "" %>';
+
+var courseIdSelect = document.querySelector('select[name="golf_course_id"]');
+var courseField = document.getElementById('courseField');
+var courseSelect = document.getElementById('courseSelect');
+
+function updateCourseOptions() {
+  var gcId = courseIdSelect.value;
+  var courses = coursesData[gcId];
+
+  if (courses && courses.length > 0) {
+    courseSelect.innerHTML = '<option value="">선택하세요</option>';
+    courses.forEach(function(c) {
+      var opt = document.createElement('option');
+      opt.value = c;
+      opt.textContent = c;
+      if (c === currentCourse) opt.selected = true;
+      courseSelect.appendChild(opt);
+    });
+    courseField.style.display = '';
+  } else {
+    courseField.style.display = 'none';
+    courseSelect.innerHTML = '<option value="">선택하세요</option>';
+  }
+}
+
+courseIdSelect.addEventListener('change', function() {
+  currentCourse = '';
+  updateCourseOptions();
+});
+
+// 초기 로드 시 코스 옵션 설정
+updateCourseOptions();
+</script>
 <%- include('../partials/footer') %>

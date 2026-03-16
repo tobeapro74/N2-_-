@@ -370,11 +370,16 @@
             </a>
             <div class="d-flex justify-content-between align-items-center mt-1 px-2">
               <small class="text-muted"><%= moment(img.uploaded_at).format('MM/DD HH:mm') %> 등록</small>
-              <% if (user && user.is_admin) { %>
-              <button class="btn btn-sm btn-outline-danger" onclick="deleteScorecard(<%= idx %>)">
-                <i class="bi bi-trash"></i>
-              </button>
-              <% } %>
+              <div>
+                <% if (user && user.is_admin) { %>
+                <button class="btn btn-sm btn-success me-1" onclick="extractFromScorecard('<%= img.url %>')">
+                  <i class="bi bi-cpu"></i> 결과 추출
+                </button>
+                <button class="btn btn-sm btn-outline-danger" onclick="deleteScorecard(<%= idx %>)">
+                  <i class="bi bi-trash"></i>
+                </button>
+                <% } %>
+              </div>
             </div>
           </div>
         </div>
@@ -581,6 +586,71 @@ async function saveOcrResults() {
     }
   } catch (error) {
     alert('저장 중 오류가 발생했습니다.');
+    console.error(error);
+  }
+}
+
+// 스코어카드에서 결과 추출 (등록된 이미지 URL → OCR)
+async function extractFromScorecard(imageUrl) {
+  // 순위 탭으로 이동
+  const rankingTab = document.querySelector('[data-bs-target="#tabRanking"]');
+  if (rankingTab) new bootstrap.Tab(rankingTab).show();
+
+  // OCR 업로드 영역 열기
+  const ocrCollapse = document.getElementById('ocrUploadBody');
+  if (ocrCollapse && !ocrCollapse.classList.contains('show')) {
+    new bootstrap.Collapse(ocrCollapse, { toggle: true });
+  }
+
+  // 진행 상태 표시
+  document.getElementById('ocrProgress').classList.remove('d-none');
+  document.getElementById('ocrPreview').classList.add('d-none');
+  document.getElementById('ocrStatusText').textContent = '스코어카드에서 결과를 추출 중... (10~20초 소요)';
+
+  try {
+    // 이미지 URL에서 blob 가져오기
+    const imgRes = await fetch(imageUrl);
+    const blob = await imgRes.blob();
+
+    // 리사이즈
+    let file = new File([blob], 'scorecard.jpg', { type: blob.type });
+    if (file.size > 3 * 1024 * 1024) {
+      file = await resizeImage(file);
+    }
+
+    const formData = new FormData();
+    formData.append('image', file);
+    formData.append('_csrf', csrfToken);
+
+    const res = await fetch(`/schedules/${scheduleId}/results/ocr`, {
+      method: 'POST',
+      headers: { 'X-CSRF-Token': csrfToken },
+      body: formData
+    });
+
+    const text = await res.text();
+    document.getElementById('ocrProgress').classList.add('d-none');
+
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch (e) {
+      alert('OCR 처리 중 오류가 발생했습니다: ' + text.substring(0, 200));
+      return;
+    }
+
+    if (!data.success) {
+      alert(data.error || 'OCR 처리 실패');
+      return;
+    }
+
+    ocrMergedResults = data.mergedResults;
+    renderOcrPreview(ocrMergedResults);
+    // 상단으로 스크롤
+    document.getElementById('ocrUploadCard').scrollIntoView({ behavior: 'smooth' });
+  } catch (error) {
+    document.getElementById('ocrProgress').classList.add('d-none');
+    alert('결과 추출 중 오류가 발생했습니다.\n' + error.message);
     console.error(error);
   }
 }

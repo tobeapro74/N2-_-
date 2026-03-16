@@ -8,7 +8,7 @@ const { validateName, validateEmail, validatePhone, validateId, validateEnum } =
 const { logger } = require('../utils/logger');
 
 // 회원 목록
-router.get('/', requireAuth, (req, res) => {
+router.get('/', requireAuth, async (req, res) => {
   const { search } = req.query;
   // 기본 필터: active (탈퇴 회원 제외), 'all'이면 전체 표시
   const status = req.query.status || 'active';
@@ -31,6 +31,9 @@ router.get('/', requireAuth, (req, res) => {
   members.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
 
   // 라운드 수 및 평균타수 계산 (round_results 기반)
+  if (db.refreshCache) {
+    await db.refreshCache('round_results');
+  }
   const roundResults = db.getTable('round_results');
 
   members = members.map(m => {

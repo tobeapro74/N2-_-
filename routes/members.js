@@ -30,17 +30,18 @@ router.get('/', requireAuth, (req, res) => {
 
   members.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
 
-  // 라운드 수 계산
-  const reservations = db.getTable('reservations');
-  const schedules = db.getTable('schedules');
+  // 라운드 수 및 평균타수 계산 (round_results 기반)
+  const roundResults = db.getTable('round_results');
 
   members = members.map(m => {
-    const totalRounds = reservations.filter(r => {
-      if (r.member_id !== m.id || r.status !== 'confirmed') return false;
-      const schedule = schedules.find(s => s.id === r.schedule_id);
-      return schedule && schedule.status === 'completed';
-    }).length;
-    return { ...m, total_rounds: totalRounds };
+    const myResults = roundResults.filter(r => r.member_id === m.id);
+    const totalRounds = myResults.length;
+    let avgScore = null;
+    if (totalRounds > 0) {
+      const totalScore = myResults.reduce((sum, r) => sum + r.score, 0);
+      avgScore = Math.round((totalScore / totalRounds) * 10) / 10;
+    }
+    return { ...m, total_rounds: totalRounds, avg_score: avgScore };
   });
 
   // 회비 납부 현황

@@ -1295,6 +1295,269 @@ router.post('/url-preview', requireAuth, async (req, res) => {
   }
 });
 
+// ============================================
+// 라운딩 결과 기능
+// ============================================
+
+// 라운딩 결과 페이지
+router.get('/:id/results', requireAuth, async (req, res) => {
+  try {
+    const scheduleId = parseInt(req.params.id);
+
+    const [schedules, members] = await Promise.all([
+      db.getTableAsync('schedules'),
+      db.getTableAsync('members', { projection: { id: 1, name: 1, department: 1, gender: 1 } })
+    ]);
+
+    const schedule = schedules.find(s => s.id === scheduleId);
+    if (!schedule) {
+      return res.status(404).render('error', { title: '일정 없음', message: '일정을 찾을 수 없습니다.' });
+    }
+
+    const golfCourse = db.findById('golf_courses', schedule.golf_course_id) || {};
+
+    // 라운딩 결과 조회
+    const allResults = await db.getTableAsync('round_results');
+    const results = allResults
+      .filter(r => r.schedule_id === scheduleId)
+      .map(r => {
+        const member = members.find(m => m.id === r.member_id) || {};
+        return { ...r, member_name: member.name, gender: member.gender, department: member.department };
+      })
+      .sort((a, b) => a.rank - b.rank);
+
+    res.render('schedules/results', {
+      title: `라운딩 결과 - ${golfCourse.name}`,
+      schedule: {
+        ...schedule,
+        course_name: golfCourse.name,
+        location: golfCourse.location
+      },
+      results
+    });
+  } catch (error) {
+    console.error('라운딩 결과 조회 오류:', error);
+    res.status(500).render('error', { title: '오류', message: '라운딩 결과를 불러오는 중 오류가 발생했습니다.' });
+  }
+});
+
+// 라운딩 결과 데이터 API (JSON)
+router.get('/:id/results/data', requireAuth, async (req, res) => {
+  try {
+    const scheduleId = parseInt(req.params.id);
+    const allResults = await db.getTableAsync('round_results');
+    const members = await db.getTableAsync('members', { projection: { id: 1, name: 1, gender: 1 } });
+
+    const results = allResults
+      .filter(r => r.schedule_id === scheduleId)
+      .map(r => {
+        const member = members.find(m => m.id === r.member_id) || {};
+        return { ...r, member_name: member.name, gender: member.gender };
+      })
+      .sort((a, b) => a.rank - b.rank);
+
+    res.json({ success: true, results });
+  } catch (error) {
+    console.error('라운딩 결과 데이터 조회 오류:', error);
+    res.status(500).json({ error: '결과 데이터를 불러올 수 없습니다.' });
+  }
+});
+
+// 라운딩 결과 수동 등록 API (관리자)
+router.post('/:id/results', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const scheduleId = parseInt(req.params.id);
+    const { results } = req.body; // [{member_name, score, peoria_hd, peoria_score, birdies, pars, bogeys, doubles, rank, gender}]
+
+    if (!results || !Array.isArray(results) || results.length === 0) {
+      return res.status(400).json({ error: '결과 데이터가 필요합니다.' });
+    }
+
+    const members = await db.getTableAsync('members');
+
+    // 기존 결과 삭제
+    const existingResults = await db.getTableAsync('round_results');
+    const toDelete = existingResults.filter(r => r.schedule_id === scheduleId);
+    for (const r of toDelete) {
+      await db.delete('round_results', r.id);
+    }
+
+    // 결과 등록
+    let savedCount = 0;
+    for (const r of results) {
+      const member = members.find(m => m.name === r.member_name);
+      if (!member) continue;
+
+      await db.insert('round_results', {
+        schedule_id: scheduleId,
+        member_id: member.id,
+        rank: parseInt(r.rank) || 0,
+        score: parseInt(r.score) || 0,
+        gender: r.gender || member.gender || '',
+        peoria_name: r.peoria_name || '',
+        peoria_hd: parseFloat(r.peoria_hd) || 0,
+        peoria_score: parseFloat(r.peoria_score) || 0,
+        birdies: parseInt(r.birdies) || 0,
+        pars: parseInt(r.pars) || 0,
+        bogeys: parseInt(r.bogeys) || 0,
+        doubles: parseInt(r.doubles) || 0
+      });
+      savedCount++;
+    }
+
+    // 일정에 결과 플래그 설정
+    await db.update('schedules', scheduleId, { has_result: true });
+
+    if (db.refreshCache) {
+      await db.refreshCache('round_results');
+      await db.refreshCache('schedules');
+    }
+
+    res.json({ success: true, message: `${savedCount}명의 라운딩 결과가 등록되었습니다.` });
+  } catch (error) {
+    console.error('라운딩 결과 등록 오류:', error);
+    res.status(500).json({ error: '라운딩 결과 등록 중 오류가 발생했습니다.' });
+  }
+});
+
+// 결과표 사진 OCR (Claude Vision API)
+router.post('/:id/results/ocr', requireAuth, requireAdmin, upload.single('image'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: '이미지 파일이 없습니다.' });
+    }
+
+    const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
+    if (!ANTHROPIC_API_KEY) {
+      return res.status(500).json({ error: 'ANTHROPIC_API_KEY가 설정되지 않았습니다.' });
+    }
+
+    const Anthropic = require('@anthropic-ai/sdk');
+    const client = new Anthropic({ apiKey: ANTHROPIC_API_KEY });
+
+    // 이미지를 base64로 변환
+    const base64Image = req.file.buffer.toString('base64');
+    const mediaType = req.file.mimetype;
+
+    const message = await client.messages.create({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 4096,
+      messages: [{
+        role: 'user',
+        content: [
+          {
+            type: 'image',
+            source: { type: 'base64', media_type: mediaType, data: base64Image }
+          },
+          {
+            type: 'text',
+            text: `이 골프 라운딩 결과표 사진을 분석해서 JSON 형식으로 반환해주세요.
+
+반드시 아래 형식의 JSON 배열만 반환하세요 (다른 텍스트 없이):
+
+각 테이블 섹션별로 데이터를 추출해주세요:
+
+1. "ranking" - 순위표 (순위, 성별, 이름, 스코어)
+2. "peoria" - 신(더블)페리오 (이름, HD, 점수)
+3. "birdies" - 버디 (이름, 개수)
+4. "pars" - 파 (이름, 개수)
+5. "bogeys" - 보기 (이름, 개수)
+6. "doubles" - 더블 (이름, 개수)
+
+JSON 형식:
+{
+  "ranking": [{"rank": 1, "gender": "남", "name": "홍길동", "score": 86}, ...],
+  "peoria": [{"name": "홍길동", "hd": 14.4, "score": 72.6}, ...],
+  "birdies": [{"name": "홍길동", "count": 1}, ...],
+  "pars": [{"name": "홍길동", "count": 7}, ...],
+  "bogeys": [{"name": "홍길동", "count": 11}, ...],
+  "doubles": [{"name": "홍길동", "count": 9}, ...]
+}
+
+JSON만 반환하세요.`
+          }
+        ]
+      }]
+    });
+
+    // Claude 응답에서 JSON 추출
+    let responseText = message.content[0].text;
+
+    // JSON 블록 추출 (```json ... ``` 형식 대응)
+    const jsonMatch = responseText.match(/```(?:json)?\s*([\s\S]*?)```/);
+    if (jsonMatch) {
+      responseText = jsonMatch[1].trim();
+    }
+
+    let ocrData;
+    try {
+      ocrData = JSON.parse(responseText);
+    } catch (parseError) {
+      console.error('OCR JSON 파싱 오류:', responseText);
+      return res.status(400).json({
+        error: 'OCR 결과를 파싱할 수 없습니다. 다시 시도해주세요.',
+        raw: responseText
+      });
+    }
+
+    // OCR 데이터를 통합 결과로 변환
+    const mergedResults = [];
+    if (ocrData.ranking) {
+      for (const r of ocrData.ranking) {
+        const entry = {
+          rank: r.rank,
+          gender: r.gender || '',
+          member_name: r.name,
+          score: r.score,
+          peoria_name: '',
+          peoria_hd: 0,
+          peoria_score: 0,
+          birdies: 0,
+          pars: 0,
+          bogeys: 0,
+          doubles: 0
+        };
+
+        // 페리오 매칭
+        const peoria = (ocrData.peoria || []).find(p => p.name === r.name);
+        if (peoria) {
+          entry.peoria_name = peoria.name;
+          entry.peoria_hd = peoria.hd;
+          entry.peoria_score = peoria.score;
+        }
+
+        // 버디 매칭
+        const birdie = (ocrData.birdies || []).find(b => b.name === r.name);
+        if (birdie) entry.birdies = birdie.count;
+
+        // 파 매칭
+        const par = (ocrData.pars || []).find(p => p.name === r.name);
+        if (par) entry.pars = par.count;
+
+        // 보기 매칭
+        const bogey = (ocrData.bogeys || []).find(b => b.name === r.name);
+        if (bogey) entry.bogeys = bogey.count;
+
+        // 더블 매칭
+        const double = (ocrData.doubles || []).find(d => d.name === r.name);
+        if (double) entry.doubles = double.count;
+
+        mergedResults.push(entry);
+      }
+    }
+
+    res.json({
+      success: true,
+      ocrData,
+      mergedResults,
+      message: `${mergedResults.length}명의 결과가 인식되었습니다.`
+    });
+  } catch (error) {
+    console.error('OCR 처리 오류:', error);
+    res.status(500).json({ error: 'OCR 처리 중 오류가 발생했습니다: ' + error.message });
+  }
+});
+
 // multer 에러 핸들링 미들웨어
 router.use((error, req, res, next) => {
   if (error instanceof multer.MulterError) {

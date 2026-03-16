@@ -33,6 +33,7 @@ const initialData = {
   community_reactions: [],
   push_subscriptions: [],
   notifications: [],
+  round_results: [],
   _meta: {
     lastId: {
       members: 0,
@@ -51,7 +52,8 @@ const initialData = {
       community_comments: 0,
       community_reactions: 0,
       push_subscriptions: 0,
-      notifications: 0
+      notifications: 0,
+      round_results: 0
     }
   }
 };

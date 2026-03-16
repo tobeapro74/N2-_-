@@ -1,0 +1,488 @@
+<%- include('../partials/header') %>
+
+<style>
+/* 순위 메달 */
+.rank-medal {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-weight: bold;
+  font-size: 0.85rem;
+}
+.rank-1 { background: linear-gradient(135deg, #FFD700, #FFA500); color: #fff; }
+.rank-2 { background: linear-gradient(135deg, #C0C0C0, #A0A0A0); color: #fff; }
+.rank-3 { background: linear-gradient(135deg, #CD7F32, #8B4513); color: #fff; }
+
+/* 탭 스타일 */
+.result-tab { font-size: 0.85rem; }
+
+/* OCR 업로드 영역 */
+.upload-zone {
+  border: 2px dashed #dee2e6;
+  border-radius: 12px;
+  padding: 2rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.upload-zone:hover, .upload-zone.drag-over {
+  border-color: #198754;
+  background-color: rgba(25, 135, 84, 0.05);
+}
+.upload-zone i { font-size: 2.5rem; color: #6c757d; }
+
+/* OCR 결과 미리보기 테이블 */
+.ocr-preview-table th { font-size: 0.8rem; white-space: nowrap; }
+.ocr-preview-table td { font-size: 0.85rem; }
+.ocr-preview-table input { font-size: 0.8rem; width: 100%; }
+
+/* 통계 카드 */
+.stat-card {
+  border-radius: 10px;
+  text-align: center;
+  padding: 0.8rem 0.5rem;
+}
+.stat-card h6 { font-size: 0.75rem; margin-bottom: 0.3rem; }
+.stat-card .stat-value { font-size: 1.2rem; font-weight: bold; }
+
+/* 결과 테이블 반응형 */
+@media (max-width: 576px) {
+  .result-table th, .result-table td { font-size: 0.75rem; padding: 0.35rem 0.25rem; }
+  .rank-medal { width: 24px; height: 24px; font-size: 0.75rem; }
+}
+</style>
+
+<div class="d-flex align-items-center mb-3 page-header">
+  <a href="/schedules/<%= schedule.id %>" class="back-link" aria-label="일정 상세로 이동">
+    <i class="bi bi-chevron-left" aria-hidden="true"></i>일정
+  </a>
+  <nav aria-label="현재 위치" class="mb-0">
+    <ol class="breadcrumb mb-0">
+      <li class="breadcrumb-item"><a href="/schedules">일정 관리</a></li>
+      <li class="breadcrumb-item"><a href="/schedules/<%= schedule.id %>"><%= schedule.course_name %></a></li>
+      <li class="breadcrumb-item active" aria-current="page">라운딩 결과</li>
+    </ol>
+  </nav>
+</div>
+
+<!-- 일정 정보 헤더 -->
+<div class="card mb-3">
+  <div class="card-body py-2">
+    <div class="d-flex justify-content-between align-items-center">
+      <div>
+        <h5 class="mb-0"><i class="bi bi-trophy text-warning"></i> <%= schedule.course_name %><% if (schedule.course) { %> (<%= schedule.course %>)<% } %></h5>
+        <small class="text-muted"><%= moment(schedule.play_date).format('YYYY년 MM월 DD일 (ddd)') %></small>
+      </div>
+      <% if (results.length > 0) { %>
+      <span class="badge bg-success"><%= results.length %>명 참가</span>
+      <% } else { %>
+      <span class="badge bg-secondary">미등록</span>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<% if (user && user.is_admin) { %>
+<!-- 관리자: OCR 업로드 영역 -->
+<div class="card mb-3" id="ocrUploadCard">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <h6 class="mb-0"><i class="bi bi-camera"></i> 결과표 사진 업로드</h6>
+    <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#ocrUploadBody">
+      <i class="bi bi-chevron-down"></i>
+    </button>
+  </div>
+  <div class="collapse <%= results.length === 0 ? 'show' : '' %>" id="ocrUploadBody">
+    <div class="card-body">
+      <div class="upload-zone" id="uploadZone" onclick="document.getElementById('ocrFileInput').click()">
+        <i class="bi bi-cloud-upload"></i>
+        <p class="mt-2 mb-1 text-muted">결과표 사진을 클릭하거나 드래그하여 업로드</p>
+        <small class="text-muted">사진을 업로드하면 AI가 자동으로 결과를 인식합니다</small>
+        <input type="file" id="ocrFileInput" accept="image/*" capture="environment" class="d-none">
+      </div>
+
+      <!-- OCR 진행 상태 -->
+      <div id="ocrProgress" class="d-none mt-3">
+        <div class="d-flex align-items-center">
+          <div class="spinner-border spinner-border-sm text-success me-2" role="status"></div>
+          <span id="ocrStatusText">이미지 분석 중...</span>
+        </div>
+        <div class="progress mt-2" style="height: 4px;">
+          <div class="progress-bar bg-success progress-bar-striped progress-bar-animated" style="width: 100%"></div>
+        </div>
+      </div>
+
+      <!-- OCR 결과 미리보기 -->
+      <div id="ocrPreview" class="d-none mt-3">
+        <div class="alert alert-info">
+          <i class="bi bi-check-circle"></i> <span id="ocrResultCount">0</span>명의 결과가 인식되었습니다. 아래에서 확인 후 저장해주세요.
+        </div>
+        <div class="table-responsive">
+          <table class="table table-sm ocr-preview-table">
+            <thead>
+              <tr>
+                <th>순위</th>
+                <th>성별</th>
+                <th>이름</th>
+                <th>스코어</th>
+                <th>페리오이름</th>
+                <th>HD</th>
+                <th>페리오점수</th>
+                <th>버디</th>
+                <th>파</th>
+                <th>보기</th>
+                <th>더블</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="ocrResultsBody"></tbody>
+          </table>
+        </div>
+        <div class="d-flex gap-2">
+          <button class="btn btn-success flex-grow-1" onclick="saveOcrResults()">
+            <i class="bi bi-check-lg"></i> 결과 저장
+          </button>
+          <button class="btn btn-outline-danger" onclick="clearOcrResults()">
+            <i class="bi bi-x-lg"></i> 취소
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<% } %>
+
+<% if (results.length > 0) { %>
+<!-- 탭 네비게이션 -->
+<ul class="nav nav-tabs result-tab mb-3" role="tablist">
+  <li class="nav-item" role="presentation">
+    <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tabRanking" type="button">
+      <i class="bi bi-list-ol"></i> 순위
+    </button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabPerio" type="button">
+      <i class="bi bi-calculator"></i> 페리오
+    </button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabStats" type="button">
+      <i class="bi bi-bar-chart"></i> 통계
+    </button>
+  </li>
+</ul>
+
+<div class="tab-content">
+  <!-- 순위 탭 -->
+  <div class="tab-pane fade show active" id="tabRanking" role="tabpanel">
+    <div class="card">
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0 result-table">
+            <thead class="table-light">
+              <tr>
+                <th class="text-center">순위</th>
+                <th>성별</th>
+                <th>이름</th>
+                <th class="text-center">스코어</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% results.forEach(r => { %>
+              <tr>
+                <td class="text-center">
+                  <% if (r.rank <= 3) { %>
+                  <span class="rank-medal rank-<%= r.rank %>"><%= r.rank %></span>
+                  <% } else { %>
+                  <span><%= r.rank %>위</span>
+                  <% } %>
+                </td>
+                <td><span class="badge <%= r.gender === '여' ? 'bg-danger' : 'bg-primary' %>" style="font-size:0.7rem"><%= r.gender %></span></td>
+                <td><strong><%= r.member_name %></strong></td>
+                <td class="text-center"><strong><%= r.score %></strong></td>
+              </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 페리오 탭 -->
+  <div class="tab-pane fade" id="tabPerio" role="tabpanel">
+    <div class="card">
+      <div class="card-header">
+        <h6 class="mb-0"><i class="bi bi-calculator"></i> 신(더블)페리오 순위</h6>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0 result-table">
+            <thead class="table-light">
+              <tr>
+                <th class="text-center">순위</th>
+                <th>이름</th>
+                <th class="text-center">HD</th>
+                <th class="text-center">점수</th>
+              </tr>
+            </thead>
+            <tbody>
+              <%
+                const periaResults = results
+                  .filter(r => r.peoria_score > 0)
+                  .sort((a, b) => a.peoria_score - b.peoria_score);
+              %>
+              <% periaResults.forEach((r, idx) => { %>
+              <tr>
+                <td class="text-center">
+                  <% if (idx < 3) { %>
+                  <span class="rank-medal rank-<%= idx+1 %>"><%= idx+1 %></span>
+                  <% } else { %>
+                  <span><%= idx+1 %>위</span>
+                  <% } %>
+                </td>
+                <td><strong><%= r.peoria_name || r.member_name %></strong></td>
+                <td class="text-center"><%= r.peoria_hd %></td>
+                <td class="text-center"><strong><%= r.peoria_score %></strong></td>
+              </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 통계 탭 -->
+  <div class="tab-pane fade" id="tabStats" role="tabpanel">
+    <!-- 버디 -->
+    <div class="card mb-3">
+      <div class="card-header"><h6 class="mb-0"><i class="bi bi-star text-warning"></i> 버디</h6></div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-sm mb-0 result-table">
+            <thead class="table-light"><tr><th>이름</th><th class="text-center">개수</th></tr></thead>
+            <tbody>
+              <% results.filter(r => r.birdies > 0).sort((a,b) => b.birdies - a.birdies).forEach(r => { %>
+              <tr><td><%= r.member_name %></td><td class="text-center"><strong><%= r.birdies %></strong></td></tr>
+              <% }) %>
+              <% if (results.filter(r => r.birdies > 0).length === 0) { %>
+              <tr><td colspan="2" class="text-center text-muted py-3">버디 기록 없음</td></tr>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- 파 -->
+    <div class="card mb-3">
+      <div class="card-header"><h6 class="mb-0"><i class="bi bi-circle text-success"></i> 파</h6></div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-sm mb-0 result-table">
+            <thead class="table-light"><tr><th>이름</th><th class="text-center">개수</th></tr></thead>
+            <tbody>
+              <% results.filter(r => r.pars > 0).sort((a,b) => b.pars - a.pars).forEach(r => { %>
+              <tr><td><%= r.member_name %></td><td class="text-center"><strong><%= r.pars %></strong></td></tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- 보기 -->
+    <div class="card mb-3">
+      <div class="card-header"><h6 class="mb-0"><i class="bi bi-dash-circle text-info"></i> 보기</h6></div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-sm mb-0 result-table">
+            <thead class="table-light"><tr><th>이름</th><th class="text-center">개수</th></tr></thead>
+            <tbody>
+              <% results.filter(r => r.bogeys > 0).sort((a,b) => b.bogeys - a.bogeys).forEach(r => { %>
+              <tr><td><%= r.member_name %></td><td class="text-center"><strong><%= r.bogeys %></strong></td></tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- 더블 -->
+    <div class="card mb-3">
+      <div class="card-header"><h6 class="mb-0"><i class="bi bi-x-circle text-danger"></i> 더블 보기+</h6></div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-sm mb-0 result-table">
+            <thead class="table-light"><tr><th>이름</th><th class="text-center">개수</th></tr></thead>
+            <tbody>
+              <% results.filter(r => r.doubles > 0).sort((a,b) => b.doubles - a.doubles).forEach(r => { %>
+              <tr><td><%= r.member_name %></td><td class="text-center"><strong><%= r.doubles %></strong></td></tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<% } else if (!user || !user.is_admin) { %>
+<div class="card">
+  <div class="card-body text-center py-5">
+    <i class="bi bi-trophy" style="font-size: 3rem; color: #dee2e6;"></i>
+    <p class="text-muted mt-2">아직 라운딩 결과가 등록되지 않았습니다.</p>
+  </div>
+</div>
+<% } %>
+
+<script>
+const csrfToken = '<%= csrfToken %>';
+const scheduleId = <%= schedule.id %>;
+let ocrMergedResults = [];
+
+// OCR 파일 업로드
+const uploadZone = document.getElementById('uploadZone');
+const ocrFileInput = document.getElementById('ocrFileInput');
+
+if (uploadZone) {
+  // 드래그 앤 드롭
+  ['dragenter', 'dragover'].forEach(e => {
+    uploadZone.addEventListener(e, (evt) => { evt.preventDefault(); uploadZone.classList.add('drag-over'); });
+  });
+  ['dragleave', 'drop'].forEach(e => {
+    uploadZone.addEventListener(e, (evt) => { evt.preventDefault(); uploadZone.classList.remove('drag-over'); });
+  });
+  uploadZone.addEventListener('drop', (evt) => {
+    const files = evt.dataTransfer.files;
+    if (files.length > 0) processOcrFile(files[0]);
+  });
+
+  ocrFileInput.addEventListener('change', () => {
+    if (ocrFileInput.files.length > 0) processOcrFile(ocrFileInput.files[0]);
+  });
+}
+
+async function processOcrFile(file) {
+  if (!file.type.startsWith('image/')) {
+    alert('이미지 파일만 업로드 가능합니다.');
+    return;
+  }
+
+  // 진행 상태 표시
+  document.getElementById('ocrProgress').classList.remove('d-none');
+  document.getElementById('ocrPreview').classList.remove('d-none');
+  document.getElementById('ocrPreview').classList.add('d-none');
+  document.getElementById('ocrStatusText').textContent = 'AI가 결과표를 분석 중입니다... (10~20초 소요)';
+
+  const formData = new FormData();
+  formData.append('image', file);
+  formData.append('_csrf', csrfToken);
+
+  try {
+    const res = await fetch(`/schedules/${scheduleId}/results/ocr`, {
+      method: 'POST',
+      headers: { 'X-CSRF-Token': csrfToken },
+      body: formData
+    });
+
+    const data = await res.json();
+    document.getElementById('ocrProgress').classList.add('d-none');
+
+    if (!data.success) {
+      alert(data.error || 'OCR 처리 실패');
+      return;
+    }
+
+    ocrMergedResults = data.mergedResults;
+    renderOcrPreview(ocrMergedResults);
+  } catch (error) {
+    document.getElementById('ocrProgress').classList.add('d-none');
+    alert('OCR 처리 중 오류가 발생했습니다.');
+    console.error(error);
+  }
+}
+
+function renderOcrPreview(results) {
+  const tbody = document.getElementById('ocrResultsBody');
+  tbody.innerHTML = '';
+  document.getElementById('ocrResultCount').textContent = results.length;
+  document.getElementById('ocrPreview').classList.remove('d-none');
+
+  results.forEach((r, i) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><input type="number" class="form-control form-control-sm" value="${r.rank}" data-field="rank" data-idx="${i}" style="width:45px"></td>
+      <td><input type="text" class="form-control form-control-sm" value="${r.gender}" data-field="gender" data-idx="${i}" style="width:35px"></td>
+      <td><input type="text" class="form-control form-control-sm" value="${r.member_name}" data-field="member_name" data-idx="${i}" style="width:65px"></td>
+      <td><input type="number" class="form-control form-control-sm" value="${r.score}" data-field="score" data-idx="${i}" style="width:50px"></td>
+      <td><input type="text" class="form-control form-control-sm" value="${r.peoria_name || r.member_name}" data-field="peoria_name" data-idx="${i}" style="width:65px"></td>
+      <td><input type="number" step="0.1" class="form-control form-control-sm" value="${r.peoria_hd}" data-field="peoria_hd" data-idx="${i}" style="width:50px"></td>
+      <td><input type="number" step="0.1" class="form-control form-control-sm" value="${r.peoria_score}" data-field="peoria_score" data-idx="${i}" style="width:55px"></td>
+      <td><input type="number" class="form-control form-control-sm" value="${r.birdies}" data-field="birdies" data-idx="${i}" style="width:40px"></td>
+      <td><input type="number" class="form-control form-control-sm" value="${r.pars}" data-field="pars" data-idx="${i}" style="width:40px"></td>
+      <td><input type="number" class="form-control form-control-sm" value="${r.bogeys}" data-field="bogeys" data-idx="${i}" style="width:40px"></td>
+      <td><input type="number" class="form-control form-control-sm" value="${r.doubles}" data-field="doubles" data-idx="${i}" style="width:40px"></td>
+      <td><button class="btn btn-sm btn-outline-danger" onclick="removeOcrRow(${i})" title="삭제"><i class="bi bi-x"></i></button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  // 입력 변경 시 데이터 동기화
+  tbody.querySelectorAll('input').forEach(input => {
+    input.addEventListener('change', function() {
+      const idx = parseInt(this.dataset.idx);
+      const field = this.dataset.field;
+      const val = this.type === 'number' ? parseFloat(this.value) || 0 : this.value;
+      ocrMergedResults[idx][field] = val;
+    });
+  });
+}
+
+function removeOcrRow(idx) {
+  ocrMergedResults.splice(idx, 1);
+  renderOcrPreview(ocrMergedResults);
+}
+
+function clearOcrResults() {
+  ocrMergedResults = [];
+  document.getElementById('ocrPreview').classList.add('d-none');
+  document.getElementById('ocrResultsBody').innerHTML = '';
+  ocrFileInput.value = '';
+}
+
+async function saveOcrResults() {
+  if (ocrMergedResults.length === 0) {
+    alert('저장할 결과가 없습니다.');
+    return;
+  }
+
+  if (!confirm(`${ocrMergedResults.length}명의 라운딩 결과를 저장하시겠습니까?`)) return;
+
+  try {
+    const res = await fetch(`/schedules/${scheduleId}/results`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': csrfToken
+      },
+      body: JSON.stringify({ results: ocrMergedResults, _csrf: csrfToken })
+    });
+
+    const data = await res.json();
+    if (data.success) {
+      alert(data.message);
+      location.reload();
+    } else {
+      alert(data.error || '저장 실패');
+    }
+  } catch (error) {
+    alert('저장 중 오류가 발생했습니다.');
+    console.error(error);
+  }
+}
+</script>
+
+<%- include('../partials/footer') %>

@@ -172,6 +172,14 @@
       <i class="bi bi-bar-chart"></i> 통계
     </button>
   </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabScorecard" type="button">
+      <i class="bi bi-card-image"></i> 스코어카드
+      <% if (schedule.scorecard_images && schedule.scorecard_images.length > 0) { %>
+      <span class="badge bg-success rounded-pill" style="font-size:0.65rem"><%= schedule.scorecard_images.length %></span>
+      <% } %>
+    </button>
+  </li>
 </ul>
 
 <div class="tab-content">
@@ -328,6 +336,60 @@
       </div>
     </div>
   </div>
+
+  <!-- 스코어카드 탭 -->
+  <div class="tab-pane fade" id="tabScorecard" role="tabpanel">
+    <% if (user && user.is_admin) { %>
+    <div class="card mb-3">
+      <div class="card-body">
+        <div class="upload-zone" id="scorecardUploadZone" onclick="document.getElementById('scorecardFileInput').click()">
+          <i class="bi bi-card-image"></i>
+          <p class="mt-2 mb-1 text-muted">스코어카드 사진을 클릭하거나 드래그하여 업로드</p>
+          <small class="text-muted">여러 장 업로드 가능합니다</small>
+          <input type="file" id="scorecardFileInput" accept="image/*" capture="environment" class="d-none" multiple>
+        </div>
+        <div id="scorecardUploadProgress" class="d-none mt-2">
+          <div class="d-flex align-items-center">
+            <div class="spinner-border spinner-border-sm text-success me-2" role="status"></div>
+            <span>업로드 중...</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <% } %>
+
+    <% const scorecardImages = schedule.scorecard_images || []; %>
+    <% if (scorecardImages.length > 0) { %>
+    <div class="row g-2">
+      <% scorecardImages.forEach((img, idx) => { %>
+      <div class="col-12" id="scorecard-<%= idx %>">
+        <div class="card">
+          <div class="card-body p-1 text-center">
+            <a href="<%= img.url %>" target="_blank">
+              <img src="<%= img.url %>" class="img-fluid rounded" alt="스코어카드 <%= idx + 1 %>" style="max-height: 600px; cursor: zoom-in;">
+            </a>
+            <div class="d-flex justify-content-between align-items-center mt-1 px-2">
+              <small class="text-muted"><%= moment(img.uploaded_at).format('MM/DD HH:mm') %> 등록</small>
+              <% if (user && user.is_admin) { %>
+              <button class="btn btn-sm btn-outline-danger" onclick="deleteScorecard(<%= idx %>)">
+                <i class="bi bi-trash"></i>
+              </button>
+              <% } %>
+            </div>
+          </div>
+        </div>
+      </div>
+      <% }) %>
+    </div>
+    <% } else { %>
+    <div class="card">
+      <div class="card-body text-center py-4">
+        <i class="bi bi-card-image" style="font-size: 2.5rem; color: #dee2e6;"></i>
+        <p class="text-muted mt-2">등록된 스코어카드가 없습니다.</p>
+      </div>
+    </div>
+    <% } %>
+  </div>
 </div>
 <% } else if (!user || !user.is_admin) { %>
 <div class="card">
@@ -481,6 +543,78 @@ async function saveOcrResults() {
   } catch (error) {
     alert('저장 중 오류가 발생했습니다.');
     console.error(error);
+  }
+}
+
+// 스코어카드 업로드
+const scorecardUploadZone = document.getElementById('scorecardUploadZone');
+const scorecardFileInput = document.getElementById('scorecardFileInput');
+
+if (scorecardUploadZone) {
+  ['dragenter', 'dragover'].forEach(e => {
+    scorecardUploadZone.addEventListener(e, (evt) => { evt.preventDefault(); scorecardUploadZone.classList.add('drag-over'); });
+  });
+  ['dragleave', 'drop'].forEach(e => {
+    scorecardUploadZone.addEventListener(e, (evt) => { evt.preventDefault(); scorecardUploadZone.classList.remove('drag-over'); });
+  });
+  scorecardUploadZone.addEventListener('drop', (evt) => {
+    const files = evt.dataTransfer.files;
+    if (files.length > 0) uploadScorecards(files);
+  });
+
+  scorecardFileInput.addEventListener('change', () => {
+    if (scorecardFileInput.files.length > 0) uploadScorecards(scorecardFileInput.files);
+  });
+}
+
+async function uploadScorecards(files) {
+  const progress = document.getElementById('scorecardUploadProgress');
+  progress.classList.remove('d-none');
+
+  let successCount = 0;
+  for (const file of files) {
+    if (!file.type.startsWith('image/')) continue;
+    const formData = new FormData();
+    formData.append('image', file);
+    formData.append('_csrf', csrfToken);
+
+    try {
+      const res = await fetch(`/schedules/${scheduleId}/results/scorecard`, {
+        method: 'POST',
+        headers: { 'X-CSRF-Token': csrfToken },
+        body: formData
+      });
+      const data = await res.json();
+      if (data.success) successCount++;
+      else alert(data.error || '업로드 실패');
+    } catch (err) {
+      console.error('스코어카드 업로드 오류:', err);
+    }
+  }
+
+  progress.classList.add('d-none');
+  if (successCount > 0) {
+    alert(`스코어카드 ${successCount}장이 등록되었습니다.`);
+    location.reload();
+  }
+}
+
+async function deleteScorecard(index) {
+  if (!confirm('이 스코어카드를 삭제하시겠습니까?')) return;
+
+  try {
+    const res = await fetch(`/schedules/${scheduleId}/results/scorecard/${index}`, {
+      method: 'DELETE',
+      headers: { 'X-CSRF-Token': csrfToken }
+    });
+    const data = await res.json();
+    if (data.success) {
+      document.getElementById('scorecard-' + index).remove();
+    } else {
+      alert(data.error || '삭제 실패');
+    }
+  } catch (err) {
+    alert('삭제 중 오류가 발생했습니다.');
   }
 }
 </script>

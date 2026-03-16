@@ -1558,6 +1558,90 @@ JSON만 반환하세요.`
   }
 });
 
+// 스코어카드 이미지 업로드 (관리자)
+router.post('/:id/results/scorecard', requireAuth, requireAdmin, upload.single('image'), async (req, res) => {
+  try {
+    const scheduleId = parseInt(req.params.id);
+    if (!req.file) {
+      return res.status(400).json({ error: '이미지 파일이 없습니다.' });
+    }
+
+    let imageUrl = null;
+
+    // Cloudinary 업로드 시도
+    if (isCloudinaryConfigured()) {
+      try {
+        const base64Data = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
+        const result = await cloudinary.uploader.upload(base64Data, {
+          folder: 'n2golf/scorecards',
+          resource_type: 'image',
+          transformation: [
+            { width: 1600, height: 1600, crop: 'limit' },
+            { quality: 'auto:good', fetch_format: 'auto' }
+          ]
+        });
+        imageUrl = result.secure_url;
+      } catch (cloudinaryError) {
+        console.warn('Cloudinary 업로드 실패, MongoDB 폴백:', cloudinaryError.message);
+      }
+    }
+
+    // Cloudinary 실패 시 Base64로 저장
+    if (!imageUrl) {
+      if (req.file.size > 3 * 1024 * 1024) {
+        return res.status(400).json({ error: '3MB 이하의 이미지만 업로드 가능합니다.' });
+      }
+      imageUrl = imageToBase64(req.file.buffer, req.file.mimetype);
+    }
+
+    // 기존 스코어카드 이미지 목록에 추가
+    const schedule = db.findById('schedules', scheduleId);
+    const scorecardImages = schedule.scorecard_images || [];
+    scorecardImages.push({
+      url: imageUrl,
+      uploaded_at: new Date().toISOString()
+    });
+
+    await db.update('schedules', scheduleId, { scorecard_images: scorecardImages });
+
+    if (db.refreshCache) {
+      await db.refreshCache('schedules');
+    }
+
+    res.json({ success: true, imageUrl, message: '스코어카드가 등록되었습니다.' });
+  } catch (error) {
+    console.error('스코어카드 업로드 오류:', error);
+    res.status(500).json({ error: '스코어카드 업로드 중 오류가 발생했습니다.' });
+  }
+});
+
+// 스코어카드 이미지 삭제 (관리자)
+router.delete('/:id/results/scorecard/:index', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const scheduleId = parseInt(req.params.id);
+    const index = parseInt(req.params.index);
+
+    const schedule = db.findById('schedules', scheduleId);
+    const scorecardImages = schedule.scorecard_images || [];
+
+    if (index < 0 || index >= scorecardImages.length) {
+      return res.status(400).json({ error: '유효하지 않은 인덱스입니다.' });
+    }
+
+    scorecardImages.splice(index, 1);
+    await db.update('schedules', scheduleId, { scorecard_images: scorecardImages });
+
+    if (db.refreshCache) {
+      await db.refreshCache('schedules');
+    }
+
+    res.json({ success: true, message: '스코어카드가 삭제되었습니다.' });
+  } catch (error) {
+    console.error('스코어카드 삭제 오류:', error);
+    res.status(500).json({ error: '스코어카드 삭제 중 오류가 발생했습니다.' });
+  }
+});
+
 // multer 에러 핸들링 미들웨어
 router.use((error, req, res, next) => {
   if (error instanceof multer.MulterError) {

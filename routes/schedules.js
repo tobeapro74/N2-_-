@@ -1435,6 +1435,13 @@ router.post('/:id/results/ocr', requireAuth, requireAdmin, upload.single('image'
     const Anthropic = require('@anthropic-ai/sdk');
     const client = new Anthropic({ apiKey: ANTHROPIC_API_KEY });
 
+    // 회원 이름 목록을 가져와서 OCR 정확도 향상
+    const members = await db.getTableAsync('members');
+    const memberNames = members
+      .filter(m => m.status === 'active' && !m.is_admin)
+      .map(m => m.name)
+      .join(', ');
+
     // 이미지를 base64로 변환
     const base64Image = req.file.buffer.toString('base64');
     const mediaType = req.file.mimetype;
@@ -1453,7 +1460,8 @@ router.post('/:id/results/ocr', requireAuth, requireAdmin, upload.single('image'
             type: 'text',
             text: `이 골프 라운딩 결과표 사진을 분석해서 JSON 형식으로 반환해주세요.
 
-반드시 아래 형식의 JSON 배열만 반환하세요 (다른 텍스트 없이):
+중요: 이름은 반드시 아래 회원 목록에서 가장 유사한 이름으로 매칭해주세요.
+회원 목록: ${memberNames}
 
 각 테이블 섹션별로 데이터를 추출해주세요:
 
@@ -1464,7 +1472,7 @@ router.post('/:id/results/ocr', requireAuth, requireAdmin, upload.single('image'
 5. "bogeys" - 보기 (이름, 개수)
 6. "doubles" - 더블 (이름, 개수)
 
-JSON 형식:
+JSON 형식 (다른 텍스트 없이 JSON만 반환):
 {
   "ranking": [{"rank": 1, "gender": "남", "name": "홍길동", "score": 86}, ...],
   "peoria": [{"name": "홍길동", "hd": 14.4, "score": 72.6}, ...],
@@ -1472,9 +1480,7 @@ JSON 형식:
   "pars": [{"name": "홍길동", "count": 7}, ...],
   "bogeys": [{"name": "홍길동", "count": 11}, ...],
   "doubles": [{"name": "홍길동", "count": 9}, ...]
-}
-
-JSON만 반환하세요.`
+}`
           }
         ]
       }]

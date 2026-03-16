@@ -1506,6 +1506,48 @@ JSON 형식 (다른 텍스트 없이 JSON만 반환):
       });
     }
 
+    // 이름 유사도 매칭 (레벤슈타인 거리 기반)
+    const memberNameList = members.filter(m => m.status === 'active' && !m.is_admin).map(m => m.name);
+
+    function levenshtein(a, b) {
+      const m = a.length, n = b.length;
+      const dp = Array.from({ length: m + 1 }, () => Array(n + 1).fill(0));
+      for (let i = 0; i <= m; i++) dp[i][0] = i;
+      for (let j = 0; j <= n; j++) dp[0][j] = j;
+      for (let i = 1; i <= m; i++) {
+        for (let j = 1; j <= n; j++) {
+          dp[i][j] = a[i-1] === b[j-1] ? dp[i-1][j-1] : 1 + Math.min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1]);
+        }
+      }
+      return dp[m][n];
+    }
+
+    function matchName(ocrName) {
+      if (!ocrName) return ocrName;
+      // 정확히 일치하면 바로 반환
+      if (memberNameList.includes(ocrName)) return ocrName;
+      // 유사도 매칭
+      let bestMatch = ocrName;
+      let bestDist = Infinity;
+      for (const name of memberNameList) {
+        const dist = levenshtein(ocrName, name);
+        if (dist < bestDist) {
+          bestDist = dist;
+          bestMatch = name;
+        }
+      }
+      // 거리가 2 이하면 매칭 (3글자 이름에서 1~2글자 오차 허용)
+      return bestDist <= 2 ? bestMatch : ocrName;
+    }
+
+    // OCR 결과의 모든 이름을 DB 회원 이름으로 매칭
+    if (ocrData.ranking) ocrData.ranking.forEach(r => { r.name = matchName(r.name); });
+    if (ocrData.peoria) ocrData.peoria.forEach(r => { r.name = matchName(r.name); });
+    if (ocrData.birdies) ocrData.birdies.forEach(r => { r.name = matchName(r.name); });
+    if (ocrData.pars) ocrData.pars.forEach(r => { r.name = matchName(r.name); });
+    if (ocrData.bogeys) ocrData.bogeys.forEach(r => { r.name = matchName(r.name); });
+    if (ocrData.doubles) ocrData.doubles.forEach(r => { r.name = matchName(r.name); });
+
     // OCR 데이터를 통합 결과로 변환
     const mergedResults = [];
     if (ocrData.ranking) {

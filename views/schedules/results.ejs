@@ -521,16 +521,16 @@ function renderOcrPreview(results) {
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td><input type="number" class="form-control form-control-sm" value="${r.rank}" data-field="rank" data-idx="${i}" style="width:45px"></td>
-      <td><input type="text" class="form-control form-control-sm" value="${r.gender}" data-field="gender" data-idx="${i}" style="width:35px"></td>
-      <td><input type="text" class="form-control form-control-sm" value="${r.member_name}" data-field="member_name" data-idx="${i}" style="width:65px"></td>
-      <td><input type="number" class="form-control form-control-sm" value="${r.score}" data-field="score" data-idx="${i}" style="width:50px"></td>
-      <td><input type="text" class="form-control form-control-sm" value="${r.peoria_name || r.member_name}" data-field="peoria_name" data-idx="${i}" style="width:65px"></td>
-      <td><input type="number" step="0.1" class="form-control form-control-sm" value="${r.peoria_hd}" data-field="peoria_hd" data-idx="${i}" style="width:50px"></td>
-      <td><input type="number" step="0.1" class="form-control form-control-sm" value="${r.peoria_score}" data-field="peoria_score" data-idx="${i}" style="width:55px"></td>
-      <td><input type="number" class="form-control form-control-sm" value="${r.birdies}" data-field="birdies" data-idx="${i}" style="width:40px"></td>
-      <td><input type="number" class="form-control form-control-sm" value="${r.pars}" data-field="pars" data-idx="${i}" style="width:40px"></td>
-      <td><input type="number" class="form-control form-control-sm" value="${r.bogeys}" data-field="bogeys" data-idx="${i}" style="width:40px"></td>
-      <td><input type="number" class="form-control form-control-sm" value="${r.doubles}" data-field="doubles" data-idx="${i}" style="width:40px"></td>
+      <td><input type="text" class="form-control form-control-sm" value="${r.gender}" data-field="gender" data-idx="${i}" style="width:38px"></td>
+      <td><input type="text" class="form-control form-control-sm" value="${r.member_name}" data-field="member_name" data-idx="${i}" style="width:70px"></td>
+      <td><input type="number" class="form-control form-control-sm" value="${r.score}" data-field="score" data-idx="${i}" style="width:55px"></td>
+      <td><input type="text" class="form-control form-control-sm" value="${r.peoria_name || r.member_name}" data-field="peoria_name" data-idx="${i}" style="width:70px"></td>
+      <td><input type="number" step="0.1" class="form-control form-control-sm" value="${r.peoria_hd}" data-field="peoria_hd" data-idx="${i}" style="width:60px"></td>
+      <td><input type="number" step="0.1" class="form-control form-control-sm" value="${r.peoria_score}" data-field="peoria_score" data-idx="${i}" style="width:65px"></td>
+      <td><input type="number" class="form-control form-control-sm" value="${r.birdies}" data-field="birdies" data-idx="${i}" style="width:45px"></td>
+      <td><input type="number" class="form-control form-control-sm" value="${r.pars}" data-field="pars" data-idx="${i}" style="width:45px"></td>
+      <td><input type="number" class="form-control form-control-sm" value="${r.bogeys}" data-field="bogeys" data-idx="${i}" style="width:45px"></td>
+      <td><input type="number" class="form-control form-control-sm" value="${r.doubles}" data-field="doubles" data-idx="${i}" style="width:45px"></td>
       <td><button class="btn btn-sm btn-outline-danger" onclick="removeOcrRow(${i})" title="삭제"><i class="bi bi-x"></i></button></td>
     `;
     tbody.appendChild(tr);

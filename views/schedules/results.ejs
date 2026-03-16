@@ -481,8 +481,16 @@ async function processOcrFile(file) {
       body: formData
     });
 
-    const data = await res.json();
+    const text = await res.text();
     document.getElementById('ocrProgress').classList.add('d-none');
+
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch (e) {
+      alert('OCR 처리 중 오류가 발생했습니다: ' + text.substring(0, 200));
+      return;
+    }
 
     if (!data.success) {
       alert(data.error || 'OCR 처리 실패');
@@ -493,7 +501,7 @@ async function processOcrFile(file) {
     renderOcrPreview(ocrMergedResults);
   } catch (error) {
     document.getElementById('ocrProgress').classList.add('d-none');
-    alert('OCR 처리 중 오류가 발생했습니다.');
+    alert('OCR 처리 중 오류가 발생했습니다.\n' + error.message);
     console.error(error);
   }
 }

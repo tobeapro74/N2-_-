@@ -3,15 +3,14 @@
 <!-- 공지사항 배너 -->
 <div class="row mb-3">
   <div class="col-12">
-    <a href="/schedules/10" class="text-decoration-none">
-      <div class="bg-warning bg-gradient text-dark rounded-2 py-2 px-3" style="cursor: pointer;">
-        <div class="d-flex align-items-center">
-          <i class="bi bi-megaphone-fill me-2" style="font-size: 1rem;"></i>
-          <span style="font-size: 0.9rem; font-weight: 600;">3/14(토) 양지파인CC 예약 안내</span>
-          <i class="bi bi-chevron-right ms-auto" style="font-size: 0.85rem;"></i>
-        </div>
+    <div class="bg-success bg-gradient text-white rounded-2 py-2 px-3" style="cursor: pointer;" data-bs-toggle="modal" data-bs-target="#gunsanModal">
+      <div class="d-flex align-items-center">
+        <i class="bi bi-megaphone-fill me-2" style="font-size: 1rem;"></i>
+        <span style="font-size: 0.9rem; font-weight: 600;">4/18~19 군산CC 1박2일 안내</span>
+        <span class="badge bg-light text-success ms-2" style="font-size: 0.7rem;">22/24명</span>
+        <i class="bi bi-chevron-right ms-auto" style="font-size: 0.85rem;"></i>
       </div>
-    </a>
+    </div>
   </div>
 </div>
 
@@ -519,6 +518,43 @@
   </div>
 </div>
 <% } %>
+
+<!-- 군산CC 안내 모달 -->
+<div class="modal fade" id="gunsanModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header bg-success text-white py-3">
+        <div class="w-100 text-center">
+          <h5 class="modal-title mb-1"><i class="bi bi-trophy-fill"></i> 4월 군산CC 1박2일</h5>
+          <small>4/18(토) ~ 4/19(일)</small>
+        </div>
+        <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-2" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body text-center py-4">
+        <p class="mb-3" style="font-size: 1.05rem; font-weight: 600; color: #198754;">
+          "즐거움은 더 크게, 스트레스는 더 멀리!<br>N2골프"
+        </p>
+        <hr>
+        <div class="text-start px-2">
+          <p class="mb-2"><i class="bi bi-people-fill text-success"></i> <strong>현재 신청: 22명 / 24명</strong> <span class="text-muted">(2명 추가 가능)</span></p>
+          <p class="mb-2"><i class="bi bi-geo-alt-fill text-success"></i> 군산CC (토너먼트 코스)</p>
+          <p class="mb-2"><i class="bi bi-calendar-check text-success"></i> 4/18(토) ~ 4/19(일)</p>
+        </div>
+        <hr>
+        <div class="alert alert-warning mb-0 py-2 text-start" style="font-size: 0.9rem;">
+          <i class="bi bi-exclamation-triangle-fill"></i> <strong>안내사항</strong><br>
+          반드시 <strong>IG 홈페이지 게시판</strong>에서 <strong>"참가신청"</strong>을 하셔야 합니다.
+        </div>
+      </div>
+      <div class="modal-footer justify-content-center py-2">
+        <a href="/schedules/11/community" class="btn btn-success">
+          <i class="bi bi-chat-dots"></i> 군산CC 톡톡 바로가기
+        </a>
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">닫기</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- 골프장 코스 가이드 모달 -->
 <div class="modal fade" id="courseGuideModal" tabindex="-1">

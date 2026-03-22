@@ -102,8 +102,9 @@ router.post('/apply', requireAuth, async (req, res) => {
 
     const golfCourse = db.findById('golf_courses', schedule.golf_course_id) || {};
 
-    // 중복 신청 확인 (취소된 예약은 제외)
-    const existing = db.getTable('reservations').find(
+    // 중복 신청 확인 (취소된 예약은 제외) - MongoDB 직접 조회로 캐시 불일치 방지
+    const allReservations = await db.getTableAsync('reservations');
+    const existing = allReservations.find(
       r => r.schedule_id === scheduleId && r.member_id === memberId && r.status !== 'cancelled'
     );
 

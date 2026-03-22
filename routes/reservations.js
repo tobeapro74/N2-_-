@@ -102,15 +102,20 @@ router.post('/apply', requireAuth, async (req, res) => {
 
     const golfCourse = db.findById('golf_courses', schedule.golf_course_id) || {};
 
-    // 중복 신청 확인 (취소된 예약은 제외) - MongoDB 직접 조회로 캐시 불일치 방지
+    // 중복 신청 확인 - MongoDB 직접 조회로 캐시 불일치 방지
     const allReservations = await db.getTableAsync('reservations');
-    const existing = allReservations.find(
+    const existingActive = allReservations.find(
       r => r.schedule_id === scheduleId && r.member_id === memberId && r.status !== 'cancelled'
     );
 
-    if (existing) {
+    if (existingActive) {
       return res.status(400).json({ error: '이미 신청한 일정입니다.' });
     }
+
+    // 취소된 예약이 있는지 확인 (재신청 시 기존 레코드 재활용)
+    const cancelledReservation = allReservations.find(
+      r => r.schedule_id === scheduleId && r.member_id === memberId && r.status === 'cancelled'
+    );
 
     // 연속 참가 여부 확인
     const allSchedules = db.getTable('schedules')
@@ -122,7 +127,7 @@ router.post('/apply', requireAuth, async (req, res) => {
 
     if (allSchedules.length > 0) {
       const prevSchedule = allSchedules[0];
-      const wasConfirmed = db.getTable('reservations').find(
+      const wasConfirmed = allReservations.find(
         r => r.schedule_id === prevSchedule.id && r.member_id === memberId && r.status === 'confirmed'
       );
 
@@ -133,7 +138,7 @@ router.post('/apply', requireAuth, async (req, res) => {
     }
 
     // 현재 예약 수 확인 (신청 전)
-    const currentCount = db.getTable('reservations')
+    const currentCount = allReservations
       .filter(r => r.schedule_id === scheduleId && ['pending', 'confirmed'].includes(r.status))
       .length;
 
@@ -142,16 +147,29 @@ router.post('/apply', requireAuth, async (req, res) => {
     // 모집인원 초과 시 대기자로 등록
     const reservationStatus = currentCount >= maxMembers ? 'waitlist' : 'pending';
 
-    // 예약 생성 (비동기)
-    await db.insert('reservations', {
-      schedule_id: scheduleId,
-      member_id: memberId,
-      priority,
-      consecutive_count: consecutiveCount,
-      status: reservationStatus,
-      preferred_tee_time: preferred_tee_time || null,
-      applied_at: new Date().toISOString()
-    });
+    if (cancelledReservation) {
+      // 취소된 예약 재활용 (유니크 인덱스 중복 방지)
+      await db.update('reservations', cancelledReservation.id, {
+        priority,
+        consecutive_count: consecutiveCount,
+        status: reservationStatus,
+        preferred_tee_time: preferred_tee_time || null,
+        applied_at: new Date().toISOString(),
+        team_number: null,
+        tee_time: null
+      });
+    } else {
+      // 신규 예약 생성
+      await db.insert('reservations', {
+        schedule_id: scheduleId,
+        member_id: memberId,
+        priority,
+        consecutive_count: consecutiveCount,
+        status: reservationStatus,
+        preferred_tee_time: preferred_tee_time || null,
+        applied_at: new Date().toISOString()
+      });
+    }
 
     // 캐시 새로고침
     if (db.refreshCache) {

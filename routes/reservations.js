@@ -183,8 +183,8 @@ router.post('/apply', requireAuth, async (req, res) => {
       status: reservationStatus
     });
   } catch (error) {
-    console.error('예약 신청 오류:', error);
-    res.status(500).json({ error: '예약 신청 중 오류가 발생했습니다.' });
+    console.error('예약 신청 오류:', error.message, error.stack);
+    res.status(500).json({ error: '예약 신청 중 오류가 발생했습니다: ' + error.message });
   }
 });
 

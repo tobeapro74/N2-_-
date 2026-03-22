@@ -394,14 +394,26 @@ function applyReservation(scheduleId) {
       _csrf: csrfToken
     })
   })
-  .then(res => res.json())
+  .then(res => {
+    if (!res.ok && res.status === 403) {
+      alert('세션이 만료되었습니다. 페이지를 새로고침합니다.');
+      location.reload();
+      return null;
+    }
+    return res.json();
+  })
   .then(data => {
+    if (!data) return;
     if (data.success) {
       alert(data.message + (data.isWaitlist ? ' (대기자 명단)' : ''));
       location.reload();
     } else {
       alert(data.error || '오류가 발생했습니다.');
     }
+  })
+  .catch(err => {
+    console.error('예약 신청 에러:', err);
+    alert('네트워크 오류가 발생했습니다. 페이지를 새로고침 후 다시 시도해주세요.');
   });
 }
 

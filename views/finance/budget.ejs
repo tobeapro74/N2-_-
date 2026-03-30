@@ -1,0 +1,470 @@
+<%- include('../partials/header') %>
+
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <div class="d-flex align-items-center">
+    <a href="/finance" class="back-link" aria-label="자금현황으로 이동">
+      <i class="bi bi-chevron-left" aria-hidden="true"></i>자금
+    </a>
+    <h5 class="mb-0 fw-bold"><i class="bi bi-calculator text-success me-2"></i>예산 관리</h5>
+  </div>
+</div>
+
+<!-- 반기 선택 -->
+<div class="card border-0 shadow-sm mb-3">
+  <div class="card-body py-2 px-3">
+    <form method="GET" class="row g-2 align-items-end">
+      <div class="col-4">
+        <label class="form-label mb-1" style="font-size: 0.85rem; color: #6c757d;">연도</label>
+        <select name="year" class="form-select form-select-sm" style="font-size: 0.85rem;">
+          <% years.forEach(y => { %>
+          <option value="<%= y %>" <%= year == y ? 'selected' : '' %>><%= y %>년</option>
+          <% }) %>
+        </select>
+      </div>
+      <div class="col-4">
+        <label class="form-label mb-1" style="font-size: 0.85rem; color: #6c757d;">반기</label>
+        <select name="half" class="form-select form-select-sm" style="font-size: 0.85rem;">
+          <option value="first" <%= half === 'first' ? 'selected' : '' %>>상반기</option>
+          <option value="second" <%= half === 'second' ? 'selected' : '' %>>하반기</option>
+        </select>
+      </div>
+      <div class="col-4">
+        <button type="submit" class="btn btn-primary btn-sm w-100" style="font-size: 0.85rem;">
+          <i class="bi bi-search"></i> 조회
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<% if (!budget) { %>
+<div class="alert alert-info text-center">
+  <i class="bi bi-info-circle"></i> <%= year %>년 <%= half === 'first' ? '상반기' : '하반기' %> 예산이 아직 설정되지 않았습니다.
+  <br><button class="btn btn-success btn-sm mt-2" onclick="createNewBudget()"><i class="bi bi-plus-lg"></i> 새 예산 생성</button>
+</div>
+<% } else { %>
+
+<%
+  const totalBudget = (budget.company_support - budget.used_support) + budget.carryover + (budget.monthly_fee * budget.fee_months);
+  const totalWeight = budget.events.reduce((sum, e) => sum + (e.weight || 1), 0);
+  const perWeight = totalWeight > 0 ? Math.round(totalBudget / totalWeight) : 0;
+  const totalSpent = budget.events.reduce((sum, e) => sum + (e.spent || 0), 0);
+  const totalRemaining = totalBudget - totalSpent;
+  const spentRate = totalBudget > 0 ? Math.round((totalSpent / totalBudget) * 100) : 0;
+%>
+
+<!-- 재원 현황 -->
+<div class="card border-0 shadow-sm mb-3">
+  <div class="card-header bg-white py-2">
+    <div class="d-flex justify-content-between align-items-center">
+      <h6 class="mb-0 fw-bold" style="font-size: 0.9rem;"><i class="bi bi-bank text-primary me-2"></i>재원 현황</h6>
+      <button class="btn btn-sm btn-outline-primary py-0 px-2" style="font-size: 0.8rem;" onclick="toggleEditSource()" id="editSourceBtn">
+        <i class="bi bi-pencil"></i> 수정
+      </button>
+    </div>
+  </div>
+  <div class="card-body py-2">
+    <div class="row g-2">
+      <div class="col-6">
+        <div class="border rounded p-2 text-center bg-light">
+          <small class="text-muted d-block" style="font-size: 0.75rem;">회사 지원금</small>
+          <span class="fw-bold text-primary" style="font-size: 0.9rem;" id="dispCompanySupport"><%= budget.company_support.toLocaleString() %></span>
+          <input type="number" class="form-control form-control-sm d-none" id="inputCompanySupport" value="<%= budget.company_support %>">
+        </div>
+      </div>
+      <div class="col-6">
+        <div class="border rounded p-2 text-center bg-light">
+          <small class="text-muted d-block" style="font-size: 0.75rem;">기 사용 지원금</small>
+          <span class="fw-bold text-danger" style="font-size: 0.9rem;" id="dispUsedSupport"><%= budget.used_support.toLocaleString() %></span>
+          <input type="number" class="form-control form-control-sm d-none" id="inputUsedSupport" value="<%= budget.used_support %>">
+        </div>
+      </div>
+      <div class="col-4">
+        <div class="border rounded p-2 text-center bg-light">
+          <small class="text-muted d-block" style="font-size: 0.75rem;">이월 잔액</small>
+          <span class="fw-bold" style="font-size: 0.9rem;" id="dispCarryover"><%= budget.carryover.toLocaleString() %></span>
+          <input type="number" class="form-control form-control-sm d-none" id="inputCarryover" value="<%= budget.carryover %>">
+        </div>
+      </div>
+      <div class="col-4">
+        <div class="border rounded p-2 text-center bg-light">
+          <small class="text-muted d-block" style="font-size: 0.75rem;">월 회비</small>
+          <span class="fw-bold" style="font-size: 0.9rem;" id="dispMonthlyFee"><%= budget.monthly_fee.toLocaleString() %></span>
+          <input type="number" class="form-control form-control-sm d-none" id="inputMonthlyFee" value="<%= budget.monthly_fee %>">
+        </div>
+      </div>
+      <div class="col-4">
+        <div class="border rounded p-2 text-center bg-light">
+          <small class="text-muted d-block" style="font-size: 0.75rem;">회비 개월</small>
+          <span class="fw-bold" style="font-size: 0.9rem;" id="dispFeeMonths"><%= budget.fee_months %>개월</span>
+          <input type="number" class="form-control form-control-sm d-none" id="inputFeeMonths" value="<%= budget.fee_months %>">
+        </div>
+      </div>
+    </div>
+    <div class="d-none mt-2" id="sourceEditActions">
+      <button class="btn btn-success btn-sm w-100" onclick="saveSource()"><i class="bi bi-check-lg"></i> 재원 저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- 예산 요약 -->
+<div class="row g-2 mb-3">
+  <div class="col-4">
+    <div class="card border-0 shadow-sm bg-primary bg-opacity-10">
+      <div class="card-body text-center py-2 px-1">
+        <small class="text-muted" style="font-size: 0.75rem;">총 예산</small>
+        <h6 class="mb-0 fw-bold text-primary" style="font-size: 0.85rem;" id="totalBudgetDisp"><%= totalBudget.toLocaleString() %></h6>
+      </div>
+    </div>
+  </div>
+  <div class="col-4">
+    <div class="card border-0 shadow-sm bg-danger bg-opacity-10">
+      <div class="card-body text-center py-2 px-1">
+        <small class="text-muted" style="font-size: 0.75rem;">총 지출</small>
+        <h6 class="mb-0 fw-bold text-danger" style="font-size: 0.85rem;" id="totalSpentDisp"><%= totalSpent.toLocaleString() %></h6>
+      </div>
+    </div>
+  </div>
+  <div class="col-4">
+    <div class="card border-0 shadow-sm bg-success bg-opacity-10">
+      <div class="card-body text-center py-2 px-1">
+        <small class="text-muted" style="font-size: 0.75rem;">잔액</small>
+        <h6 class="mb-0 fw-bold text-success" style="font-size: 0.85rem;" id="totalRemainingDisp"><%= totalRemaining.toLocaleString() %></h6>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 진행률 -->
+<div class="card border-0 shadow-sm mb-3">
+  <div class="card-body py-2">
+    <div class="d-flex justify-content-between mb-1">
+      <small class="text-muted" style="font-size: 0.8rem;">예산 집행률</small>
+      <small class="fw-bold" style="font-size: 0.8rem;"><%= spentRate %>%</small>
+    </div>
+    <div class="progress" style="height: 8px;">
+      <div class="progress-bar <%= spentRate > 80 ? 'bg-danger' : spentRate > 50 ? 'bg-warning' : 'bg-success' %>" style="width: <%= spentRate %>%"></div>
+    </div>
+    <div class="d-flex justify-content-between mt-1">
+      <small class="text-muted" style="font-size: 0.75rem;">가중치 합: <%= totalWeight %> | 가중치 1당: <%= perWeight.toLocaleString() %>원</small>
+    </div>
+  </div>
+</div>
+
+<!-- 행사별 예산 배분표 -->
+<div class="card border-0 shadow-sm mb-3">
+  <div class="card-header bg-white py-2">
+    <div class="d-flex justify-content-between align-items-center">
+      <h6 class="mb-0 fw-bold" style="font-size: 0.9rem;"><i class="bi bi-calendar-event text-success me-2"></i>행사별 예산 배분</h6>
+      <button class="btn btn-sm btn-outline-success py-0 px-2" style="font-size: 0.8rem;" onclick="addEvent()">
+        <i class="bi bi-plus-lg"></i> 행사 추가
+      </button>
+    </div>
+  </div>
+  <div class="card-body p-0">
+    <div class="accordion" id="eventAccordion">
+      <% budget.events.forEach((event, idx) => { %>
+      <%
+        const eventSpent = event.spent || 0;
+        const eventRemaining = event.budget - eventSpent;
+        const isPast = new Date(event.date) < new Date();
+      %>
+      <div class="accordion-item border-0 border-bottom">
+        <h2 class="accordion-header">
+          <button class="accordion-button collapsed py-2 px-3" type="button" data-bs-toggle="collapse" data-bs-target="#event<%= idx %>" style="font-size: 0.85rem;">
+            <div class="w-100">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <% if (event.type === 'overnight') { %>
+                  <span class="badge bg-warning text-dark me-1" style="font-size: 0.7rem;">1박2일</span>
+                  <% } %>
+                  <% if (isPast) { %>
+                  <span class="badge bg-secondary me-1" style="font-size: 0.7rem;">완료</span>
+                  <% } %>
+                  <strong><%= event.name %></strong>
+                </div>
+                <div class="text-end">
+                  <span class="badge bg-primary bg-opacity-75" style="font-size: 0.75rem;"><%= event.budget.toLocaleString() %>원</span>
+                </div>
+              </div>
+              <div class="d-flex justify-content-between mt-1" style="font-size: 0.75rem;">
+                <span class="text-muted"><%= event.date %> | 가중치 <%= event.weight %></span>
+                <span class="<%= eventRemaining < 0 ? 'text-danger' : 'text-success' %>">
+                  잔액: <%= eventRemaining.toLocaleString() %>원
+                </span>
+              </div>
+            </div>
+          </button>
+        </h2>
+        <div id="event<%= idx %>" class="accordion-collapse collapse" data-bs-parent="#eventAccordion">
+          <div class="accordion-body py-2 px-3">
+            <!-- 세부 항목 -->
+            <table class="table table-sm mb-2" style="font-size: 0.85rem;">
+              <thead>
+                <tr class="table-light">
+                  <th>항목</th>
+                  <th class="text-end" style="width: 90px;">계획</th>
+                  <th class="text-end" style="width: 90px;">실제</th>
+                  <th class="text-end" style="width: 70px;">차이</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% (event.items || []).forEach((item, itemIdx) => { %>
+                <tr>
+                  <td><%= item.name %></td>
+                  <td class="text-end"><%= (item.planned || 0).toLocaleString() %></td>
+                  <td class="text-end">
+                    <input type="number" class="form-control form-control-sm text-end p-0"
+                           value="<%= item.actual || 0 %>"
+                           data-event-idx="<%= idx %>" data-item-idx="<%= itemIdx %>"
+                           onchange="updateItemActual(this)"
+                           style="width: 80px; font-size: 0.85rem; height: 24px;">
+                  </td>
+                  <td class="text-end <%= (item.planned - (item.actual || 0)) < 0 ? 'text-danger' : 'text-success' %>">
+                    <%= ((item.planned || 0) - (item.actual || 0)).toLocaleString() %>
+                  </td>
+                </tr>
+                <% }) %>
+              </tbody>
+              <tfoot>
+                <tr class="table-light fw-bold">
+                  <td>합계</td>
+                  <td class="text-end"><%= (event.items || []).reduce((s, i) => s + (i.planned || 0), 0).toLocaleString() %></td>
+                  <td class="text-end"><%= eventSpent.toLocaleString() %></td>
+                  <td class="text-end <%= eventRemaining < 0 ? 'text-danger' : 'text-success' %>"><%= eventRemaining.toLocaleString() %></td>
+                </tr>
+              </tfoot>
+            </table>
+            <div class="d-flex gap-2">
+              <button class="btn btn-sm btn-outline-primary flex-fill" onclick="saveEventSpent(<%= idx %>)">
+                <i class="bi bi-check-lg"></i> 지출 저장
+              </button>
+              <button class="btn btn-sm btn-outline-danger" onclick="removeEvent(<%= idx %>)">
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <% }) %>
+    </div>
+  </div>
+</div>
+
+<% } %>
+
+<!-- 행사 추가 모달 -->
+<div class="modal fade" id="addEventModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-success text-white py-2">
+        <h5 class="modal-title" style="font-size: 0.95rem;"><i class="bi bi-plus-circle"></i> 행사 추가</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-2">
+          <label class="form-label" style="font-size: 0.85rem;">행사명</label>
+          <input type="text" class="form-control form-control-sm" id="newEventName" placeholder="예: 5월 1회 양지파인CC">
+        </div>
+        <div class="mb-2">
+          <label class="form-label" style="font-size: 0.85rem;">날짜</label>
+          <input type="date" class="form-control form-control-sm" id="newEventDate">
+        </div>
+        <div class="mb-2">
+          <label class="form-label" style="font-size: 0.85rem;">유형</label>
+          <select class="form-select form-select-sm" id="newEventType">
+            <option value="normal">일반 (가중치 1)</option>
+            <option value="overnight">1박2일 (가중치 1.5)</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer py-2">
+        <button type="button" class="btn btn-success btn-sm" onclick="confirmAddEvent()"><i class="bi bi-check-lg"></i> 추가</button>
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">취소</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const csrfToken = '<%= csrfToken %>';
+const budgetId = <%= budget ? budget.id : 'null' %>;
+const budgetYear = <%= year %>;
+const budgetHalf = '<%= half %>';
+let budgetEvents = <%- budget ? JSON.stringify(budget.events) : '[]' %>;
+
+// 재원 수정 토글
+function toggleEditSource() {
+  const inputs = document.querySelectorAll('[id^="input"]');
+  const displays = document.querySelectorAll('[id^="disp"]');
+  const actions = document.getElementById('sourceEditActions');
+  const btn = document.getElementById('editSourceBtn');
+  const isEditing = !inputs[0].classList.contains('d-none');
+
+  inputs.forEach(el => el.classList.toggle('d-none'));
+  displays.forEach(el => el.classList.toggle('d-none'));
+  actions.classList.toggle('d-none');
+  btn.innerHTML = isEditing ? '<i class="bi bi-pencil"></i> 수정' : '<i class="bi bi-x"></i> 취소';
+}
+
+// 재원 저장
+async function saveSource() {
+  const data = {
+    year: budgetYear,
+    half: budgetHalf,
+    company_support: document.getElementById('inputCompanySupport').value,
+    used_support: document.getElementById('inputUsedSupport').value,
+    monthly_fee: document.getElementById('inputMonthlyFee').value,
+    fee_months: document.getElementById('inputFeeMonths').value,
+    carryover: document.getElementById('inputCarryover').value,
+    events: JSON.stringify(budgetEvents),
+    _csrf: csrfToken
+  };
+
+  const res = await fetch('/finance/budget/save', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
+    body: JSON.stringify(data)
+  });
+  const result = await res.json();
+  if (result.success) {
+    alert('재원이 저장되었습니다.');
+    location.reload();
+  } else {
+    alert(result.error || '저장 실패');
+  }
+}
+
+// 행사 실제 지출 업데이트
+function updateItemActual(input) {
+  const eventIdx = parseInt(input.dataset.eventIdx);
+  const itemIdx = parseInt(input.dataset.itemIdx);
+  budgetEvents[eventIdx].items[itemIdx].actual = parseInt(input.value) || 0;
+}
+
+// 행사 지출 저장
+async function saveEventSpent(eventIdx) {
+  const items = budgetEvents[eventIdx].items;
+  const res = await fetch('/finance/budget/event/update', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
+    body: JSON.stringify({
+      budget_id: budgetId,
+      event_index: eventIdx,
+      items: JSON.stringify(items),
+      _csrf: csrfToken
+    })
+  });
+  const result = await res.json();
+  if (result.success) {
+    alert('지출이 저장되었습니다.');
+    location.reload();
+  } else {
+    alert(result.error || '저장 실패');
+  }
+}
+
+// 행사 추가
+function addEvent() {
+  new bootstrap.Modal(document.getElementById('addEventModal')).show();
+}
+
+async function confirmAddEvent() {
+  const name = document.getElementById('newEventName').value.trim();
+  const date = document.getElementById('newEventDate').value;
+  const type = document.getElementById('newEventType').value;
+
+  if (!name || !date) {
+    alert('행사명과 날짜를 입력해주세요.');
+    return;
+  }
+
+  const weight = type === 'overnight' ? 1.5 : 1;
+  const defaultItems = type === 'overnight'
+    ? [{ name: '숙박/식사', planned: 600000, actual: 0 }, { name: '카트비', planned: 200000, actual: 0 }, { name: '간식/기타', planned: 200000, actual: 0 }]
+    : [{ name: '카트비', planned: 200000, actual: 0 }, { name: '간식/커피', planned: 300000, actual: 0 }, { name: '점심', planned: 200000, actual: 0 }];
+
+  // 총 예산 재계산
+  const cs = parseInt(document.getElementById('inputCompanySupport')?.value || '<%= budget ? budget.company_support : 0 %>');
+  const us = parseInt(document.getElementById('inputUsedSupport')?.value || '<%= budget ? budget.used_support : 0 %>');
+  const co = parseInt(document.getElementById('inputCarryover')?.value || '<%= budget ? budget.carryover : 0 %>');
+  const mf = parseInt(document.getElementById('inputMonthlyFee')?.value || '<%= budget ? budget.monthly_fee : 0 %>');
+  const fm = parseInt(document.getElementById('inputFeeMonths')?.value || '<%= budget ? budget.fee_months : 0 %>');
+  const totalBudget = (cs - us) + co + (mf * fm);
+
+  budgetEvents.push({ name, date, type, weight, budget: 0, spent: 0, items: defaultItems });
+
+  // 가중치별 예산 재배분
+  const totalWeight = budgetEvents.reduce((s, e) => s + (e.weight || 1), 0);
+  const perWeight = Math.round(totalBudget / totalWeight);
+  budgetEvents.forEach(e => { e.budget = Math.round(perWeight * (e.weight || 1)); });
+
+  const res = await fetch('/finance/budget/save', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
+    body: JSON.stringify({
+      year: budgetYear, half: budgetHalf,
+      company_support: cs, used_support: us, monthly_fee: mf, fee_months: fm, carryover: co,
+      events: JSON.stringify(budgetEvents),
+      _csrf: csrfToken
+    })
+  });
+  const result = await res.json();
+  if (result.success) {
+    location.reload();
+  } else {
+    alert(result.error || '추가 실패');
+  }
+}
+
+// 행사 삭제
+async function removeEvent(idx) {
+  if (!confirm(budgetEvents[idx].name + ' 행사를 삭제하시겠습니까?')) return;
+
+  budgetEvents.splice(idx, 1);
+
+  // 가중치별 예산 재배분
+  const cs = <%= budget ? budget.company_support : 0 %>;
+  const us = <%= budget ? budget.used_support : 0 %>;
+  const co = <%= budget ? budget.carryover : 0 %>;
+  const mf = <%= budget ? budget.monthly_fee : 0 %>;
+  const fm = <%= budget ? budget.fee_months : 0 %>;
+  const totalBudget = (cs - us) + co + (mf * fm);
+  const totalWeight = budgetEvents.reduce((s, e) => s + (e.weight || 1), 0);
+  const perWeight = totalWeight > 0 ? Math.round(totalBudget / totalWeight) : 0;
+  budgetEvents.forEach(e => { e.budget = Math.round(perWeight * (e.weight || 1)); });
+
+  const res = await fetch('/finance/budget/save', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
+    body: JSON.stringify({
+      year: budgetYear, half: budgetHalf,
+      company_support: cs, used_support: us, monthly_fee: mf, fee_months: fm, carryover: co,
+      events: JSON.stringify(budgetEvents),
+      _csrf: csrfToken
+    })
+  });
+  const result = await res.json();
+  if (result.success) location.reload();
+  else alert(result.error || '삭제 실패');
+}
+
+// 새 예산 생성
+async function createNewBudget() {
+  const res = await fetch('/finance/budget/save', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
+    body: JSON.stringify({
+      year: budgetYear, half: budgetHalf,
+      company_support: 0, used_support: 0, monthly_fee: 1000000, fee_months: 6, carryover: 0,
+      events: '[]',
+      _csrf: csrfToken
+    })
+  });
+  const result = await res.json();
+  if (result.success) location.reload();
+  else alert(result.error || '생성 실패');
+}
+</script>
+
+<%- include('../partials/footer') %>

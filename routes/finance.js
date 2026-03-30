@@ -636,4 +636,114 @@ router.post('/fees/pay', requireAuth, requireAdmin, async (req, res) => {
   }
 });
 
+// ============================================
+// 행사별 예산 관리
+// ============================================
+
+// 예산관리 대시보드
+router.get('/budget', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    if (db.refreshCache) {
+      await db.refreshCache('event_budgets');
+    }
+
+    const budgets = db.getTable('event_budgets');
+    const year = parseInt(req.query.year) || new Date().getFullYear();
+    const half = req.query.half || 'first';
+
+    const budget = budgets.find(b => b.year === year && b.half === half) || null;
+
+    res.render('finance/budget', {
+      title: '예산 관리',
+      budget,
+      year,
+      half,
+      years: Array.from({ length: 3 }, (_, i) => new Date().getFullYear() + 1 - i)
+    });
+  } catch (error) {
+    console.error('예산관리 조회 오류:', error);
+    res.status(500).render('error', {
+      title: '오류',
+      message: '예산 관리 페이지를 불러오는 중 오류가 발생했습니다.'
+    });
+  }
+});
+
+// 예산 설정 저장
+router.post('/budget/save', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const { year, half, company_support, used_support, monthly_fee, fee_months, carryover, events } = req.body;
+
+    if (db.refreshCache) {
+      await db.refreshCache('event_budgets');
+    }
+
+    const existing = db.getTable('event_budgets').find(
+      b => b.year === parseInt(year) && b.half === half
+    );
+
+    const budgetData = {
+      year: parseInt(year),
+      half,
+      company_support: parseInt(company_support) || 0,
+      used_support: parseInt(used_support) || 0,
+      monthly_fee: parseInt(monthly_fee) || 0,
+      fee_months: parseInt(fee_months) || 0,
+      carryover: parseInt(carryover) || 0,
+      events: JSON.parse(events || '[]')
+    };
+
+    if (existing) {
+      await db.update('event_budgets', existing.id, budgetData);
+    } else {
+      await db.insert('event_budgets', budgetData);
+    }
+
+    if (db.refreshCache) {
+      await db.refreshCache('event_budgets');
+    }
+
+    res.json({ success: true, message: '예산이 저장되었습니다.' });
+  } catch (error) {
+    console.error('예산 저장 오류:', error);
+    res.status(500).json({ error: '예산 저장 중 오류가 발생했습니다.' });
+  }
+});
+
+// 개별 행사 지출 업데이트
+router.post('/budget/event/update', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const { budget_id, event_index, items } = req.body;
+
+    if (db.refreshCache) {
+      await db.refreshCache('event_budgets');
+    }
+
+    const budget = db.findById('event_budgets', parseInt(budget_id));
+    if (!budget) {
+      return res.status(404).json({ error: '예산 데이터를 찾을 수 없습니다.' });
+    }
+
+    const idx = parseInt(event_index);
+    if (idx < 0 || idx >= budget.events.length) {
+      return res.status(400).json({ error: '잘못된 행사 인덱스입니다.' });
+    }
+
+    const parsedItems = JSON.parse(items || '[]');
+    budget.events[idx].items = parsedItems;
+    budget.events[idx].spent = parsedItems.reduce((sum, item) => sum + (parseInt(item.actual) || 0), 0);
+
+    await db.update('event_budgets', budget.id, { events: budget.events });
+
+    if (db.refreshCache) {
+      await db.refreshCache('event_budgets');
+    }
+
+    res.json({ success: true, message: '지출이 업데이트되었습니다.' });
+  } catch (error) {
+    console.error('행사 지출 업데이트 오류:', error);
+    res.status(500).json({ error: '지출 업데이트 중 오류가 발생했습니다.' });
+  }
+});
+
 module.exports = router;

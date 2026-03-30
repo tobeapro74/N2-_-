@@ -174,7 +174,7 @@ class Database {
       const collections = ['members', 'golf_courses', 'income_categories', 'expense_categories',
         'incomes', 'expenses', 'schedules', 'reservations', 'membership_fees', 'course_holes',
         'schedule_comments', 'comment_reactions', 'community_posts', 'community_comments',
-        'community_reactions', 'push_subscriptions', 'notifications'];
+        'community_reactions', 'push_subscriptions', 'notifications', 'event_budgets', 'round_results'];
 
       // 모든 컬렉션을 병렬로 로드 (성능 최적화: 순차 3-5초 → 병렬 0.5-1초)
       const results = await Promise.all(

@@ -142,6 +142,13 @@
           <i class="bi bi-wallet2"></i> 회비관리
         </a>
       </div>
+      <% if (user && user.is_admin) { %>
+      <div class="col-12">
+        <a href="/finance/budget" class="btn btn-outline-warning btn-sm w-100 d-flex align-items-center justify-content-center gap-1" style="font-size: 0.85rem;">
+          <i class="bi bi-calculator"></i> 예산관리 (행사별 배분)
+        </a>
+      </div>
+      <% } %>
     </div>
   </div>
 </div>

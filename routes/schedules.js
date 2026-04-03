@@ -116,7 +116,7 @@ router.get('/', requireAuth, async (req, res) => {
           comment_count
         };
       })
-      .sort((a, b) => (a.play_date || '').localeCompare(b.play_date || ''));
+      .sort((a, b) => (b.play_date || '').localeCompare(a.play_date || ''));
 
     res.render('schedules/list', {
       title: '일정 관리',

@@ -247,6 +247,8 @@ router.get('/:id', requireAuth, async (req, res) => {
   // 최신 데이터 보장을 위해 캐시 새로고침
   if (db.refreshCache) {
     await db.refreshCache('members');
+    await db.refreshCache('reservations');
+    await db.refreshCache('round_results');
   }
 
   const member = db.findById('members', idResult.value);
@@ -258,30 +260,36 @@ router.get('/:id', requireAuth, async (req, res) => {
     });
   }
 
-  // 참가 이력
-  const reservations = db.getTable('reservations').filter(r => r.member_id === idResult.value);
+  // 참가 이력 (confirmed 예약 기반 + round_results 스코어 매핑)
+  const reservations = db.getTable('reservations').filter(
+    r => r.member_id === idResult.value && r.status === 'confirmed'
+  );
   const schedules = db.getTable('schedules');
   const golfCourses = db.getTable('golf_courses');
+  const roundResults = db.getTable('round_results');
 
   const participations = reservations
     .map(r => {
       const schedule = schedules.find(s => s.id === r.schedule_id) || {};
       const course = golfCourses.find(gc => gc.id === schedule.golf_course_id) || {};
+      const result = roundResults.find(rr => rr.schedule_id === r.schedule_id && rr.member_id === r.member_id);
       return {
         ...r,
         play_date: schedule.play_date,
-        course_name: course.name
+        course_name: course.name,
+        score: result ? result.score : null,
+        rank: result ? result.rank : null
       };
     })
     .sort((a, b) => (b.play_date || '').localeCompare(a.play_date || ''))
     .slice(0, 20);
 
-  // 평균 타수 계산
-  const scoresWithValue = participations.filter(p => p.score && p.status === 'confirmed');
+  // 평균 타수 계산 (round_results 기반)
+  const myResults = roundResults.filter(r => r.member_id === idResult.value);
   let avgScore = null;
-  if (scoresWithValue.length > 0) {
-    const totalScore = scoresWithValue.reduce((sum, p) => sum + p.score, 0);
-    avgScore = Math.round(totalScore / scoresWithValue.length);
+  if (myResults.length > 0) {
+    const totalScore = myResults.reduce((sum, r) => sum + r.score, 0);
+    avgScore = Math.round((totalScore / myResults.length) * 10) / 10;
   }
 
   res.render('members/detail', {

@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs');
 const db = require('../models/database');
 const config = require('../config');
 const { requireAuth, requireAdmin } = require('../middleware/auth');
-const { validateName, validateEmail, validatePhone, validateId, validateEnum } = require('../utils/validator');
+const { validateName, validatePhone, validateId, validateEnum } = require('../utils/validator');
 const { logger } = require('../utils/logger');
 
 // 회원 목록
@@ -24,6 +24,7 @@ router.get('/', requireAuth, async (req, res) => {
     members = members.filter(m =>
       (m.name && m.name.toLowerCase().includes(searchLower)) ||
       (m.internal_phone && m.internal_phone.includes(search)) ||
+      (m.mobile && m.mobile.includes(search)) ||
       (m.department && m.department.toLowerCase().includes(searchLower))
     );
   }
@@ -92,7 +93,7 @@ router.get('/api/active', requireAuth, requireAdmin, (req, res) => {
 
 // 회원 등록 처리
 router.post('/new', requireAuth, requireAdmin, async (req, res) => {
-  const { name, internal_phone, department, position, role, email, join_date } = req.body;
+  const { name, internal_phone, department, position, role, mobile, join_date } = req.body;
 
   // 입력값 검증
   const nameResult = validateName(name);
@@ -104,21 +105,21 @@ router.post('/new', requireAuth, requireAdmin, async (req, res) => {
     });
   }
 
-  const emailResult = validateEmail(email, false);
-  if (!emailResult.valid) {
+  const internalPhoneResult = validatePhone(internal_phone, false, '구내번호');
+  if (!internalPhoneResult.valid) {
     return res.render('members/form', {
       title: '회원 등록',
       member: req.body,
-      error: emailResult.error
+      error: internalPhoneResult.error
     });
   }
 
-  const phoneResult = validatePhone(internal_phone, false);
-  if (!phoneResult.valid) {
+  const mobileResult = validatePhone(mobile, false, '휴대폰');
+  if (!mobileResult.valid) {
     return res.render('members/form', {
       title: '회원 등록',
       member: req.body,
-      error: phoneResult.error
+      error: mobileResult.error
     });
   }
 
@@ -148,11 +149,11 @@ router.post('/new', requireAuth, requireAdmin, async (req, res) => {
   try {
     const newId = await db.insert('members', {
       name: nameResult.value,
-      internal_phone: phoneResult.value,
+      internal_phone: internalPhoneResult.value,
       department: department?.trim() || '',
       position: position?.trim() || '',
       role: role?.trim() || null,
-      email: emailResult.value,
+      mobile: mobileResult.value,
       join_date: join_date || new Date().toISOString().split('T')[0],
       password_hash: passwordHash,
       status: 'active',
@@ -342,7 +343,7 @@ router.post('/:id/edit', requireAuth, requireAdmin, async (req, res) => {
   }
 
   const memberId = idResult.value;
-  const { name, internal_phone, department, position, role, email, status } = req.body;
+  const { name, internal_phone, department, position, role, mobile, status } = req.body;
 
   // 입력값 검증
   const nameResult = validateName(name);
@@ -354,12 +355,21 @@ router.post('/:id/edit', requireAuth, requireAdmin, async (req, res) => {
     });
   }
 
-  const emailResult = validateEmail(email, false);
-  if (!emailResult.valid) {
+  const internalPhoneResult = validatePhone(internal_phone, false, '구내번호');
+  if (!internalPhoneResult.valid) {
     return res.render('members/form', {
       title: '회원 정보 수정',
       member: { ...req.body, id: memberId },
-      error: emailResult.error
+      error: internalPhoneResult.error
+    });
+  }
+
+  const mobileResult = validatePhone(mobile, false, '휴대폰');
+  if (!mobileResult.valid) {
+    return res.render('members/form', {
+      title: '회원 정보 수정',
+      member: { ...req.body, id: memberId },
+      error: mobileResult.error
     });
   }
 
@@ -385,11 +395,11 @@ router.post('/:id/edit', requireAuth, requireAdmin, async (req, res) => {
   try {
     await db.update('members', memberId, {
       name: nameResult.value,
-      internal_phone: internal_phone?.trim() || '',
+      internal_phone: internalPhoneResult.value,
       department: department?.trim() || '',
       position: position?.trim() || '',
       role: role?.trim() || null,
-      email: emailResult.value,
+      mobile: mobileResult.value,
       status: statusResult.value
     });
 

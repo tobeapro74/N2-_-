@@ -58,17 +58,17 @@ function validateEmail(value, required = false) {
   return result;
 }
 
-// 전화번호/구내번호 검증
-function validatePhone(value, required = false) {
+// 전화번호/구내번호/휴대폰 검증
+function validatePhone(value, required = false, fieldName = '전화번호') {
   if (!required && !value) {
     return { valid: true, value: '' };
   }
 
-  const result = validateString(value, { maxLength: 20, required, fieldName: '전화번호' });
+  const result = validateString(value, { maxLength: 20, required, fieldName });
   if (!result.valid) return result;
 
   if (value && !/^[0-9-]+$/.test(value)) {
-    return { valid: false, error: '전화번호는 숫자와 하이픈만 입력 가능합니다.' };
+    return { valid: false, error: `${fieldName}은(는) 숫자와 하이픈만 입력 가능합니다.` };
   }
 
   return result;

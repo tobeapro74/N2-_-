@@ -54,8 +54,8 @@
             </div>
           </div>
           <div class="mb-3">
-            <label class="form-label">이메일</label>
-            <input type="email" name="email" class="form-control" value="<%= member ? member.email || '' : '' %>">
+            <label class="form-label">휴대폰</label>
+            <input type="tel" name="mobile" class="form-control" placeholder="예: 010-1234-5678" value="<%= member ? member.mobile || '' : '' %>">
           </div>
           <% if (member) { %>
           <div class="mb-3">

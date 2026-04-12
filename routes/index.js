@@ -147,11 +147,17 @@ router.get('/', async (req, res) => {
       }
     }
 
+    // 이미 지난 일정만 참가 횟수로 카운트
+    const pastRounds = userReservations.filter(r => {
+      const schedule = schedules.find(s => s.id === r.schedule_id);
+      return schedule && schedule.play_date < today;
+    }).length;
+
     userStats = {
       recentScore: userMember?.recent_score || null,
       avgScore: userMember?.avg_score || null,
       recentCourse: recentCourse,
-      totalRounds: userReservations.length
+      totalRounds: pastRounds
     };
   }
 

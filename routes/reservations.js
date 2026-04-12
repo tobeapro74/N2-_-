@@ -338,7 +338,7 @@ router.get('/admin', requireAuth, requireAdmin, async (req, res) => {
       const today = new Date().toISOString().split('T')[0];
 
       const upcomingSchedules = schedules
-        .filter(s => s.play_date >= today && s.status === 'open')
+        .filter(s => s.play_date >= today && ['open', 'pending', 'closed'].includes(s.status))
         .map(s => {
           const course = golfCourses.find(gc => gc.id === s.golf_course_id) || {};
           const reserved_count = allReservationsData.filter(

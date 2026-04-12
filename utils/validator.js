@@ -58,6 +58,25 @@ function validateEmail(value, required = false) {
   return result;
 }
 
+// 전화번호 숫자만 추출 후 하이픈 포맷으로 변환
+function formatPhone(value) {
+  const digits = value.replace(/[^0-9]/g, '');
+  if (digits.length === 11 && digits.startsWith('010')) {
+    return `${digits.slice(0,3)}-${digits.slice(3,7)}-${digits.slice(7)}`;
+  }
+  if (digits.length === 11) {
+    return `${digits.slice(0,3)}-${digits.slice(3,7)}-${digits.slice(7)}`;
+  }
+  if (digits.length === 10 && digits.startsWith('02')) {
+    return `${digits.slice(0,2)}-${digits.slice(2,6)}-${digits.slice(6)}`;
+  }
+  if (digits.length === 10) {
+    return `${digits.slice(0,3)}-${digits.slice(3,6)}-${digits.slice(6)}`;
+  }
+  // 포맷 불명확 시 원본 반환
+  return value.trim();
+}
+
 // 전화번호/구내번호/휴대폰 검증
 function validatePhone(value, required = false, fieldName = '전화번호') {
   if (!required && !value) {
@@ -67,11 +86,13 @@ function validatePhone(value, required = false, fieldName = '전화번호') {
   const result = validateString(value, { maxLength: 20, required, fieldName });
   if (!result.valid) return result;
 
-  if (value && !/^[0-9-]+$/.test(value)) {
+  if (value && !/^[0-9\-\s\(\)]+$/.test(value)) {
     return { valid: false, error: `${fieldName}은(는) 숫자와 하이픈만 입력 가능합니다.` };
   }
 
-  return result;
+  // 하이픈 없이 숫자만 입력된 경우 자동 포맷 적용
+  const formatted = formatPhone(value);
+  return { valid: true, value: formatted };
 }
 
 // 숫자 검증

@@ -259,12 +259,10 @@ function optimizeCloudinaryUrl(url, resourceType) {
 
   if (!url.includes('res.cloudinary.com')) return url;
 
-  if (url.includes('f_auto') || url.includes('q_auto') || url.includes('f_mp4')) return url;
+  // 동영상은 원본 URL 그대로 사용 (업로드 시 이미 mp4로 저장됨)
+  if (resourceType === 'video' || url.includes('/video/upload/')) return url;
 
-  // 동영상은 mp4로 변환하여 모든 브라우저(Safari 포함) 재생 보장
-  if (resourceType === 'video' || url.includes('/video/upload/')) {
-    return url.replace('/upload/', '/upload/f_mp4,q_auto/');
-  }
+  if (url.includes('f_auto') || url.includes('q_auto')) return url;
 
   return url.replace('/upload/', '/upload/f_auto,q_auto/');
 }

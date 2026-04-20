@@ -473,12 +473,15 @@ document.addEventListener('DOMContentLoaded', function() {
       post.media.forEach((m) => {
         if (m.kind === 'video') {
           const v = document.createElement('video');
-          v.src = m.url;
           v.controls = true;
           v.playsInline = true;
           v.className = 'rounded border';
           v.style.maxHeight = '280px';
           v.style.maxWidth = '100%';
+          const src = document.createElement('source');
+          src.src = m.url;
+          src.type = 'video/mp4';
+          v.appendChild(src);
           row.appendChild(v);
         } else {
           const img = document.createElement('img');

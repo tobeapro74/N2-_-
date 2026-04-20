@@ -254,17 +254,18 @@ function validateTeeTimes(value, required = false) {
 }
 
 // Cloudinary URL 최적화 (f_auto, q_auto 적용)
-function optimizeCloudinaryUrl(url) {
+function optimizeCloudinaryUrl(url, resourceType) {
   if (!url || typeof url !== 'string') return url;
 
-  // Cloudinary URL인지 확인
   if (!url.includes('res.cloudinary.com')) return url;
 
-  // 이미 최적화 파라미터가 있으면 그대로 반환
-  if (url.includes('f_auto') || url.includes('q_auto')) return url;
+  if (url.includes('f_auto') || url.includes('q_auto') || url.includes('f_mp4')) return url;
 
-  // /upload/ 다음에 최적화 파라미터 삽입
-  // 예: .../upload/v123/... → .../upload/f_auto,q_auto/v123/...
+  // 동영상은 mp4로 변환하여 모든 브라우저(Safari 포함) 재생 보장
+  if (resourceType === 'video' || url.includes('/video/upload/')) {
+    return url.replace('/upload/', '/upload/f_mp4,q_auto/');
+  }
+
   return url.replace('/upload/', '/upload/f_auto,q_auto/');
 }
 

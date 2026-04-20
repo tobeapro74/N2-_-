@@ -134,7 +134,7 @@ router.get('/posts', requireAuth, async (req, res) => {
           } else if (m.url && isAllowedCloudinaryMediaUrl(m.url)) {
             media.push({
               kind: m.kind,
-              url: optimizeCloudinaryUrl(m.url.trim())
+              url: optimizeCloudinaryUrl(m.url.trim(), m.kind)
             });
           }
         });

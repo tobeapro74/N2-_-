@@ -2082,6 +2082,42 @@ a:active .card {
 }
 
 /* =============================================
+   아이콘 그리드 메뉴 (Phase 3)
+   ============================================= */
+.icon-grid {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+.icon-grid-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.icon-grid-item:active .icon-grid-icon {
+  transform: scale(0.93);
+}
+.icon-grid-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  transition: transform 0.12s ease;
+}
+.icon-grid-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #495057;
+}
+
+/* =============================================
    다가오는 일정 CTA 카드 (Phase 2)
    ============================================= */
 .upcoming-more-link {

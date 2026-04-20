@@ -99,6 +99,40 @@
   </div>
 </div>
 
+<!-- 아이콘 그리드 메뉴 -->
+<div class="icon-grid mb-3">
+  <a href="/schedules" class="icon-grid-item">
+    <div class="icon-grid-icon bg-success-subtle">
+      <i class="bi bi-calendar3 text-success"></i>
+    </div>
+    <span class="icon-grid-label">일정</span>
+  </a>
+  <a href="/reservations/available" class="icon-grid-item">
+    <div class="icon-grid-icon bg-primary-subtle">
+      <i class="bi bi-bookmark-check text-primary"></i>
+    </div>
+    <span class="icon-grid-label">예약</span>
+  </a>
+  <a href="/community" class="icon-grid-item">
+    <div class="icon-grid-icon bg-warning-subtle">
+      <i class="bi bi-chat-heart text-warning"></i>
+    </div>
+    <span class="icon-grid-label">톡톡</span>
+  </a>
+  <a href="/finance" class="icon-grid-item">
+    <div class="icon-grid-icon bg-danger-subtle">
+      <i class="bi bi-cash-stack text-danger"></i>
+    </div>
+    <span class="icon-grid-label">자금</span>
+  </a>
+  <a href="/members" class="icon-grid-item">
+    <div class="icon-grid-icon" style="background:#eef2ff;">
+      <i class="bi bi-people-fill" style="color:#6366f1;"></i>
+    </div>
+    <span class="icon-grid-label">회원</span>
+  </a>
+</div>
+
 <!-- 최근 라운딩 스코어 Top5 -->
 <% if (typeof recentRoundTop5 !== 'undefined' && recentRoundTop5.length > 0) { %>
 <div class="row mb-3">

@@ -21,6 +21,7 @@
 16. [예약 신청시간이 UTC로 표시](#16-예약-신청시간이-utc로-표시)
 17. [회원 비밀번호 미설정 (로그인 불가)](#17-회원-비밀번호-미설정-로그인-불가)
 18. [일상톡톡 동영상 업로드 오류 (Safari / Vercel 본문 한도)](#18-일상톡톡-동영상-업로드-오류-safari--vercel-본문-한도)
+19. [홈 총잔액·이번 달 지출이 JSON과 다름 / 이번 달 지출 0원](#19-홈-총잔액이번-달-지출이-datajson과-다름--이번-달-지출-0원)
 
 ---
 
@@ -1660,6 +1661,23 @@ await db.collection('members').updateOne(
 
 ### 참고
 - [Vercel: Body size limit](https://vercel.com/kb/guide/how-to-bypass-vercel-body-size-limit-serverless-functions)
+
+---
+
+## 19. 홈 총잔액·이번 달 지출이 `data/n2golf.json`과 다름 / 이번 달 지출 0원
+
+### 증상
+- 로컬 JSON을 수정했는데 배포 앱 숫자가 다름
+- 이번 달 지출이 0원으로만 보임
+
+### 원인
+1. **Vercel·Atlas**는 `data/n2golf.json`을 쓰지 않고 **MongoDB**를 사용합니다. JSON만 고치면 **반드시** `scripts/sync-bank-transactions-to-mongodb.js` 등으로 DB를 갱신해야 합니다.
+2. (수정됨) 홈의 "이번 달"이 **UTC `toISOString()`** 기준이면 한국 월초에 한 달 어긋날 수 있어, `Asia/Seoul` 기준으로 계산합니다 (`routes/index.js`).
+
+### 해결
+```bash
+MONGODB_URI="mongodb+srv://..." node scripts/sync-bank-transactions-to-mongodb.js
+```
 
 ---
 

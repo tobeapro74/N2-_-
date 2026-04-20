@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../models/database');
+const { getSeoulYearMonth, getSeoulDateString } = require('../utils/koreaDate');
 
 // 코스 홀 정보 (정적 데이터 - JS 모듈로 관리)
 const courseHolesData = require('../data/courseHoles');
@@ -31,8 +32,8 @@ router.get('/', async (req, res) => {
     active: members.filter(m => m.status === 'active').length
   };
 
-  // 이번 달 수입/지출
-  const currentMonth = new Date().toISOString().slice(0, 7);
+  // 이번 달 수입/지출 (UTC가 아닌 한국 날짜 기준 — 월초·야간에도 일치)
+  const currentMonth = getSeoulYearMonth();
   const monthlyIncome = incomes
     .filter(i => i.income_date && i.income_date.startsWith(currentMonth))
     .reduce((sum, i) => sum + (i.amount || 0), 0);
@@ -40,7 +41,7 @@ router.get('/', async (req, res) => {
   const monthlyExpense = expenses
     .filter(e => e.expense_date && e.expense_date.startsWith(currentMonth))
     .reduce((sum, e) => sum + (e.amount || 0), 0);
-  const today = new Date().toISOString().split('T')[0];
+  const today = getSeoulDateString();
 
   const upcomingSchedules = schedules
     .filter(s => s.play_date >= today && ['open', 'pending', 'closed'].includes(s.status))

@@ -214,6 +214,7 @@
 | - | 홈 > 일상톡톡에 사진과 웹링크를 올릴 수 있음. 사진은 하나씩만 가능 → 사진 최대 10장과 동영상도 올릴 수 있도록 개선. 자료는 MongoDB n2golf DB 내 별도 공간( GridFS bucket `community_media` )에 저장 |
 | - | 동영상 3개 업로드 시 Safari에 "The string did not match the expected pattern" 에러 → 원인(Vercel 4.5MB 본문 한도) 및 Cloudinary 직접 업로드·서버 URL 허용·JSON 파싱 보강 |
 | - | n2골프 단체모임 통장 입출금 스크린샷 반영 → data/n2golf.json 입출금 추가, MongoDB 동기화 스크립트 |
+| - | 총잔액·이번달 지출 불일치 문의 → MongoDB 미동기화·UTC 월 계산 이슈, 홈 이번달은 Asia/Seoul 기준으로 수정 |
 
 ---
 

@@ -468,7 +468,7 @@
         </div>
       </div>
       <div class="card-body p-2" id="trafficWidget">
-        <div class="row g-2" id="trafficCards">
+        <div id="trafficCards">
           <div class="col-12 text-center py-2">
             <div class="spinner-border spinner-border-sm text-primary" role="status">
               <span class="visually-hidden">로딩중...</span>
@@ -1580,50 +1580,35 @@ async function loadTrafficWidget(forceRefresh = false) {
   }
 }
 
-// 교통 카드 렌더링
+// 교통 카드 렌더링 (3개 골프장 세로 스택)
 function renderTrafficCards(trafficData) {
   const trafficCards = document.getElementById('trafficCards');
   if (!trafficCards) return;
 
+  // 3개 골프장 모두 표시
+  const displayRoutes = ['yangji', 'daeyoungHills', 'daeyoungBase'];
   let html = '';
-  let mobileHtml = '';
 
-  // 표시할 골프장 목록 (양지 + 선택된 대영CC)
-  const displayRoutes = ['yangji', selectedDaeyoung];
-
-  // 각 골프장별 경로
   displayRoutes.forEach(key => {
     const course = trafficRoutes[key];
-    const isDaeyoung = course.group === 'daeyoung';
     const courseTraffic = trafficData ? trafficData[key] : null;
+    const textClass = course.color === 'warning' ? 'text-dark' : 'text-white';
 
-    html += `<div class="col-md-6">`;
-    html += `<div class="card h-100 border-0 shadow-sm">`;
-
-    // 대영CC인 경우 클릭하면 힐스/베이스 토글
-    if (isDaeyoung) {
-      const nextCourse = selectedDaeyoung === 'daeyoungHills' ? 'daeyoungBase' : 'daeyoungHills';
-      html += `<div class="card-header bg-${course.color} ${course.color === 'warning' ? 'text-dark' : 'text-white'} py-2" style="cursor: pointer;" onclick="switchDaeyoung('${nextCourse}')">`;
-      html += `<strong style="font-size: 0.85rem;"><i class="bi bi-geo-alt-fill me-1"></i>${course.name} <i class="bi bi-chevron-down" style="font-size: 0.85rem;"></i></strong>`;
-      html += `</div>`;
-    } else {
-      html += `<div class="card-header bg-${course.color} ${course.color === 'warning' ? 'text-dark' : 'text-white'} py-2">`;
-      html += `<strong style="font-size: 0.85rem;"><i class="bi bi-geo-alt-fill me-1"></i>${course.name}</strong>`;
-      html += `</div>`;
-    }
-
-    html += `<div class="card-body py-2">`;
+    html += `
+      <div class="card border-0 shadow-sm mb-3">
+        <div class="card-header bg-${course.color} ${textClass} py-2 px-3">
+          <strong><i class="bi bi-geo-alt-fill me-1"></i>${course.name}</strong>
+        </div>
+        <div class="card-body py-2 px-3">
+    `;
 
     course.routes.forEach((route, idx) => {
-      // API에서 가져온 실시간 데이터 또는 기본값 사용
       const fromKey = route.departure === '여의도역' ? 'yeouido' : 'jamsil';
       const routeData = courseTraffic ? courseTraffic[fromKey] : null;
-
       const duration = routeData ? routeData.duration : route.baseTime;
       const distance = routeData ? routeData.distance : route.distance;
       const trafficState = routeData ? routeData.trafficState : '보통';
 
-      // 교통 상태에 따른 색상
       let statusColor = 'warning';
       if (trafficState === '원활') statusColor = 'success';
       else if (trafficState === '정체') statusColor = 'danger';
@@ -1631,130 +1616,33 @@ function renderTrafficCards(trafficData) {
       if (idx > 0) html += '<hr class="my-2">';
 
       html += `
-        <div class="d-flex justify-content-between align-items-center mb-1">
-          <div class="d-flex align-items-center">
-            <span class="badge ${idx === 0 ? 'bg-primary' : 'bg-info'} me-2" style="font-size: 0.85rem;">
+        <div class="d-flex align-items-center justify-content-between mb-1">
+          <div class="d-flex align-items-center gap-2">
+            <span class="badge ${idx === 0 ? 'bg-primary' : 'bg-info'}" style="font-size: 0.9rem; padding: 5px 8px;">
               <i class="bi bi-geo"></i> ${route.departure}
             </span>
-            <i class="bi bi-arrow-right text-muted me-2"></i>
-            <small class="text-muted">${distance}km</small>
+            <span class="text-muted" style="font-size: 0.85rem;">${distance}km</span>
           </div>
-          <div class="text-end d-flex align-items-center gap-1">
-            <span class="badge bg-${statusColor} ${statusColor === 'warning' ? 'text-dark' : ''}" style="font-size: 0.85rem;">
+          <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-${statusColor} ${statusColor === 'warning' ? 'text-dark' : ''}" style="font-size: 0.9rem; padding: 5px 8px;">
               ${trafficState}
             </span>
-            <span class="badge bg-light text-dark border" style="font-size: 0.85rem;">
-              약 ${duration}분
-            </span>
+            <span class="fw-bold" style="font-size: 1rem;">약 ${duration}분</span>
+            <a href="${route.mapUrl}" target="_blank" class="btn btn-sm btn-outline-secondary py-1 px-2">
+              <i class="bi bi-map"></i> 지도
+            </a>
           </div>
         </div>
-        <div class="d-flex align-items-center justify-content-between">
-          <div class="progress flex-grow-1 me-2" style="height: 6px;">
-            <div class="progress-bar bg-${statusColor}" style="width: ${trafficState === '원활' ? '30' : trafficState === '보통' ? '60' : '90'}%"></div>
-          </div>
-          <a href="${route.mapUrl}" target="_blank" class="text-muted text-decoration-none" style="font-size: 0.85rem;">
-            <i class="bi bi-box-arrow-up-right"></i> 지도
-          </a>
+        <div class="progress" style="height: 8px;">
+          <div class="progress-bar bg-${statusColor}" style="width: ${trafficState === '원활' ? '30' : trafficState === '보통' ? '60' : '90'}%"></div>
         </div>
       `;
     });
 
-    html += `</div></div></div>`;
-
-    // 모바일용 카드 (2열 그리드 레이아웃)
-    if (isDaeyoung) {
-      const nextCourseMobile = selectedDaeyoung === 'daeyoungHills' ? 'daeyoungBase' : 'daeyoungHills';
-      mobileHtml += `
-        <div class="col-6">
-          <div class="border rounded overflow-hidden h-100">
-            <div class="bg-${course.color} ${course.color === 'warning' ? 'text-dark' : 'text-white'} px-2 py-1" style="cursor: pointer;" onclick="switchDaeyoung('${nextCourseMobile}')">
-              <div class="fw-bold" style="font-size: 0.85rem;"><i class="bi bi-geo-alt-fill me-1"></i>${course.name} <i class="bi bi-chevron-down" style="font-size: 0.85rem;"></i></div>
-            </div>
-            <div class="p-1">
-              ${course.routes.map((route, idx) => {
-                const fromKey = route.departure === '여의도역' ? 'yeouido' : 'jamsil';
-                const routeData = courseTraffic ? courseTraffic[fromKey] : null;
-                const duration = routeData ? routeData.duration : route.baseTime;
-                const trafficState = routeData ? routeData.trafficState : '보통';
-                let statusColor = 'warning';
-                if (trafficState === '원활') statusColor = 'success';
-                else if (trafficState === '정체') statusColor = 'danger';
-
-                return `
-                  <div class="${idx > 0 ? 'mt-1 pt-1 border-top' : ''}">
-                    <div class="d-flex justify-content-between align-items-center">
-                      <small class="text-muted" style="font-size: 0.85rem;">${route.departure.replace('역', '')}</small>
-                      <div class="d-flex align-items-center gap-1">
-                        <span class="badge bg-${statusColor} ${statusColor === 'warning' ? 'text-dark' : ''}" style="font-size: 0.85rem; padding: 2px 4px;">
-                          ${trafficState}
-                        </span>
-                        <span class="fw-bold text-dark" style="font-size: 0.85rem;">
-                          ${duration}분
-                        </span>
-                        <a href="${route.mapUrl}" target="_blank" class="text-muted" style="font-size: 0.85rem;">
-                          <i class="bi bi-box-arrow-up-right"></i>
-                        </a>
-                      </div>
-                    </div>
-                  </div>
-                `;
-              }).join('')}
-            </div>
-          </div>
-        </div>
-      `;
-    } else {
-      mobileHtml += `
-        <div class="col-6">
-          <div class="border rounded overflow-hidden h-100">
-            <div class="bg-${course.color} ${course.color === 'warning' ? 'text-dark' : 'text-white'} px-2 py-1">
-              <div class="fw-bold" style="font-size: 0.85rem;"><i class="bi bi-geo-alt-fill me-1"></i>${course.name}</div>
-            </div>
-            <div class="p-1">
-              ${course.routes.map((route, idx) => {
-                const fromKey = route.departure === '여의도역' ? 'yeouido' : 'jamsil';
-                const routeData = courseTraffic ? courseTraffic[fromKey] : null;
-                const duration = routeData ? routeData.duration : route.baseTime;
-                const trafficState = routeData ? routeData.trafficState : '보통';
-                let statusColor = 'warning';
-                if (trafficState === '원활') statusColor = 'success';
-                else if (trafficState === '정체') statusColor = 'danger';
-
-                return `
-                  <div class="${idx > 0 ? 'mt-1 pt-1 border-top' : ''}">
-                    <div class="d-flex justify-content-between align-items-center">
-                      <small class="text-muted" style="font-size: 0.85rem;">${route.departure.replace('역', '')}</small>
-                      <div class="d-flex align-items-center gap-1">
-                        <span class="badge bg-${statusColor} ${statusColor === 'warning' ? 'text-dark' : ''}" style="font-size: 0.85rem; padding: 2px 4px;">
-                          ${trafficState}
-                        </span>
-                        <span class="fw-bold text-dark" style="font-size: 0.85rem;">
-                          ${duration}분
-                        </span>
-                        <a href="${route.mapUrl}" target="_blank" class="text-muted" style="font-size: 0.85rem;">
-                          <i class="bi bi-box-arrow-up-right"></i>
-                        </a>
-                      </div>
-                    </div>
-                  </div>
-                `;
-              }).join('')}
-            </div>
-          </div>
-        </div>
-      `;
-    }
+    html += `</div></div>`;
   });
 
-  // 데스크탑 + 모바일 레이아웃
-  trafficCards.innerHTML = `
-    <div class="row g-2 d-none d-md-flex">${html}</div>
-    <div class="d-md-none">
-      <div class="row g-2">
-        ${mobileHtml}
-      </div>
-    </div>
-  `;
+  trafficCards.innerHTML = html;
 }
 
 // 대영CC 전환 함수 (캐시된 데이터 사용)

@@ -184,65 +184,69 @@
 </div>
 
 <div class="row g-3">
-  <!-- 다가오는 일정 -->
+  <!-- 다가오는 일정 CTA 카드 -->
   <div class="col-12">
-    <div class="card h-100">
-      <div class="card-header bg-white py-2">
-        <h6 class="home-section-title-bold">다가오는 일정</h6>
-      </div>
-      <div class="card-body p-2">
-        <% if (upcomingSchedules.length === 0) { %>
-        <p class="text-muted text-center py-2 mb-0 home-card-text">예정된 일정이 없습니다.</p>
-        <% } else { %>
-        <!-- 데스크탑: 리스트 형태 -->
-        <div class="list-group list-group-flush d-none d-md-block">
-          <% upcomingSchedules.forEach(schedule => { %>
-          <div class="list-group-item list-group-item-action py-1 d-flex justify-content-between align-items-center">
-            <a href="/schedules/<%= schedule.id %>" class="text-decoration-none flex-grow-1">
-              <div class="d-flex justify-content-between align-items-center">
-                <div>
-                  <span class="home-card-title d-block text-dark"><%= schedule.course_name %></span>
-                  <span class="home-card-subtitle d-block"><%= schedule.location %></span>
-                </div>
-                <div class="text-end">
-                  <span class="badge <%= schedule.status === 'pending' ? 'bg-info' : 'bg-success' %> home-card-badge"><%= moment(schedule.play_date).format('MM/DD (ddd)') %></span>
-                  <% if (schedule.status === 'pending') { %>
-                  <span class="home-card-meta text-info d-block">오픈전</span>
-                  <% } else { %>
-                  <span class="home-card-meta text-muted d-block"><%= schedule.reserved_count %>/<%= schedule.max_members %>명</span>
-                  <% } %>
-                </div>
-              </div>
-            </a>
+    <div class="d-flex justify-content-between align-items-center mb-2 px-1">
+      <span class="home-section-title-bold">다가오는 일정</span>
+      <a href="/schedules" class="upcoming-more-link">전체보기 <i class="bi bi-chevron-right"></i></a>
+    </div>
+    <% if (upcomingSchedules.length === 0) { %>
+    <div class="upcoming-empty">
+      <i class="bi bi-calendar-x text-muted" style="font-size: 2rem;"></i>
+      <p class="text-muted mt-2 mb-0">예정된 일정이 없습니다.</p>
+    </div>
+    <% } else { %>
+    <div class="upcoming-cta-list">
+      <% upcomingSchedules.slice(0, 2).forEach(function(schedule) {
+        var today = moment().startOf('day');
+        var playDay = moment(schedule.play_date).startOf('day');
+        var dday = playDay.diff(today, 'days');
+        var ddayText = dday === 0 ? 'D-Day' : (dday > 0 ? 'D-' + dday : 'D+' + Math.abs(dday));
+        var isOpen = schedule.status === 'open' || schedule.status === 'closed';
+        var isFull = schedule.status === 'closed' || (schedule.reserved_count >= schedule.max_members);
+        var fillPct = schedule.max_members > 0 ? Math.min(100, Math.round(schedule.reserved_count / schedule.max_members * 100)) : 0;
+      %>
+      <a href="/schedules/<%= schedule.id %>" class="upcoming-cta-card text-decoration-none">
+        <div class="upcoming-cta-top">
+          <div class="upcoming-cta-date">
+            <span class="upcoming-cta-month"><%= moment(schedule.play_date).format('M') %>월</span>
+            <span class="upcoming-cta-day"><%= moment(schedule.play_date).format('D') %></span>
+            <span class="upcoming-cta-weekday"><%= moment(schedule.play_date).format('ddd') %></span>
           </div>
-          <% }) %>
+          <div class="upcoming-cta-info">
+            <div class="upcoming-cta-course"><%= schedule.course_name %></div>
+            <div class="upcoming-cta-location"><i class="bi bi-geo-alt"></i> <%= schedule.location %></div>
+          </div>
+          <div class="upcoming-cta-right">
+            <span class="upcoming-cta-dday <%= dday <= 7 ? 'upcoming-cta-dday--near' : '' %>"><%= ddayText %></span>
+            <% if (!isOpen) { %>
+            <span class="upcoming-cta-status upcoming-cta-status--pending">오픈전</span>
+            <% } else if (isFull) { %>
+            <span class="upcoming-cta-status upcoming-cta-status--full">마감</span>
+            <% } else { %>
+            <span class="upcoming-cta-status upcoming-cta-status--open">예약중</span>
+            <% } %>
+          </div>
         </div>
-        <!-- 모바일: 컴팩트 가로 스크롤 카드 -->
-        <div class="d-md-none">
-          <div class="d-flex gap-2 overflow-auto pb-1" style="scrollbar-width: thin;">
-            <% upcomingSchedules.forEach(schedule => { %>
-            <a href="/schedules/<%= schedule.id %>" class="flex-shrink-0 schedule-mobile-card text-decoration-none" style="width: 120px;">
-              <div class="border rounded bg-light h-100 schedule-card-inner p-2">
-                <div class="d-flex justify-content-between align-items-start mb-1">
-                  <span class="badge <%= schedule.status === 'pending' ? 'bg-info' : 'bg-success' %> home-card-badge"><%= moment(schedule.play_date).format('MM/DD') %></span>
-                  <% if (schedule.status === 'pending') { %>
-                  <span class="home-card-meta text-info">오픈전</span>
-                  <% } else { %>
-                  <span class="home-card-meta text-muted"><%= schedule.reserved_count %>/<%= schedule.max_members %></span>
-                  <% } %>
-                </div>
-                <div class="home-card-title text-dark text-truncate"><%= schedule.course_name %></div>
-              </div>
-            </a>
-            <% }) %>
+        <% if (isOpen) { %>
+        <div class="upcoming-cta-bottom">
+          <div class="upcoming-cta-progress-wrap">
+            <div class="upcoming-cta-progress-bar" style="width: <%= fillPct %>%;"></div>
           </div>
+          <span class="upcoming-cta-seats"><%= schedule.reserved_count %>/<%= schedule.max_members %>명</span>
         </div>
         <% } %>
-      </div>
-      <div class="card-footer bg-white py-2 d-flex justify-content-center">
-        <a href="/schedules" class="btn btn-outline-success btn-sm w-100 home-card-btn d-flex justify-content-center align-items-center">전체 일정 보기</a>
-      </div>
+      </a>
+      <% }) %>
+      <% if (upcomingSchedules.length > 2) { %>
+      <a href="/schedules" class="upcoming-more-card text-decoration-none">
+        <i class="bi bi-calendar3"></i>
+        <span>일정 <%= upcomingSchedules.length - 2 %>개 더보기</span>
+        <i class="bi bi-chevron-right"></i>
+      </a>
+      <% } %>
     </div>
+    <% } %>
   </div>
 
   <%# 최근 입출금 - 임시 숨김 처리 (나중에 사용하려면 false를 true로 변경) %>

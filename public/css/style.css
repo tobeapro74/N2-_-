@@ -2082,6 +2082,158 @@ a:active .card {
 }
 
 /* =============================================
+   다가오는 일정 CTA 카드 (Phase 2)
+   ============================================= */
+.upcoming-more-link {
+  font-size: 0.8rem;
+  color: #6c757d;
+  text-decoration: none;
+}
+.upcoming-more-link:hover { color: #198754; }
+
+.upcoming-empty {
+  text-align: center;
+  padding: 32px 0;
+}
+
+.upcoming-cta-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.upcoming-cta-card {
+  display: block;
+  background: #ffffff;
+  border-radius: 14px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+  overflow: hidden;
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.upcoming-cta-card:active {
+  transform: scale(0.99);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+
+.upcoming-cta-top {
+  display: flex;
+  align-items: center;
+  padding: 14px 16px;
+  gap: 14px;
+}
+
+.upcoming-cta-date {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 40px;
+  background: #f0faf4;
+  border-radius: 10px;
+  padding: 8px 10px;
+}
+.upcoming-cta-month {
+  font-size: 0.65rem;
+  color: #198754;
+  font-weight: 600;
+  line-height: 1;
+}
+.upcoming-cta-day {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #198754;
+  line-height: 1.1;
+}
+.upcoming-cta-weekday {
+  font-size: 0.65rem;
+  color: #198754;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.upcoming-cta-info {
+  flex: 1;
+  min-width: 0;
+}
+.upcoming-cta-course {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #212529;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.upcoming-cta-location {
+  font-size: 0.78rem;
+  color: #6c757d;
+  margin-top: 2px;
+}
+
+.upcoming-cta-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.upcoming-cta-dday {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #6c757d;
+}
+.upcoming-cta-dday--near { color: #dc3545; }
+
+.upcoming-cta-status {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 20px;
+}
+.upcoming-cta-status--pending { background: #e7f3ff; color: #0d6efd; }
+.upcoming-cta-status--open    { background: #d1fae5; color: #198754; }
+.upcoming-cta-status--full    { background: #fee2e2; color: #dc3545; }
+
+.upcoming-cta-bottom {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 16px 12px;
+}
+.upcoming-cta-progress-wrap {
+  flex: 1;
+  height: 5px;
+  background: #e9ecef;
+  border-radius: 99px;
+  overflow: hidden;
+}
+.upcoming-cta-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #198754, #20c997);
+  border-radius: 99px;
+  transition: width 0.4s ease;
+}
+.upcoming-cta-seats {
+  font-size: 0.75rem;
+  color: #6c757d;
+  white-space: nowrap;
+}
+
+.upcoming-more-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px;
+  background: #f8f9fa;
+  border-radius: 14px;
+  color: #6c757d;
+  font-size: 0.85rem;
+  font-weight: 500;
+  border: 1.5px dashed #dee2e6;
+}
+.upcoming-more-card:hover { color: #198754; border-color: #198754; }
+
+/* =============================================
    하단 탭바 (Bottom Tab Bar)
    ============================================= */
 .bottom-tab-bar {

@@ -473,13 +473,9 @@ document.addEventListener('DOMContentLoaded', function() {
           const v = document.createElement('video');
           v.controls = true;
           v.playsInline = true;
-          v.preload = 'metadata';
           v.className = 'rounded border';
           v.style.maxHeight = '280px';
           v.style.maxWidth = '100%';
-          // Cloudinary 동영상 0초 프레임을 썸네일로 사용
-          const posterUrl = m.url.replace('/upload/', '/upload/so_0/').replace(/\.(mp4|mov|webm)(\?.*)?$/, '.jpg');
-          v.poster = posterUrl;
           v.src = m.url;
           row.appendChild(v);
         } else {

@@ -459,7 +459,19 @@
   <div class="col-12">
     <div class="card">
       <div class="card-header bg-white py-1 d-flex justify-content-between align-items-center">
-        <h6 class="home-section-title-bold mb-0">실시간 교통 현황</h6>
+        <div class="d-flex align-items-center gap-2">
+          <h6 class="home-section-title-bold mb-0">실시간 교통 현황</h6>
+          <div class="dropdown">
+            <button class="btn btn-sm btn-outline-secondary dropdown-toggle py-0 px-2" type="button" id="trafficCourseDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="font-size: 0.8rem;">
+              <span id="selectedCourseName">양지파인CC</span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-start" aria-labelledby="trafficCourseDropdown">
+              <li><a class="dropdown-item" href="#" onclick="selectTrafficCourse('yangji'); return false;">양지파인CC</a></li>
+              <li><a class="dropdown-item" href="#" onclick="selectTrafficCourse('daeyoungHills'); return false;">대영힐스CC</a></li>
+              <li><a class="dropdown-item" href="#" onclick="selectTrafficCourse('daeyoungBase'); return false;">대영베이스CC</a></li>
+            </ul>
+          </div>
+        </div>
         <div class="d-flex align-items-center">
           <span class="badge bg-light text-dark me-2 home-card-meta" id="trafficUpdateTime"></span>
           <button class="btn btn-outline-primary btn-sm py-0 px-2 home-card-meta" onclick="refreshTrafficInfo()">
@@ -1580,66 +1592,61 @@ async function loadTrafficWidget(forceRefresh = false) {
   }
 }
 
-// 교통 카드 렌더링 (3개 골프장 세로 스택)
+// 선택된 교통 골프장 (기본: 양지파인)
+let selectedTrafficCourse = 'yangji';
+
+// 교통 골프장 선택
+function selectTrafficCourse(key) {
+  selectedTrafficCourse = key;
+  const nameEl = document.getElementById('selectedCourseName');
+  if (nameEl) nameEl.textContent = trafficRoutes[key].name;
+  renderTrafficCards(trafficDataCache);
+}
+
+// 교통 카드 렌더링 (선택된 골프장 1개)
 function renderTrafficCards(trafficData) {
   const trafficCards = document.getElementById('trafficCards');
   if (!trafficCards) return;
 
-  // 3개 골프장 모두 표시
-  const displayRoutes = ['yangji', 'daeyoungHills', 'daeyoungBase'];
+  const course = trafficRoutes[selectedTrafficCourse];
+  const courseTraffic = trafficData ? trafficData[selectedTrafficCourse] : null;
   let html = '';
 
-  displayRoutes.forEach(key => {
-    const course = trafficRoutes[key];
-    const courseTraffic = trafficData ? trafficData[key] : null;
-    const textClass = course.color === 'warning' ? 'text-dark' : 'text-white';
+  course.routes.forEach((route, idx) => {
+    const fromKey = route.departure === '여의도역' ? 'yeouido' : 'jamsil';
+    const routeData = courseTraffic ? courseTraffic[fromKey] : null;
+    const duration = routeData ? routeData.duration : route.baseTime;
+    const distance = routeData ? routeData.distance : route.distance;
+    const trafficState = routeData ? routeData.trafficState : '보통';
+
+    let statusColor = 'warning';
+    if (trafficState === '원활') statusColor = 'success';
+    else if (trafficState === '정체') statusColor = 'danger';
+
+    if (idx > 0) html += '<hr class="my-2">';
 
     html += `
-      <div class="card border-0 shadow-sm mb-3">
-        <div class="card-header bg-${course.color} ${textClass} py-2 px-3">
-          <strong><i class="bi bi-geo-alt-fill me-1"></i>${course.name}</strong>
+      <div class="d-flex align-items-center justify-content-between mb-1">
+        <div class="d-flex align-items-center gap-2">
+          <span class="badge ${idx === 0 ? 'bg-primary' : 'bg-info'}" style="font-size: 0.9rem; padding: 5px 8px;">
+            <i class="bi bi-geo"></i> ${route.departure}
+          </span>
+          <span class="text-muted" style="font-size: 0.85rem;">${distance}km</span>
         </div>
-        <div class="card-body py-2 px-3">
+        <div class="d-flex align-items-center gap-2">
+          <span class="badge bg-${statusColor} ${statusColor === 'warning' ? 'text-dark' : ''}" style="font-size: 0.9rem; padding: 5px 8px;">
+            ${trafficState}
+          </span>
+          <span class="fw-bold" style="font-size: 1rem;">약 ${duration}분</span>
+          <a href="${route.mapUrl}" target="_blank" class="btn btn-sm btn-outline-secondary py-1 px-2">
+            <i class="bi bi-map"></i> 지도
+          </a>
+        </div>
+      </div>
+      <div class="progress mb-1" style="height: 8px;">
+        <div class="progress-bar bg-${statusColor}" style="width: ${trafficState === '원활' ? '30' : trafficState === '보통' ? '60' : '90'}%"></div>
+      </div>
     `;
-
-    course.routes.forEach((route, idx) => {
-      const fromKey = route.departure === '여의도역' ? 'yeouido' : 'jamsil';
-      const routeData = courseTraffic ? courseTraffic[fromKey] : null;
-      const duration = routeData ? routeData.duration : route.baseTime;
-      const distance = routeData ? routeData.distance : route.distance;
-      const trafficState = routeData ? routeData.trafficState : '보통';
-
-      let statusColor = 'warning';
-      if (trafficState === '원활') statusColor = 'success';
-      else if (trafficState === '정체') statusColor = 'danger';
-
-      if (idx > 0) html += '<hr class="my-2">';
-
-      html += `
-        <div class="d-flex align-items-center justify-content-between mb-1">
-          <div class="d-flex align-items-center gap-2">
-            <span class="badge ${idx === 0 ? 'bg-primary' : 'bg-info'}" style="font-size: 0.9rem; padding: 5px 8px;">
-              <i class="bi bi-geo"></i> ${route.departure}
-            </span>
-            <span class="text-muted" style="font-size: 0.85rem;">${distance}km</span>
-          </div>
-          <div class="d-flex align-items-center gap-2">
-            <span class="badge bg-${statusColor} ${statusColor === 'warning' ? 'text-dark' : ''}" style="font-size: 0.9rem; padding: 5px 8px;">
-              ${trafficState}
-            </span>
-            <span class="fw-bold" style="font-size: 1rem;">약 ${duration}분</span>
-            <a href="${route.mapUrl}" target="_blank" class="btn btn-sm btn-outline-secondary py-1 px-2">
-              <i class="bi bi-map"></i> 지도
-            </a>
-          </div>
-        </div>
-        <div class="progress" style="height: 8px;">
-          <div class="progress-bar bg-${statusColor}" style="width: ${trafficState === '원활' ? '30' : trafficState === '보통' ? '60' : '90'}%"></div>
-        </div>
-      `;
-    });
-
-    html += `</div></div>`;
   });
 
   trafficCards.innerHTML = html;

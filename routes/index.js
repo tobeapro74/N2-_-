@@ -104,6 +104,29 @@ router.get('/', async (req, res) => {
     .filter(m => m.join_date && m.join_date >= tenDaysAgoStr)
     .map(m => ({ name: m.name, join_date: m.join_date }));
 
+  // 최근 라운딩 스코어 Top5
+  const roundResults = await db.getTableAsync('round_results') || [];
+  const completedSchedules = schedules.filter(s => s.has_result && s.play_date < today);
+  const latestSchedule = completedSchedules.sort((a, b) => b.play_date.localeCompare(a.play_date))[0];
+  let recentRoundTop5 = [];
+  if (latestSchedule) {
+    const latestCourse = golfCourses.find(gc => gc.id === latestSchedule.golf_course_id);
+    recentRoundTop5 = roundResults
+      .filter(r => r.schedule_id === latestSchedule.id)
+      .sort((a, b) => a.rank - b.rank)
+      .slice(0, 5)
+      .map(r => {
+        const member = allMembers.find(m => m.id === r.member_id);
+        return {
+          rank: r.rank,
+          name: member ? member.name : '알 수 없음',
+          score: r.score,
+          courseName: latestCourse ? latestCourse.name : '',
+          playDate: latestSchedule.play_date
+        };
+      });
+  }
+
   // 일상톡톡 최신 게시글 (최근 5개)
   const recentCommunityPosts = communityPosts
     .sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''))
@@ -175,7 +198,9 @@ router.get('/', async (req, res) => {
       userStats,
       courseHoles,
       newMembers,
-      recentCommunityPosts
+      recentCommunityPosts,
+      recentRoundTop5,
+      completedSchedulesCount: completedSchedules.length
     });
   } catch (error) {
     console.error('대시보드 로드 오류:', error);

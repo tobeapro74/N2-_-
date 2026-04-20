@@ -98,71 +98,8 @@
 <% } %>
 
 <!-- 요약 카드 -->
-<div class="row g-2 mb-4">
-  <div class="col-6 col-md-3">
-    <a href="/finance" class="text-decoration-none">
-      <div class="card h-100 border-0 shadow-sm summary-card">
-        <div class="card-body py-2 px-2 py-md-3 px-md-3">
-          <div class="d-flex align-items-center">
-            <div class="rounded-circle bg-success bg-opacity-10 p-2 me-2 me-md-3 d-flex align-items-center justify-content-center summary-icon">
-              <i class="bi bi-wallet2 text-success"></i>
-            </div>
-            <div class="overflow-hidden">
-              <small class="text-muted d-block summary-label">총 잔액</small>
-              <% if (user) { %>
-              <span class="fw-bold text-dark summary-value"><%= balance.toLocaleString() %><small class="fw-normal">원</small></span>
-              <% } else { %>
-              <span class="fw-bold text-dark summary-value blur-content">0,000,000<small class="fw-normal">원</small></span>
-              <% } %>
-            </div>
-          </div>
-        </div>
-      </div>
-    </a>
-  </div>
-  <div class="col-6 col-md-3">
-    <a href="/finance/income" class="text-decoration-none">
-      <div class="card h-100 border-0 shadow-sm summary-card">
-        <div class="card-body py-2 px-2 py-md-3 px-md-3">
-          <div class="d-flex align-items-center">
-            <div class="rounded-circle bg-primary bg-opacity-10 p-2 me-2 me-md-3 d-flex align-items-center justify-content-center summary-icon">
-              <i class="bi bi-graph-up-arrow text-primary"></i>
-            </div>
-            <div class="overflow-hidden">
-              <small class="text-muted d-block summary-label">이번 달 수입</small>
-              <% if (user) { %>
-              <span class="fw-bold text-primary summary-value">+<%= monthlyIncome.toLocaleString() %><small class="fw-normal">원</small></span>
-              <% } else { %>
-              <span class="fw-bold text-primary summary-value blur-content">+000,000<small class="fw-normal">원</small></span>
-              <% } %>
-            </div>
-          </div>
-        </div>
-      </div>
-    </a>
-  </div>
-  <div class="col-6 col-md-3">
-    <a href="/finance/expense" class="text-decoration-none">
-      <div class="card h-100 border-0 shadow-sm summary-card">
-        <div class="card-body py-2 px-2 py-md-3 px-md-3">
-          <div class="d-flex align-items-center">
-            <div class="rounded-circle bg-danger bg-opacity-10 p-2 me-2 me-md-3 d-flex align-items-center justify-content-center summary-icon">
-              <i class="bi bi-graph-down-arrow text-danger"></i>
-            </div>
-            <div class="overflow-hidden">
-              <small class="text-muted d-block summary-label">이번 달 지출</small>
-              <% if (user) { %>
-              <span class="fw-bold text-danger summary-value">-<%= monthlyExpense.toLocaleString() %><small class="fw-normal">원</small></span>
-              <% } else { %>
-              <span class="fw-bold text-danger summary-value blur-content">-000,000<small class="fw-normal">원</small></span>
-              <% } %>
-            </div>
-          </div>
-        </div>
-      </div>
-    </a>
-  </div>
-  <div class="col-6 col-md-3">
+<div class="row g-2 mb-3">
+  <div class="col-6">
     <a href="/members" class="text-decoration-none">
       <div class="card h-100 border-0 shadow-sm summary-card">
         <div class="card-body py-2 px-2 py-md-3 px-md-3">
@@ -179,7 +116,61 @@
       </div>
     </a>
   </div>
+  <div class="col-6">
+    <a href="/schedules" class="text-decoration-none">
+      <div class="card h-100 border-0 shadow-sm summary-card">
+        <div class="card-body py-2 px-2 py-md-3 px-md-3">
+          <div class="d-flex align-items-center">
+            <div class="rounded-circle bg-success bg-opacity-10 p-2 me-2 me-md-3 d-flex align-items-center justify-content-center summary-icon">
+              <i class="bi bi-trophy-fill text-success"></i>
+            </div>
+            <div class="overflow-hidden">
+              <small class="text-muted d-block summary-label">총 라운딩</small>
+              <span class="fw-bold text-dark summary-value"><%= completedSchedulesCount %><small class="fw-normal">회</small></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </a>
+  </div>
 </div>
+
+<!-- 최근 라운딩 스코어 Top5 -->
+<% if (typeof recentRoundTop5 !== 'undefined' && recentRoundTop5.length > 0) { %>
+<div class="row mb-3">
+  <div class="col-12">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-white py-1 d-flex justify-content-between align-items-center">
+        <span class="home-section-title mb-0" style="font-size: 0.9rem;">
+          <i class="bi bi-trophy-fill text-warning me-1"></i>최근 라운딩 Top 5
+        </span>
+        <small class="text-muted" style="font-size: 0.75rem;"><%= recentRoundTop5[0].courseName %> · <%= recentRoundTop5[0].playDate %></small>
+      </div>
+      <div class="card-body p-2">
+        <div class="list-group list-group-flush">
+          <% recentRoundTop5.forEach(function(r) { %>
+          <div class="list-group-item py-2 px-1 border-0 d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center">
+              <% if (r.rank === 1) { %>
+              <span class="me-2" style="font-size: 1.1rem;">🥇</span>
+              <% } else if (r.rank === 2) { %>
+              <span class="me-2" style="font-size: 1.1rem;">🥈</span>
+              <% } else if (r.rank === 3) { %>
+              <span class="me-2" style="font-size: 1.1rem;">🥉</span>
+              <% } else { %>
+              <span class="me-2 text-muted fw-bold" style="font-size: 0.85rem; min-width: 24px; text-align: center;"><%= r.rank %></span>
+              <% } %>
+              <span class="fw-bold" style="font-size: 0.9rem;"><%= r.name %></span>
+            </div>
+            <span class="badge bg-success text-white" style="font-size: 0.85rem;"><%= r.score %>타</span>
+          </div>
+          <% }); %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<% } %>
 
 <!-- 일상톡톡 커뮤니티 -->
 <div class="row mb-3">

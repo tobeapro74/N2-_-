@@ -1679,6 +1679,16 @@ await db.collection('members').updateOne(
 MONGODB_URI="mongodb+srv://..." node scripts/sync-bank-transactions-to-mongodb.js
 ```
 
+### (2026-04) 자금 현황 상단 숫자 ≠ 카테고리 합
+**원인:** `routes/finance.js`에서 총 수입·총 지출·총 잔액을 **필터 없이 전 기간 합**으로 계산하고, 카테고리·차트만 **선택 연도**로 걸어 숫자가 어긋남.
+
+**조치:** 총 수입·총 지출은 선택 연·월과 동일 조건으로 집계하고, **누적 잔액**만 전체 입출금 차이로 표시. 대시보드는 `getTableAsync`로 최신 DB를 읽음.
+
+### (2026-04) 모바일 출금·입금 목록에서 금액·합계가 안 보임
+**원인:** `public/css/style.css`에서 `.desktop-table`을 **항상 표시**하고 `.mobile-card-list`를 **항상 숨기도록** `!important`가 걸려, 좁은 화면에서도 가로 스크롤 테이블만 보임. `min-width: 600px` 때문에 **금액·합계 열이 화면 밖**으로 밀림.
+
+**조치:** `max-width: 768px`에서 데스크톱 테이블을 숨기고 카드 목록을 표시. 입·출금 라우트는 `getTableAsync`로 최신 데이터를 읽고, 금액 합계는 `Number()`로 집계. SW 캐시 버전 갱신(`public/sw.js`).
+
 ---
 
 ## 빠른 진단 체크리스트 (종합)

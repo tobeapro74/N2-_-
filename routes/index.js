@@ -192,6 +192,7 @@ router.get('/', async (req, res) => {
 
     res.render('index', {
       title: 'N2골프 - 대시보드',
+      currentPage: 'home',
       balance,
       totalIncome,
       totalExpense,

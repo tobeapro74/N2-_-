@@ -90,7 +90,7 @@
             <td class="py-2 ps-3" data-value="<%= expense.expense_date %>"><%= moment(expense.expense_date).format('MM/DD') %></td>
             <td class="py-2"><span class="badge bg-danger bg-opacity-75" style="font-size: 0.85rem;"><%= expense.category_name %></span></td>
             <td class="py-2"><small class="text-muted"><%= expense.description || '-' %></small></td>
-            <td class="py-2 text-end text-danger fw-bold" data-value="<%= expense.amount %>">-<%= expense.amount.toLocaleString() %></td>
+            <td class="py-2 text-end text-danger fw-bold" data-value="<%= expense.amount %>">-<%= Number(expense.amount || 0).toLocaleString() %></td>
             <% if (user && user.is_admin) { %>
             <td class="py-2 pe-3 text-end">
               <a href="/finance/expense/<%= expense.id %>/edit" class="btn btn-outline-primary btn-sm py-0 px-1" style="font-size: 0.85rem;">
@@ -112,7 +112,7 @@
         <tfoot>
           <tr class="table-danger">
             <td colspan="<%= user && user.is_admin ? 3 : 3 %>" class="py-2 ps-3 text-end"><strong>합계</strong></td>
-            <td class="py-2 text-end"><strong class="text-danger"><%= total.toLocaleString() %>원</strong></td>
+            <td class="py-2 text-end"><strong class="text-danger"><%= Number(total || 0).toLocaleString() %>원</strong></td>
             <% if (user && user.is_admin) { %><td class="py-2"></td><% } %>
           </tr>
         </tfoot>
@@ -120,14 +120,14 @@
     </div>
 
     <!-- 모바일 카드 리스트 -->
-    <div class="mobile-card-list" aria-label="출금 목록">
+    <div class="mobile-card-list px-3 pb-3" aria-label="출금 목록">
       <% if (expenses.length === 0) { %>
       <div class="text-center text-muted py-4">출금 내역이 없습니다.</div>
       <% } else { %>
       <% expenses.forEach(expense => { %>
       <div class="mobile-card-item">
         <div class="item-header">
-          <h3 class="item-title text-danger">-<%= expense.amount.toLocaleString() %>원</h3>
+          <h3 class="item-title text-danger">-<%= Number(expense.amount || 0).toLocaleString() %>원</h3>
           <span class="badge bg-danger"><%= expense.category_name %></span>
         </div>
         <div class="item-meta">
@@ -160,7 +160,7 @@
       <div class="mobile-card-item bg-danger bg-opacity-10">
         <div class="d-flex justify-content-between align-items-center">
           <strong>합계</strong>
-          <strong class="text-danger"><%= total.toLocaleString() %>원</strong>
+          <strong class="text-danger"><%= Number(total || 0).toLocaleString() %>원</strong>
         </div>
       </div>
       <% } %>

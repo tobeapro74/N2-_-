@@ -92,7 +92,7 @@
             <td class="py-2"><span class="badge bg-primary bg-opacity-75" style="font-size: 0.85rem;"><%= income.category_name %></span></td>
             <td class="py-2"><%= income.member_name || '-' %></td>
             <td class="py-2"><small class="text-muted"><%= income.description || '-' %></small></td>
-            <td class="py-2 text-end text-primary fw-bold" data-value="<%= income.amount %>">+<%= income.amount.toLocaleString() %></td>
+            <td class="py-2 text-end text-primary fw-bold" data-value="<%= income.amount %>">+<%= Number(income.amount || 0).toLocaleString() %></td>
             <% if (user && user.is_admin) { %>
             <td class="py-2 pe-3 text-end">
               <a href="/finance/income/<%= income.id %>/edit" class="btn btn-outline-primary btn-sm py-0 px-1" style="font-size: 0.85rem;">
@@ -114,7 +114,7 @@
         <tfoot>
           <tr class="table-primary">
             <td colspan="<%= user && user.is_admin ? 4 : 4 %>" class="py-2 ps-3 text-end"><strong>합계</strong></td>
-            <td class="py-2 text-end"><strong class="text-primary"><%= total.toLocaleString() %>원</strong></td>
+            <td class="py-2 text-end"><strong class="text-primary"><%= Number(total || 0).toLocaleString() %>원</strong></td>
             <% if (user && user.is_admin) { %><td class="py-2"></td><% } %>
           </tr>
         </tfoot>
@@ -122,14 +122,14 @@
     </div>
 
     <!-- 모바일 카드 리스트 -->
-    <div class="mobile-card-list" aria-label="입금 목록">
+    <div class="mobile-card-list px-3 pb-3" aria-label="입금 목록">
       <% if (incomes.length === 0) { %>
       <div class="text-center text-muted py-4">입금 내역이 없습니다.</div>
       <% } else { %>
       <% incomes.forEach(income => { %>
       <div class="mobile-card-item">
         <div class="item-header">
-          <h3 class="item-title text-primary">+<%= income.amount.toLocaleString() %>원</h3>
+          <h3 class="item-title text-primary">+<%= Number(income.amount || 0).toLocaleString() %>원</h3>
           <span class="badge bg-primary"><%= income.category_name %></span>
         </div>
         <div class="item-meta">
@@ -165,7 +165,7 @@
       <div class="mobile-card-item bg-primary bg-opacity-10">
         <div class="d-flex justify-content-between align-items-center">
           <strong>합계</strong>
-          <strong class="text-primary"><%= total.toLocaleString() %>원</strong>
+          <strong class="text-primary"><%= Number(total || 0).toLocaleString() %>원</strong>
         </div>
       </div>
       <% } %>

@@ -2011,4 +2011,91 @@ a:active .card {
   color: #ffcdd2 !important; /* 연한 빨강 (흰색 배경보다 구분됨) */
 }
 
+/* =============================================
+   하단 탭바 (Bottom Tab Bar)
+   ============================================= */
+.bottom-tab-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+  background: #ffffff;
+  border-top: 1px solid #e9ecef;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  z-index: 1040;
+  padding-bottom: env(safe-area-inset-bottom);
+  box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.tab-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  text-decoration: none;
+  color: #adb5bd;
+  font-size: 0.65rem;
+  font-weight: 500;
+  padding: 6px 0;
+  transition: color 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tab-item i {
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.tab-item span {
+  line-height: 1;
+}
+
+.tab-item.active,
+.tab-item:active {
+  color: #198754;
+}
+
+.tab-item.active i {
+  color: #198754;
+}
+
+/* 탭바 있을 때 콘텐츠 하단 여백 */
+@media (max-width: 991.98px) {
+  main {
+    padding-bottom: calc(64px + env(safe-area-inset-bottom) + 16px);
+  }
+}
+
+/* 더보기 메뉴 아이콘 */
+.more-menu-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  margin: 0 auto;
+}
+
+.more-menu-label {
+  font-size: 0.72rem;
+  color: #495057;
+  font-weight: 500;
+}
+
+.more-menu-item:active .more-menu-icon {
+  opacity: 0.7;
+}
+
+.rounded-top-4 {
+  border-top-left-radius: 1rem !important;
+  border-top-right-radius: 1rem !important;
+}
+
 

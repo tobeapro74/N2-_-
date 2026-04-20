@@ -50,20 +50,22 @@
   </div>
 </div>
 
-<!-- 요약 -->
-<div class="row g-2 mb-3">
+<!-- 요약: 총 수입·총 지출은 선택한 연·월과 동일 필터. 누적 잔액은 등록된 전체 입출금 기준 -->
+<div class="row g-2 mb-2">
   <div class="col-4">
     <div class="card border-0 shadow-sm bg-success bg-opacity-10">
       <div class="card-body text-center py-2 px-1">
-        <small class="text-muted" style="font-size: 0.85rem;">총 잔액</small>
-        <h6 class="mb-0 fw-bold text-success" style="font-size: 0.9rem;"><%= balance.toLocaleString() %></h6>
+        <small class="text-muted d-block" style="font-size: 0.75rem;">누적 잔액</small>
+        <small class="text-muted d-block" style="font-size: 0.65rem;">전체 입출금</small>
+        <h6 class="mb-0 fw-bold text-success" style="font-size: 0.9rem;"><%= balanceAllTime.toLocaleString() %></h6>
       </div>
     </div>
   </div>
   <div class="col-4">
     <div class="card border-0 shadow-sm bg-primary bg-opacity-10">
       <div class="card-body text-center py-2 px-1">
-        <small class="text-muted" style="font-size: 0.85rem;">총 수입</small>
+        <small class="text-muted d-block" style="font-size: 0.75rem;">총 수입</small>
+        <small class="text-muted d-block" style="font-size: 0.65rem;"><%= selectedYear %>년<%= selectedMonth ? ' ' + selectedMonth + '월' : ' 전체' %></small>
         <h6 class="mb-0 fw-bold text-primary" style="font-size: 0.9rem;"><%= totalIncome.toLocaleString() %></h6>
       </div>
     </div>
@@ -71,12 +73,14 @@
   <div class="col-4">
     <div class="card border-0 shadow-sm bg-danger bg-opacity-10">
       <div class="card-body text-center py-2 px-1">
-        <small class="text-muted" style="font-size: 0.85rem;">총 지출</small>
+        <small class="text-muted d-block" style="font-size: 0.75rem;">총 지출</small>
+        <small class="text-muted d-block" style="font-size: 0.65rem;"><%= selectedYear %>년<%= selectedMonth ? ' ' + selectedMonth + '월' : ' 전체' %></small>
         <h6 class="mb-0 fw-bold text-danger" style="font-size: 0.9rem;"><%= totalExpense.toLocaleString() %></h6>
       </div>
     </div>
   </div>
 </div>
+<p class="text-muted small mb-3 px-1" style="font-size: 0.7rem;">선택 기간 순액(수입−지출): <strong class="text-dark"><%= periodNet.toLocaleString() %></strong>원 · 아래 카테고리·차트와 동일 범위로 집계됩니다.</p>
 
 <div class="row g-2">
   <!-- 월별 추이 차트 -->

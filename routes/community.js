@@ -74,6 +74,7 @@ router.get('/', requireAuth, async (req, res) => {
   try {
     res.render('community/list', {
       title: '일상톡톡',
+      currentPage: 'community',
       user: req.session.user,
       cloudinaryCloudName: process.env.CLOUDINARY_CLOUD_NAME || ''
     });

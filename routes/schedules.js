@@ -113,6 +113,7 @@ router.get('/', requireAuth, async (req, res) => {
 
     res.render('schedules/list', {
       title: '일정 관리',
+      currentPage: 'schedules',
       schedules,
       golfCourses,
       filters: { year, month, course },

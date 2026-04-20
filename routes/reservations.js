@@ -53,6 +53,7 @@ router.get('/', requireAuth, async (req, res) => {
 
     res.render('reservations/my-list', {
       title: '내 예약',
+      currentPage: 'reservations',
       reservations
     });
   } catch (error) {
@@ -959,6 +960,7 @@ router.get('/available', requireAuth, async (req, res) => {
 
     res.render('reservations/available', {
       title: '예약 신청',
+      currentPage: 'reservations',
       schedules
     });
   } catch (error) {

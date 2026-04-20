@@ -554,6 +554,11 @@ mongoClient = new MongoClient(MONGODB_URI, {
 node scripts/create-indexes.js
 ```
 
+### 7.4.1 일상톡톡 첨부 미디어 (GridFS)
+
+- **MongoDB 사용 시** (`MONGODB_URI`): 데이터베이스 `n2golf`(또는 `MONGODB_DB_NAME`) 안에 GridFS bucket 이름 **`community_media`** (`community_media.files` / `community_media.chunks`)에 이미지·동영상 바이너리를 저장합니다. 게시글(`community_posts`)에는 `media_files: [{ file_id, kind }]` 형태로만 참조하며, 클라이언트는 `GET /community/media/:fileId`로 스트리밍합니다(로그인 필요).
+- **로컬 JSON 모드**: `data/community_media/` 디렉터리에 파일을 두고 `community_media` 테이블로 메타데이터를 관리합니다.
+
 ### 7.5 Cloudinary 이미지 최적화
 
 업로드 및 표시 시 자동으로 최적화된 포맷(WebP/AVIF)과 품질을 적용합니다.

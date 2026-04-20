@@ -15,20 +15,21 @@
   <div class="card-body py-3 px-3">
     <form id="postForm">
       <textarea id="postInput" class="form-control mb-2" placeholder="오늘 어떤 일이 있었나요? 자유롭게 이야기해주세요..." maxlength="1000" rows="10" style="resize: vertical; min-height: 240px; font-size: 1rem; line-height: 1.7;"></textarea>
-      <div class="d-flex justify-content-between align-items-center">
-        <div class="d-flex align-items-center gap-2">
-          <label for="imageInput" class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1" style="cursor: pointer;" title="이미지 첨부">
-            <i class="bi bi-image"></i>
-            <span style="font-size: 0.85rem;">사진</span>
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+          <label for="mediaInput" class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1" style="cursor: pointer;" title="사진·동영상 첨부">
+            <i class="bi bi-images"></i>
+            <span style="font-size: 0.85rem;">사진/동영상</span>
           </label>
-          <input type="file" id="imageInput" accept="image/jpeg,image/png,image/gif,image/webp" class="d-none">
-          <small class="text-muted" style="font-size: 0.85rem;">최대 5MB</small>
+          <input type="file" id="mediaInput" multiple accept="image/jpeg,image/png,image/gif,image/webp,video/mp4,video/webm,video/quicktime" class="d-none">
+          <small class="text-muted" style="font-size: 0.75rem;">이미지 최대 10장·동영상 최대 3개(각 이미지 5MB·동영상 80MB)</small>
         </div>
         <button type="submit" id="submitBtn" class="btn btn-success btn-sm px-3 d-flex align-items-center gap-1">
           <i class="bi bi-send"></i>
           <span>게시</span>
         </button>
       </div>
+      <div id="mediaPreview" class="d-flex flex-wrap gap-2 mt-2"></div>
     </form>
   </div>
 </div>
@@ -68,10 +69,8 @@
           </button>
         </div>
       </div>
-      <!-- 게시글 이미지 -->
-      <div class="post-image-container d-none mb-2">
-        <img class="post-image rounded" src="" alt="첨부 이미지" loading="lazy" style="max-height: 300px; max-width: 100%; cursor: pointer;" onclick="window.open(this.src, '_blank')" onerror="this.parentElement.classList.add('d-none')">
-      </div>
+      <!-- 게시글 미디어 (이미지·동영상) -->
+      <div class="post-media-container mb-2"></div>
       <!-- 게시글 내용 -->
       <p class="mb-2 post-content" style="font-size: 0.9rem;"></p>
       <!-- 수정 폼 (숨김) -->
@@ -218,14 +217,14 @@ document.addEventListener('DOMContentLoaded', function() {
   const loadMoreBtn = document.getElementById('loadMoreBtn');
   const loadMoreContainer = document.getElementById('loadMoreContainer');
 
-  // 이미지 관련
-  const imageInput = document.getElementById('imageInput');
-  const imageLabel = document.querySelector('label[for="imageInput"]');
-  let selectedImageUrl = null;
+  const MAX_POST_IMAGES = 10;
+  const MAX_POST_VIDEOS = 3;
 
-  // Cloudinary 직접 업로드 설정
-  const CLOUDINARY_CLOUD_NAME = '<%= cloudinaryCloudName || "" %>';
-  const CLOUDINARY_UPLOAD_PRESET = 'n2golf_unsigned';
+  const mediaInput = document.getElementById('mediaInput');
+  const mediaLabel = document.querySelector('label[for="mediaInput"]');
+  const mediaPreview = document.getElementById('mediaPreview');
+  /** @type {{ fileId: string, kind: string, name: string }[]} */
+  let pendingMedia = [];
 
   let currentPage = 1;
   let hasMore = true;
@@ -254,50 +253,100 @@ document.addEventListener('DOMContentLoaded', function() {
     return div.innerHTML;
   }
 
-  // 이미지 업로드 - Cloudinary 직접 업로드 (서버 거치지 않음)
-  imageInput.addEventListener('change', async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+  function countPendingKinds() {
+    let img = 0;
+    let vid = 0;
+    pendingMedia.forEach((m) => {
+      if (m.kind === 'video') vid += 1;
+      else img += 1;
+    });
+    return { img, vid };
+  }
 
-    if (file.size > 5 * 1024 * 1024) {
-      alert('이미지 크기는 5MB를 초과할 수 없습니다.');
-      imageInput.value = '';
-      return;
+  function renderMediaPreview() {
+    mediaPreview.innerHTML = '';
+    pendingMedia.forEach((item) => {
+      const wrap = document.createElement('div');
+      wrap.className = 'position-relative border rounded p-1 bg-light';
+      wrap.style.maxWidth = '120px';
+      const label = document.createElement('div');
+      label.className = 'small text-truncate text-muted';
+      label.style.maxWidth = '108px';
+      label.textContent = item.kind === 'video' ? '🎬 ' + item.name : item.name;
+      const rm = document.createElement('button');
+      rm.type = 'button';
+      rm.className = 'btn btn-sm btn-outline-danger position-absolute top-0 end-0 p-0 px-1';
+      rm.innerHTML = '&times;';
+      rm.title = '제거';
+      rm.addEventListener('click', () => {
+        pendingMedia = pendingMedia.filter((m) => m.fileId !== item.fileId);
+        renderMediaPreview();
+      });
+      wrap.appendChild(label);
+      wrap.appendChild(rm);
+      mediaPreview.appendChild(wrap);
+    });
+    refreshMediaLabelState();
+  }
+
+  function refreshMediaLabelState() {
+    const { img, vid } = countPendingKinds();
+    if (pendingMedia.length === 0) {
+      mediaLabel.innerHTML = '<i class="bi bi-images"></i><span class="d-none d-md-inline" style="font-size: 0.85rem;">사진/동영상</span>';
+    } else {
+      const vPart = vid > 0 ? ` · 동영상 ${vid}` : '';
+      mediaLabel.innerHTML = `<i class="bi bi-check-circle-fill text-success"></i><span class="d-none d-md-inline small ms-1">사진 ${img}${vPart}</span>`;
     }
+  }
 
-    // 로딩 인디케이터 표시
-    if (window.showGlobalLoading) window.showGlobalLoading();
-    imageLabel.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
-    imageLabel.style.pointerEvents = 'none';
+  function resetMediaUpload() {
+    mediaInput.value = '';
+    pendingMedia = [];
+    mediaPreview.innerHTML = '';
+    refreshMediaLabelState();
+  }
 
-    try {
-      // Cloudinary 직접 업로드 가능 여부 확인
-      if (CLOUDINARY_CLOUD_NAME) {
-        // Cloudinary 직접 업로드
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-        formData.append('folder', 'n2golf/community');
+  mediaInput.addEventListener('change', async (e) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
 
-        const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
-          method: 'POST',
-          body: formData
-        });
+    const isImage = (f) => f.type.startsWith('image/');
+    const isVideo = (f) => f.type.startsWith('video/');
 
-        const data = await response.json();
-
-        if (data.secure_url) {
-          selectedImageUrl = data.secure_url;
-          imageLabel.innerHTML = '<i class="bi bi-check-circle-fill text-success"></i>';
-        } else {
-          throw new Error(data.error?.message || '업로드 실패');
+    for (const file of files) {
+      let { img, vid } = countPendingKinds();
+      if (isImage(file)) {
+        if (file.size > 5 * 1024 * 1024) {
+          alert(`"${file.name}"은(는) 5MB를 초과합니다.`);
+          continue;
+        }
+        if (img >= MAX_POST_IMAGES) {
+          alert(`이미지는 최대 ${MAX_POST_IMAGES}장까지 첨부할 수 있습니다.`);
+          break;
+        }
+      } else if (isVideo(file)) {
+        if (file.size > 80 * 1024 * 1024) {
+          alert(`"${file.name}"은(는) 80MB를 초과합니다.`);
+          continue;
+        }
+        if (vid >= MAX_POST_VIDEOS) {
+          alert(`동영상은 최대 ${MAX_POST_VIDEOS}개까지 첨부할 수 있습니다.`);
+          break;
         }
       } else {
-        // 서버 업로드로 폴백 (Cloudinary 미설정 시)
-        const formData = new FormData();
-        formData.append('image', file);
+        alert(`지원하지 않는 형식입니다: ${file.name}`);
+        continue;
+      }
 
-        const response = await fetch('/community/upload-image', {
+      if (window.showGlobalLoading) window.showGlobalLoading();
+      mediaLabel.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+      mediaLabel.style.pointerEvents = 'none';
+
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const response = await fetch('/community/upload-media', {
           method: 'POST',
           headers: { 'X-CSRF-Token': csrfToken },
           body: formData
@@ -305,28 +354,27 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const data = await response.json();
 
-        if (data.success) {
-          selectedImageUrl = data.imageUrl;
-          imageLabel.innerHTML = '<i class="bi bi-check-circle-fill text-success"></i>';
+        if (data.success && data.fileId) {
+          pendingMedia.push({
+            fileId: data.fileId,
+            kind: data.kind || (isVideo(file) ? 'video' : 'image'),
+            name: file.name
+          });
+          renderMediaPreview();
         } else {
           throw new Error(data.error || '업로드 실패');
         }
+      } catch (err) {
+        console.error('미디어 업로드 오류:', err);
+        alert(err.message || '업로드 중 오류가 발생했습니다.');
+      } finally {
+        mediaLabel.style.pointerEvents = 'auto';
+        if (window.hideGlobalLoading) window.hideGlobalLoading();
       }
-    } catch (error) {
-      console.error('이미지 업로드 오류:', error);
-      alert('이미지 업로드 중 오류가 발생했습니다.');
-      resetImageUpload();
-    } finally {
-      imageLabel.style.pointerEvents = 'auto';
-      if (window.hideGlobalLoading) window.hideGlobalLoading();
     }
-  });
 
-  function resetImageUpload() {
-    imageInput.value = '';
-    imageLabel.innerHTML = '<i class="bi bi-image"></i><span class="d-none d-md-inline" style="font-size: 0.85rem;">사진</span>';
-    selectedImageUrl = null;
-  }
+    e.target.value = '';
+  });
 
   // 게시글 로드
   async function loadPosts(page = 1, append = false) {
@@ -380,13 +428,49 @@ document.addEventListener('DOMContentLoaded', function() {
     card.querySelector('.dislikes-count').textContent = post.dislikes || 0;
     card.querySelector('.comments-count').textContent = post.comment_count || 0;
 
-    // 이미지 표시 - image_url이 있으면 바로 표시, 에러시에만 숨김
-    if (post.image_url) {
-      const imageContainer = card.querySelector('.post-image-container');
-      const imageEl = card.querySelector('.post-image');
-      imageEl.onerror = () => imageContainer.classList.add('d-none');
-      imageEl.src = post.image_url;
-      imageContainer.classList.remove('d-none');
+    const mediaContainer = card.querySelector('.post-media-container');
+    if (post.media && post.media.length > 0) {
+      const row = document.createElement('div');
+      row.className = 'd-flex flex-wrap gap-2';
+      const imageOnlyCount = post.media.filter((m) => m.kind !== 'video').length;
+      post.media.forEach((m) => {
+        if (m.kind === 'video') {
+          const v = document.createElement('video');
+          v.src = m.url;
+          v.controls = true;
+          v.playsInline = true;
+          v.className = 'rounded border';
+          v.style.maxHeight = '280px';
+          v.style.maxWidth = '100%';
+          row.appendChild(v);
+        } else {
+          const img = document.createElement('img');
+          img.src = m.url;
+          img.alt = '첨부 이미지';
+          img.loading = 'lazy';
+          img.className = 'rounded border';
+          img.style.maxHeight = '220px';
+          img.style.maxWidth = imageOnlyCount === 1 && post.media.length === 1 ? '100%' : '48%';
+          img.style.objectFit = 'cover';
+          img.style.cursor = 'pointer';
+          img.addEventListener('click', () => window.open(m.url, '_blank'));
+          img.addEventListener('error', () => { img.style.display = 'none'; });
+          row.appendChild(img);
+        }
+      });
+      mediaContainer.appendChild(row);
+    } else if (post.image_url) {
+      const img = document.createElement('img');
+      img.src = post.image_url;
+      img.alt = '첨부 이미지';
+      img.loading = 'lazy';
+      img.className = 'rounded';
+      img.style.maxHeight = '300px';
+      img.style.maxWidth = '100%';
+      img.style.cursor = 'pointer';
+      img.addEventListener('click', () => window.open(post.image_url, '_blank'));
+      img.addEventListener('error', () => { img.style.display = 'none'; });
+      mediaContainer.appendChild(img);
     }
 
     // 좋아요/싫어요 상태
@@ -901,8 +985,8 @@ document.addEventListener('DOMContentLoaded', function() {
     e.preventDefault();
 
     const content = postInput.value.trim();
-    if (!content && !selectedImageUrl) {
-      alert('내용을 입력하거나 이미지를 첨부해주세요.');
+    if (!content && pendingMedia.length === 0) {
+      alert('내용을 입력하거나 사진·동영상을 첨부해주세요.');
       return;
     }
 
@@ -910,19 +994,20 @@ document.addEventListener('DOMContentLoaded', function() {
     submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
 
     try {
+      const media_files = pendingMedia.map((m) => ({ file_id: m.fileId, kind: m.kind }));
       const response = await fetch('/community/posts', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'X-CSRF-Token': csrfToken
         },
-        body: JSON.stringify({ content, image_url: selectedImageUrl })
+        body: JSON.stringify({ content, media_files })
       });
 
       const data = await response.json();
       if (data.success) {
         postInput.value = '';
-        resetImageUpload();
+        resetMediaUpload();
         currentPage = 1;
         loadPosts(1, false);
       } else {

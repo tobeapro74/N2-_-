@@ -214,7 +214,10 @@
         </div>
         <% } else { %>
         <div class="list-group list-group-flush">
-          <% recentCommunityPosts.slice(0, 3).forEach(post => { %>
+          <% recentCommunityPosts.slice(0, 3).forEach(post => { 
+            var _mf = post.media_files || [];
+            var _hasVid = _mf.some(function(m) { return m && m.kind === 'video'; });
+          %>
           <a href="/community#post-<%= post.id %>" class="list-group-item list-group-item-action py-2 px-1 border-0">
             <div class="d-flex justify-content-between align-items-start">
               <div class="flex-grow-1 overflow-hidden">
@@ -222,10 +225,10 @@
                   <span class="fw-bold me-2" style="font-size: 0.85rem;"><%= post.member_name %></span>
                   <small class="text-muted" style="font-size: 0.85rem;"><%= moment(post.created_at).fromNow() %></small>
                 </div>
-                <p class="mb-0 text-truncate text-dark" style="font-size: 0.85rem; max-width: 100%;"><%= post.content || '(이미지)' %></p>
+                <p class="mb-0 text-truncate text-dark" style="font-size: 0.85rem; max-width: 100%;"><%= post.content || (_mf.length ? (_hasVid ? '(동영상)' : '(사진)') : (post.image_url ? '(이미지)' : '')) %></p>
               </div>
               <div class="d-flex align-items-center gap-2 ms-2 flex-shrink-0">
-                <% if (post.image_url) { %><i class="bi bi-image text-muted" style="font-size: 0.85rem;"></i><% } %>
+                <% if (_mf.length || post.image_url) { %><i class="bi <%= _hasVid ? 'bi-film' : 'bi-image' %> text-muted" style="font-size: 0.85rem;"></i><% } %>
                 <span class="badge bg-light text-secondary" style="font-size: 0.85rem;"><i class="bi bi-chat"></i> <%= post.comment_count %></span>
               </div>
             </div>

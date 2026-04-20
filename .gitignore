@@ -9,6 +9,8 @@ node_modules/
 # 데이터베이스 백업 및 임시 파일
 data/*.backup.json
 data/*.tmp
+# 일상톡톡 로컬 미디어(바이너리)
+data/community_media/
 
 # 로그 파일
 logs/

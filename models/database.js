@@ -34,6 +34,7 @@ const initialData = {
   push_subscriptions: [],
   notifications: [],
   round_results: [],
+  community_media: [],
   _meta: {
     lastId: {
       members: 0,
@@ -53,7 +54,8 @@ const initialData = {
       community_reactions: 0,
       push_subscriptions: 0,
       notifications: 0,
-      round_results: 0
+      round_results: 0,
+      community_media: 0
     }
   }
 };
@@ -174,7 +176,8 @@ class Database {
       const collections = ['members', 'golf_courses', 'income_categories', 'expense_categories',
         'incomes', 'expenses', 'schedules', 'reservations', 'membership_fees', 'course_holes',
         'schedule_comments', 'comment_reactions', 'community_posts', 'community_comments',
-        'community_reactions', 'push_subscriptions', 'notifications', 'event_budgets', 'round_results'];
+        'community_reactions', 'push_subscriptions', 'notifications', 'event_budgets', 'round_results',
+        'community_media'];
 
       // 모든 컬렉션을 병렬로 로드 (성능 최적화: 순차 3-5초 → 병렬 0.5-1초)
       const results = await Promise.all(
@@ -714,3 +717,4 @@ if (useMongoDb) {
 }
 
 module.exports = db;
+module.exports.connectMongo = connectMongo;

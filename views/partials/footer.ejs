@@ -243,12 +243,12 @@
       if (!carousel || indicators.length === 0) return;
 
       let currentIndex = 0;
-      const totalSlides = 4;
+      const totalSlides = 2;
       const intervalTime = 4000;
 
       function goToSlide(index) {
         currentIndex = index;
-        carousel.style.transform = `translateX(-${index * 25}%)`;
+        carousel.style.transform = `translateX(-${index * 50}%)`;
         indicators.forEach((ind, i) => {
           ind.classList.toggle('active', i === index);
         });

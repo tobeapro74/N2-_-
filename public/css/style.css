@@ -1206,15 +1206,6 @@ footer {
   white-space: nowrap;
 }
 
-/* 데스크톱 테이블: 항상 표시, 모바일 카드: 항상 숨김 */
-.desktop-table {
-  display: block !important;
-}
-
-.mobile-card-list {
-  display: none !important;
-}
-
 @media (max-width: 768px) {
   .btn {
     min-height: 44px;
@@ -1255,6 +1246,15 @@ footer {
 
   .card-body {
     padding: 0.875rem;
+  }
+
+  /* 입출금·회원 등: 좁은 화면은 카드(금액·합계 가독), 넓은 화면은 테이블 */
+  .desktop-table {
+    display: none !important;
+  }
+
+  .mobile-card-list {
+    display: block !important;
   }
 
   .table-responsive {
@@ -1477,12 +1477,19 @@ footer {
 .stats-carousel {
   display: flex;
   transition: transform 0.5s ease-in-out;
-  width: 400%;
+  width: 200%;
 }
 
 .stats-card {
-  flex: 0 0 25%;
+  flex: 0 0 50%;
   padding: 0 4px;
+}
+
+.stats-divider {
+  width: 1px;
+  background: rgba(255, 255, 255, 0.3);
+  align-self: stretch;
+  flex-shrink: 0;
 }
 
 .stats-card-inner {

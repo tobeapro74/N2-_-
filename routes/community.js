@@ -666,13 +666,7 @@ router.get('/upload-signature', requireAuth, (req, res) => {
   }
   const timestamp = Math.round(Date.now() / 1000);
   const folder = 'n2golf/community';
-  const isVideo = req.query.type === 'video';
-
-  // 동영상: H.264 mp4로 즉시 변환 (HEVC/mov → 모든 브라우저 재생 보장)
-  const paramsToSign = isVideo
-    ? { folder, timestamp, eager: 'vc_h264/mp4', eager_async: 'false' }
-    : { folder, timestamp };
-
+  const paramsToSign = { folder, timestamp };
   const signature = cloudinary.utils.api_sign_request(
     paramsToSign,
     process.env.CLOUDINARY_API_SECRET
@@ -681,7 +675,6 @@ router.get('/upload-signature', requireAuth, (req, res) => {
     signature,
     timestamp,
     folder,
-    isVideo,
     api_key: process.env.CLOUDINARY_API_KEY,
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME
   });

@@ -319,8 +319,8 @@ document.addEventListener('DOMContentLoaded', function() {
     refreshMediaLabelState();
   }
 
-  async function getUploadSignature(type) {
-    const res = await fetch(`/community/upload-signature?type=${type}`, {
+  async function getUploadSignature() {
+    const res = await fetch('/community/upload-signature', {
       headers: { 'X-CSRF-Token': csrfToken }
     });
     if (!res.ok) throw new Error('업로드 서명 발급 실패');
@@ -336,11 +336,6 @@ document.addEventListener('DOMContentLoaded', function() {
     formData.append('timestamp', String(sig.timestamp));
     formData.append('signature', sig.signature);
     formData.append('folder', sig.folder);
-    // 동영상: H.264 변환 파라미터 포함 (서명과 일치해야 함)
-    if (isVid) {
-      formData.append('eager', 'vc_h264/mp4');
-      formData.append('eager_async', 'false');
-    }
     const res = await fetch(
       `https://api.cloudinary.com/v1_1/${sig.cloud_name}/${resourceType}/upload`,
       { method: 'POST', body: formData }
@@ -351,9 +346,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const msg = (data.error && data.error.message) || JSON.stringify(data);
       throw new Error(`업로드 실패: ${msg}`);
     }
-    // eager 변환된 URL이 있으면 사용 (H.264 mp4 보장)
-    const eagerUrl = data.eager && data.eager[0] && data.eager[0].secure_url;
-    return { url: eagerUrl || data.secure_url, kind: isVid ? 'video' : 'image', name: file.name };
+    return { url: data.secure_url, kind: isVid ? 'video' : 'image', name: file.name };
   }
 
   mediaInput.addEventListener('change', async (e) => {
@@ -399,19 +392,11 @@ document.addEventListener('DOMContentLoaded', function() {
     mediaLabel.style.pointerEvents = 'none';
 
     try {
-      // 이미지/동영상 서명 각각 발급 (파라미터가 다름)
-      const hasVideo = validFiles.some(f => f.type.startsWith('video/'));
-      const hasImage = validFiles.some(f => f.type.startsWith('image/'));
-      const [sigVideo, sigImage] = await Promise.all([
-        hasVideo ? getUploadSignature('video') : Promise.resolve(null),
-        hasImage ? getUploadSignature('image') : Promise.resolve(null)
-      ]);
+      const sig = await getUploadSignature();
       const results = await Promise.all(
-        validFiles.map((file) => {
-          const isVid = file.type.startsWith('video/');
-          const sig = isVid ? sigVideo : sigImage;
-          return uploadFileToCloudinary(file, sig).then((r) => { uploaded++; updateLabel(); return r; });
-        })
+        validFiles.map((file) =>
+          uploadFileToCloudinary(file, sig).then((r) => { uploaded++; updateLabel(); return r; })
+        )
       );
       results.forEach((r) => pendingMedia.push(r));
       renderMediaPreview();
@@ -492,13 +477,10 @@ document.addEventListener('DOMContentLoaded', function() {
           v.className = 'rounded border';
           v.style.maxHeight = '280px';
           v.style.maxWidth = '100%';
-          // Cloudinary 썸네일: 원본 URL에서 /upload/ 뒤에 so_0(0초 프레임) 삽입
-          const posterUrl = m.url.replace('/upload/', '/upload/so_0/').replace(/\.(mp4|mov|webm)$/, '.jpg');
+          // Cloudinary 동영상 0초 프레임을 썸네일로 사용
+          const posterUrl = m.url.replace('/upload/', '/upload/so_0/').replace(/\.(mp4|mov|webm)(\?.*)?$/, '.jpg');
           v.poster = posterUrl;
-          const src = document.createElement('source');
-          src.src = m.url;
-          src.type = 'video/mp4';
-          v.appendChild(src);
+          v.src = m.url;
           row.appendChild(v);
         } else {
           const img = document.createElement('img');

@@ -200,6 +200,7 @@ router.get('/', async (req, res) => {
       newMembers,
       recentCommunityPosts,
       recentRoundTop5,
+      recentRoundScheduleId: latestSchedule ? latestSchedule.id : null,
       completedSchedulesCount: completedSchedules.length
     });
   } catch (error) {

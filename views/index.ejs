@@ -143,12 +143,12 @@
 <% if (typeof recentRoundTop5 !== 'undefined' && recentRoundTop5.length > 0) { %>
 <div class="row mb-3">
   <div class="col-12">
-    <div class="card border-0 shadow-sm">
+    <div class="card border-0 shadow-sm" style="cursor: pointer;" onclick="location.href='/schedules/<%= recentRoundScheduleId %>/results'">
       <div class="card-header bg-white py-1 d-flex justify-content-between align-items-center">
         <span class="home-section-title mb-0" style="font-size: 0.9rem;">
           <i class="bi bi-trophy-fill text-warning me-1"></i>최근 라운딩 Top 5
         </span>
-        <small class="text-muted" style="font-size: 0.75rem;"><%= recentRoundTop5[0].courseName %> · <%= recentRoundTop5[0].playDate %></small>
+        <small class="text-muted" style="font-size: 0.75rem;"><%= recentRoundTop5[0].courseName %> · <%= recentRoundTop5[0].playDate %> <i class="bi bi-chevron-right"></i></small>
       </div>
       <div class="card-body p-2">
         <div class="list-group list-group-flush">

@@ -6,8 +6,6 @@ const { optimizeCloudinaryUrl } = require('../utils/validator');
 const pushService = require('../utils/pushService');
 const { cacheManager, TTL } = require('../models/cache');
 const crypto = require('crypto');
-const communityMedia = require('../models/communityMediaStorage');
-
 const MAX_POST_IMAGES = 10;
 const MAX_POST_VIDEOS = 3;
 
@@ -60,17 +58,6 @@ const upload = multer({
   limits: { fileSize: 5 * 1024 * 1024 }
 });
 
-// 일상톡톡 GridFS/로컬 미디어 (이미지·동영상)
-const uploadMedia = multer({
-  storage,
-  limits: { fileSize: 95 * 1024 * 1024 },
-  fileFilter: (req, file, cb) => {
-    const ok = communityMedia.IMAGE_MIMES.has(file.mimetype)
-      || communityMedia.VIDEO_MIMES.has(file.mimetype);
-    if (ok) cb(null, true);
-    else cb(new Error('이미지(jpg, png, gif, webp) 또는 동영상(mp4, webm, mov)만 업로드할 수 있습니다.'), false);
-  }
-});
 
 // 인증 미들웨어
 const requireAuth = (req, res, next) => {
@@ -200,9 +187,7 @@ router.post('/posts', requireAuth, async (req, res) => {
     const normalized = [];
     for (const m of media_files) {
       if (!m || (m.kind !== 'image' && m.kind !== 'video')) continue;
-      if (m.file_id) {
-        normalized.push({ kind: m.kind, file_id: String(m.file_id) });
-      } else if (m.url && typeof m.url === 'string' && isAllowedCloudinaryMediaUrl(m.url)) {
+      if (m.url && typeof m.url === 'string' && isAllowedCloudinaryMediaUrl(m.url)) {
         normalized.push({ kind: m.kind, url: m.url.trim() });
       }
     }
@@ -225,14 +210,6 @@ router.post('/posts', requireAuth, async (req, res) => {
 
     if (content && content.length > 1000) {
       return res.status(400).json({ error: '글 내용은 1000자를 초과할 수 없습니다.' });
-    }
-
-    const gridIds = media_files.filter((m) => m.file_id).map((m) => m.file_id);
-    if (gridIds.length > 0) {
-      const ok = await communityMedia.verifyFilesForMember(gridIds, userId);
-      if (!ok) {
-        return res.status(403).json({ error: '첨부 파일을 확인할 수 없습니다. 다시 업로드해 주세요.' });
-      }
     }
 
     const postData = {
@@ -336,12 +313,6 @@ router.delete('/posts/:id', requireAuth, async (req, res) => {
     const postReactions = allReactions.filter(r => r.target_type === 'post' && r.target_id === postId);
     for (const reaction of postReactions) {
       await db.delete('community_reactions', reaction.id);
-    }
-
-    // 첨부 미디어(GridFS/로컬) 삭제
-    if (post.media_files && Array.isArray(post.media_files) && post.media_files.length > 0) {
-      const ids = post.media_files.map((m) => m.file_id).filter(Boolean);
-      await communityMedia.deleteFiles(ids);
     }
 
     // 게시글 삭제
@@ -686,77 +657,28 @@ router.post('/comments/:id/reaction', requireAuth, async (req, res) => {
 });
 
 // ============================================
-// 일상톡톡 미디어 스트리밍 (MongoDB GridFS bucket: community_media)
 // ============================================
-router.get('/media/:fileId', requireAuth, async (req, res) => {
-  try {
-    const result = await communityMedia.openReadStream(req.params.fileId);
-    if (!result) {
-      return res.status(404).send('파일을 찾을 수 없습니다.');
-    }
-    res.setHeader('Content-Type', result.mimeType);
-    res.setHeader('Cache-Control', 'private, max-age=3600');
-    result.stream.on('error', () => {
-      if (!res.headersSent) res.status(500).end();
-    });
-    result.stream.pipe(res);
-  } catch (error) {
-    console.error('미디어 스트리밍 오류:', error);
-    res.status(500).send('파일을 불러오지 못했습니다.');
+// Cloudinary 서명된 업로드 파라미터 발급
+// ============================================
+router.get('/upload-signature', requireAuth, (req, res) => {
+  if (!isCloudinaryConfigured()) {
+    return res.status(503).json({ error: 'Cloudinary가 설정되지 않았습니다.' });
   }
+  const timestamp = Math.round(Date.now() / 1000);
+  const folder = 'n2golf/community';
+  const paramsToSign = { folder, timestamp };
+  const signature = cloudinary.utils.api_sign_request(
+    paramsToSign,
+    process.env.CLOUDINARY_API_SECRET
+  );
+  res.json({
+    signature,
+    timestamp,
+    folder,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME
+  });
 });
-
-// ============================================
-// 일상톡톡 미디어 업로드 (단일 파일 → GridFS 또는 로컬)
-// ============================================
-router.post(
-  '/upload-media',
-  requireAuth,
-  (req, res, next) => {
-    uploadMedia.single('file')(req, res, (err) => {
-      if (err) {
-        if (err instanceof multer.MulterError) {
-          return res.status(400).json({
-            error: err.code === 'LIMIT_FILE_SIZE' ? '파일 크기가 제한을 초과했습니다.' : err.message
-          });
-        }
-        return res.status(400).json({ error: err.message || '업로드 오류' });
-      }
-      next();
-    });
-  },
-  async (req, res) => {
-    try {
-      if (!req.file) {
-        return res.status(400).json({ error: '파일이 없습니다.' });
-      }
-
-      const isVideo = communityMedia.VIDEO_MIMES.has(req.file.mimetype);
-      const maxSz = isVideo ? 80 * 1024 * 1024 : 5 * 1024 * 1024;
-      if (req.file.size > maxSz) {
-        return res.status(400).json({
-          error: isVideo ? '동영상은 80MB 이하만 업로드할 수 있습니다.' : '이미지는 5MB 이하만 업로드할 수 있습니다.'
-        });
-      }
-
-      const { fileId, kind } = await communityMedia.saveUploadedBufferWithMime(req.file.buffer, {
-        memberId: req.session.user.id,
-        mimeType: req.file.mimetype,
-        originalName: req.file.originalname
-      });
-
-      res.json({
-        success: true,
-        fileId,
-        kind,
-        url: `/community/media/${encodeURIComponent(fileId)}`
-      });
-    } catch (error) {
-      console.error('미디어 업로드 오류:', error);
-      res.status(500).json({ error: error.message || '업로드 중 오류가 발생했습니다.' });
-    }
-  }
-);
 
 // ============================================
 // 이미지 업로드 (레거시 단일 이미지, Cloudinary/베이스64)

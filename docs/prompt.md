@@ -215,6 +215,10 @@
 | - | 동영상 3개 업로드 시 Safari에 "The string did not match the expected pattern" 에러 → 원인(Vercel 4.5MB 본문 한도) 및 Cloudinary 직접 업로드·서버 URL 허용·JSON 파싱 보강 |
 | - | n2골프 단체모임 통장 입출금 스크린샷 반영 → data/n2golf.json 입출금 추가, MongoDB 동기화 스크립트 |
 | - | 총잔액·이번달 지출 불일치 문의 → MongoDB 미동기화·UTC 월 계산 이슈, 홈 이번달은 Asia/Seoul 기준으로 수정 |
+| - | 카카오뱅크 통장 PDF(다운로드) 거래내역 확인 — 기존 JSON과 일치, 가맹점명 군산레져산업주식회로 정리 |
+| - | 자금 현황 금액 불일치 — 상단 총수입·총지출이 전체 누적이었고 카테고리만 연도 필터, 동일 필터·누적잔액 분리·getTableAsync 반영 |
+| - | 출금 집계·금액이 모바일에서 비어 보임 — CSS가 카드 대신 가로 스크롤 테이블만 표시해 금액·합계 열이 화면 밖, 768px 이하 카드 복구·입출금 getTableAsync·sw v21 |
+| - | 일상톡톡 미디어 업로드 Cloudinary 단일화 — GridFS 제거, 서버 signed 업로드 엔드포인트 추가, 클라이언트 Promise.all 병렬 업로드로 교체 |
 
 ---
 

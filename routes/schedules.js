@@ -77,17 +77,10 @@ router.get('/', requireAuth, async (req, res) => {
   try {
     const { year, month, course } = req.query;
 
-    // MongoDB 캐시 새로고침
-    if (db.refreshCache) {
-      await db.refreshCache('schedules');
-      await db.refreshCache('reservations');
-      await db.refreshCache('schedule_comments');
-    }
-
-    let schedules = db.getTable('schedules');
-    const golfCourses = db.getTable('golf_courses').filter(gc => gc.is_active);
-    const reservations = db.getTable('reservations');
-    const comments = db.getTable('schedule_comments');
+    let schedules = await db.getTableAsync('schedules');
+    const golfCourses = (await db.getTableAsync('golf_courses')).filter(gc => gc.is_active);
+    const reservations = await db.getTableAsync('reservations');
+    const comments = await db.getTableAsync('schedule_comments');
 
     if (year) {
       schedules = schedules.filter(s => s.play_date && s.play_date.startsWith(year));

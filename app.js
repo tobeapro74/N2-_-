@@ -49,7 +49,8 @@ app.use(helmet({
       styleSrc: ["'self'", "'unsafe-inline'", "cdn.jsdelivr.net"],
       fontSrc: ["'self'", "cdn.jsdelivr.net", "data:"],
       imgSrc: ["'self'", "data:", "https:", "http:"],  // 외부 URL 미리보기 이미지 허용
-      connectSrc: ["'self'", "cdn.jsdelivr.net", "https://res.cloudinary.com", "https://*.cloudinary.com"],  // Service Worker fetch 허용
+      mediaSrc: ["'self'", "https://res.cloudinary.com", "https://*.cloudinary.com"],  // 동영상 재생 허용
+      connectSrc: ["'self'", "cdn.jsdelivr.net", "https://res.cloudinary.com", "https://*.cloudinary.com", "https://api.cloudinary.com"],  // Service Worker fetch 허용
     },
   },
   // HSTS 설정 (프로덕션에서만 활성화)

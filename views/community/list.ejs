@@ -22,7 +22,7 @@
             <span style="font-size: 0.85rem;">사진/동영상</span>
           </label>
           <input type="file" id="mediaInput" multiple accept="image/jpeg,image/png,image/gif,image/webp,video/mp4,video/webm,video/quicktime" class="d-none">
-          <small class="text-muted" style="font-size: 0.75rem;">이미지 최대 10장·동영상 최대 3개(각 이미지 5MB·동영상 80MB)</small>
+          <small class="text-muted" style="font-size: 0.75rem;">이미지 최대 10장·동영상 최대 3개(각 이미지 5MB·동영상 200MB)</small>
         </div>
         <button type="submit" id="submitBtn" class="btn btn-success btn-sm px-3 d-flex align-items-center gap-1">
           <i class="bi bi-send"></i>
@@ -365,7 +365,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (img >= MAX_POST_IMAGES) { alert(`이미지는 최대 ${MAX_POST_IMAGES}장까지 첨부할 수 있습니다.`); break; }
         img++;
       } else if (isVideo(file)) {
-        if (file.size > 80 * 1024 * 1024) { alert(`"${file.name}"은(는) 80MB를 초과합니다.`); continue; }
+        if (file.size > 200 * 1024 * 1024) { alert(`"${file.name}"은(는) 200MB를 초과합니다.`); continue; }
         if (vid >= MAX_POST_VIDEOS) { alert(`동영상은 최대 ${MAX_POST_VIDEOS}개까지 첨부할 수 있습니다.`); break; }
         vid++;
       } else {

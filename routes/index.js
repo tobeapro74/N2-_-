@@ -9,16 +9,22 @@ const courseHolesData = require('../data/courseHoles');
 // 메인 대시보드
 router.get('/', async (req, res) => {
   try {
-    // MongoDB에서 직접 최신 데이터 조회 (서버리스 환경 캐시 불일치 방지)
-    const incomes = await db.getTableAsync('incomes');
-    const expenses = await db.getTableAsync('expenses');
-    const allMembers = await db.getTableAsync('members');
-    const schedules = await db.getTableAsync('schedules');
-    const reservations = await db.getTableAsync('reservations');
-    const golfCourses = await db.getTableAsync('golf_courses');
-    const scheduleComments = await db.getTableAsync('schedule_comments') || [];
-    const communityPosts = await db.getTableAsync('community_posts') || [];
-    const communityComments = await db.getTableAsync('community_comments') || [];
+    // 9개 컬렉션 병렬 조회 (순차→병렬로 응답 시간 단축)
+    const [
+      incomes, expenses, allMembers, schedules, reservations,
+      golfCourses, scheduleComments, communityPosts, communityComments, roundResults
+    ] = await Promise.all([
+      db.getTableAsync('incomes'),
+      db.getTableAsync('expenses'),
+      db.getTableAsync('members'),
+      db.getTableAsync('schedules'),
+      db.getTableAsync('reservations'),
+      db.getTableAsync('golf_courses'),
+      db.getTableAsync('schedule_comments').then(r => r || []),
+      db.getTableAsync('community_posts').then(r => r || []),
+      db.getTableAsync('community_comments').then(r => r || []),
+      db.getTableAsync('round_results').then(r => r || [])
+    ]);
 
     const members = allMembers.filter(m => !m.is_admin);
 
@@ -105,7 +111,6 @@ router.get('/', async (req, res) => {
     .map(m => ({ name: m.name, join_date: m.join_date }));
 
   // 최근 라운딩 스코어 Top5
-  const roundResults = await db.getTableAsync('round_results') || [];
   const completedSchedules = schedules.filter(s => s.has_result && s.play_date < today);
   const latestSchedule = completedSchedules.sort((a, b) => b.play_date.localeCompare(a.play_date))[0];
   let recentRoundTop5 = [];

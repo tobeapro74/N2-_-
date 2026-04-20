@@ -11,6 +11,17 @@ const communityMedia = require('../models/communityMediaStorage');
 const MAX_POST_IMAGES = 10;
 const MAX_POST_VIDEOS = 3;
 
+// 클라이언트 직접 업로드(동영상·대용량) 허용 도메인 — Vercel 요청 본문 4.5MB 제한 회피
+function isAllowedCloudinaryMediaUrl(url) {
+  if (!url || typeof url !== 'string') return false;
+  try {
+    const u = new URL(url.trim());
+    return u.protocol === 'https:' && u.hostname === 'res.cloudinary.com';
+  } catch (e) {
+    return false;
+  }
+}
+
 // ============================================
 // Cloudinary 설정
 // ============================================
@@ -127,10 +138,16 @@ router.get('/posts', requireAuth, async (req, res) => {
       const media = [];
       if (post.media_files && Array.isArray(post.media_files)) {
         post.media_files.forEach((m) => {
-          if (m && m.file_id) {
+          if (!m || !m.kind) return;
+          if (m.file_id) {
             media.push({
-              kind: m.kind || 'image',
+              kind: m.kind,
               url: `/community/media/${encodeURIComponent(String(m.file_id))}`
+            });
+          } else if (m.url && isAllowedCloudinaryMediaUrl(m.url)) {
+            media.push({
+              kind: m.kind,
+              url: optimizeCloudinaryUrl(m.url.trim())
             });
           }
         });
@@ -180,9 +197,16 @@ router.post('/posts', requireAuth, async (req, res) => {
       media_files = [];
     }
 
-    media_files = media_files
-      .filter((m) => m && m.file_id && (m.kind === 'image' || m.kind === 'video'))
-      .map((m) => ({ file_id: String(m.file_id), kind: m.kind }));
+    const normalized = [];
+    for (const m of media_files) {
+      if (!m || (m.kind !== 'image' && m.kind !== 'video')) continue;
+      if (m.file_id) {
+        normalized.push({ kind: m.kind, file_id: String(m.file_id) });
+      } else if (m.url && typeof m.url === 'string' && isAllowedCloudinaryMediaUrl(m.url)) {
+        normalized.push({ kind: m.kind, url: m.url.trim() });
+      }
+    }
+    media_files = normalized;
 
     const imgN = media_files.filter((m) => m.kind === 'image').length;
     const vidN = media_files.filter((m) => m.kind === 'video').length;
@@ -203,9 +227,9 @@ router.post('/posts', requireAuth, async (req, res) => {
       return res.status(400).json({ error: '글 내용은 1000자를 초과할 수 없습니다.' });
     }
 
-    if (media_files.length > 0) {
-      const ids = media_files.map((m) => m.file_id);
-      const ok = await communityMedia.verifyFilesForMember(ids, userId);
+    const gridIds = media_files.filter((m) => m.file_id).map((m) => m.file_id);
+    if (gridIds.length > 0) {
+      const ok = await communityMedia.verifyFilesForMember(gridIds, userId);
       if (!ok) {
         return res.status(403).json({ error: '첨부 파일을 확인할 수 없습니다. 다시 업로드해 주세요.' });
       }

@@ -219,14 +219,31 @@ document.addEventListener('DOMContentLoaded', function() {
 
   const MAX_POST_IMAGES = 10;
   const MAX_POST_VIDEOS = 3;
+  /** Vercel 등 서버리스 요청 본문 한도(약 4.5MB)보다 작게 — 이보다 크면 Cloudinary 직접 업로드 */
+  const VERCEL_SAFE_BYTES = 4 * 1024 * 1024;
+
+  const CLOUDINARY_CLOUD_NAME = '<%= cloudinaryCloudName || "" %>';
+  const CLOUDINARY_UPLOAD_PRESET = 'n2golf_unsigned';
 
   const mediaInput = document.getElementById('mediaInput');
   const mediaLabel = document.querySelector('label[for="mediaInput"]');
   const mediaPreview = document.getElementById('mediaPreview');
-  /** @type {{ fileId: string, kind: string, name: string }[]} */
+  /** @type {{ fileId?: string, url?: string, kind: string, name: string, source?: string }[]} */
   let pendingMedia = [];
 
   let currentPage = 1;
+
+  async function readJsonResponse(response) {
+    const text = await response.text();
+    if (response.status === 413) {
+      throw new Error('파일이 서버 전송 한도(약 4.5MB)를 초과했습니다. 동영상·큰 파일은 Cloudinary로 자동 업로드됩니다.');
+    }
+    try {
+      return text ? JSON.parse(text) : {};
+    } catch (e) {
+      throw new Error('서버 응답을 처리할 수 없습니다. 잠시 후 다시 시도해 주세요.');
+    }
+  }
   let hasMore = true;
 
   // 시간 포맷
@@ -279,7 +296,7 @@ document.addEventListener('DOMContentLoaded', function() {
       rm.innerHTML = '&times;';
       rm.title = '제거';
       rm.addEventListener('click', () => {
-        pendingMedia = pendingMedia.filter((m) => m.fileId !== item.fileId);
+        pendingMedia = pendingMedia.filter((m) => m !== item);
         renderMediaPreview();
       });
       wrap.appendChild(label);
@@ -343,26 +360,59 @@ document.addEventListener('DOMContentLoaded', function() {
       mediaLabel.style.pointerEvents = 'none';
 
       try {
-        const formData = new FormData();
-        formData.append('file', file);
+        const isVid = isVideo(file);
+        const useCloudinary = CLOUDINARY_CLOUD_NAME && (isVid || file.size > VERCEL_SAFE_BYTES);
 
-        const response = await fetch('/community/upload-media', {
-          method: 'POST',
-          headers: { 'X-CSRF-Token': csrfToken },
-          body: formData
-        });
+        if (isVid && file.size > VERCEL_SAFE_BYTES && !CLOUDINARY_CLOUD_NAME) {
+          alert('동영상은 서버 직접 업로드 한도(약 4MB)를 초과합니다. CLOUDINARY_CLOUD_NAME 환경 변수로 클라우드 업로드를 설정해 주세요.');
+          continue;
+        }
 
-        const data = await response.json();
-
-        if (data.success && data.fileId) {
-          pendingMedia.push({
-            fileId: data.fileId,
-            kind: data.kind || (isVideo(file) ? 'video' : 'image'),
-            name: file.name
-          });
-          renderMediaPreview();
+        if (useCloudinary) {
+          const formData = new FormData();
+          formData.append('file', file);
+          formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+          formData.append('folder', 'n2golf/community');
+          const resourceType = isVid ? 'video' : 'image';
+          const response = await fetch(
+            `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/${resourceType}/upload`,
+            { method: 'POST', body: formData }
+          );
+          const data = await readJsonResponse(response);
+          if (data.secure_url) {
+            pendingMedia.push({
+              url: data.secure_url,
+              kind: isVid ? 'video' : 'image',
+              name: file.name,
+              source: 'cloudinary'
+            });
+            renderMediaPreview();
+          } else {
+            throw new Error((data.error && data.error.message) || data.error || '클라우드 업로드 실패');
+          }
         } else {
-          throw new Error(data.error || '업로드 실패');
+          const formData = new FormData();
+          formData.append('file', file);
+
+          const response = await fetch('/community/upload-media', {
+            method: 'POST',
+            headers: { 'X-CSRF-Token': csrfToken },
+            body: formData
+          });
+
+          const data = await readJsonResponse(response);
+
+          if (data.success && data.fileId) {
+            pendingMedia.push({
+              fileId: data.fileId,
+              kind: data.kind || (isVid ? 'video' : 'image'),
+              name: file.name,
+              source: 'gridfs'
+            });
+            renderMediaPreview();
+          } else {
+            throw new Error(data.error || '업로드 실패');
+          }
         }
       } catch (err) {
         console.error('미디어 업로드 오류:', err);
@@ -994,7 +1044,10 @@ document.addEventListener('DOMContentLoaded', function() {
     submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
 
     try {
-      const media_files = pendingMedia.map((m) => ({ file_id: m.fileId, kind: m.kind }));
+      const media_files = pendingMedia.map((m) => {
+        if (m.url) return { kind: m.kind, url: m.url };
+        return { kind: m.kind, file_id: m.fileId };
+      });
       const response = await fetch('/community/posts', {
         method: 'POST',
         headers: {
@@ -1004,7 +1057,7 @@ document.addEventListener('DOMContentLoaded', function() {
         body: JSON.stringify({ content, media_files })
       });
 
-      const data = await response.json();
+      const data = await readJsonResponse(response);
       if (data.success) {
         postInput.value = '';
         resetMediaUpload();

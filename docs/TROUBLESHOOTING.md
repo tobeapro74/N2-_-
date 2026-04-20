@@ -20,6 +20,7 @@
 15. [일정 상태가 "오픈전"으로 표시 (Cron 실행 후에도)](#15-일정-상태가-오픈전으로-표시-cron-실행-후에도)
 16. [예약 신청시간이 UTC로 표시](#16-예약-신청시간이-utc로-표시)
 17. [회원 비밀번호 미설정 (로그인 불가)](#17-회원-비밀번호-미설정-로그인-불가)
+18. [일상톡톡 동영상 업로드 오류 (Safari / Vercel 본문 한도)](#18-일상톡톡-동영상-업로드-오류-safari--vercel-본문-한도)
 
 ---
 
@@ -1642,6 +1643,26 @@ await db.collection('members').updateOne(
 
 ---
 
+## 18. 일상톡톡 동영상 업로드 오류 (Safari / Vercel 본문 한도)
+
+### 증상
+- 동영상을 여러 개 올리다 Safari에 `The string did not match the expected pattern` 알림
+- 또는 업로드 후 JSON 파싱 오류
+
+### 원인
+1. **Vercel 서버리스**는 요청 본문이 **약 4.5MB**를 넘으면 게이트웨이에서 차단(413). 동영상·고해상도 사진은 이 한도를 쉽게 넘김.
+2. 차단 응답이 JSON이 아닐 때 클라이언트가 `response.json()`만 호출하면 WebKit에서 위와 같은 메시지가 나올 수 있음.
+
+### 해결 (현재 코드)
+- **약 4MB 초과** 또는 **동영상**은 브라우저가 **Cloudinary**로 직접 업로드(`CLOUDINARY_CLOUD_NAME` 필요). 게시글에는 `res.cloudinary.com` URL만 저장해 Vercel 본문 한도를 피함.
+- **4MB 미만** 이미지 등은 기존처럼 서버 `GridFS`(MongoDB) 업로드 유지.
+- Cloudinary **unsigned preset**에 **video** 업로드가 허용돼 있어야 함(대시보드 Upload presets).
+
+### 참고
+- [Vercel: Body size limit](https://vercel.com/kb/guide/how-to-bypass-vercel-body-size-limit-serverless-functions)
+
+---
+
 ## 빠른 진단 체크리스트 (종합)
 
 ### CDN 캐시 관련 문제
@@ -1662,4 +1683,4 @@ await db.collection('members').updateOne(
 
 ---
 
-*마지막 업데이트: 2026-02-23*
+*마지막 업데이트: 2026-04-20*

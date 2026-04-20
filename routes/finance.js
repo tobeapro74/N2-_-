@@ -7,43 +7,68 @@ const { validateId, validateAmount, validateDate, validateString } = require('..
 const { logger } = require('../utils/logger');
 
 // 자금 현황 대시보드
-router.get('/', requireAuth, (req, res) => {
+router.get('/', requireAuth, async (req, res) => {
   const { year, month } = req.query;
   const selectedYear = parseInt(year) || new Date().getFullYear();
   const selectedMonth = month ? parseInt(month) : null;
 
-  const incomes = db.getTable('incomes');
-  const expenses = db.getTable('expenses');
+  const incomes = await db.getTableAsync('incomes');
+  const expenses = await db.getTableAsync('expenses');
 
-  // 전체 잔액
-  const totalIncome = incomes.reduce((sum, i) => sum + (i.amount || 0), 0);
-  const totalExpense = expenses.reduce((sum, e) => sum + (e.amount || 0), 0);
-  const balance = totalIncome - totalExpense;
+  const sumIncome = (rows) => rows.reduce((sum, i) => sum + (i.amount || 0), 0);
+  const sumExpense = (rows) => rows.reduce((sum, e) => sum + (e.amount || 0), 0);
+
+  // 선택 연·월과 동일 조건으로 거래만 추출 (상단 요약·카테고리·차트가 같은 숫자를 쓰도록)
+  const filterIncomesBySelection = (rows) => {
+    let f = rows;
+    if (selectedYear) {
+      f = f.filter((i) => i.income_date && String(i.income_date).startsWith(String(selectedYear)));
+    }
+    if (selectedMonth) {
+      const monthStr = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}`;
+      f = f.filter((i) => i.income_date && i.income_date.startsWith(monthStr));
+    }
+    return f;
+  };
+  const filterExpensesBySelection = (rows) => {
+    let f = rows;
+    if (selectedYear) {
+      f = f.filter((e) => e.expense_date && String(e.expense_date).startsWith(String(selectedYear)));
+    }
+    if (selectedMonth) {
+      const monthStr = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}`;
+      f = f.filter((e) => e.expense_date && e.expense_date.startsWith(monthStr));
+    }
+    return f;
+  };
+
+  const incomesInPeriod = filterIncomesBySelection(incomes);
+  const expensesInPeriod = filterExpensesBySelection(expenses);
+
+  // 상단 '총 수입·총 지출' = 선택 기간 합계 (카테고리 합과 일치)
+  const totalIncome = sumIncome(incomesInPeriod);
+  const totalExpense = sumExpense(expensesInPeriod);
+  // '누적 잔액': 등록된 전체 입금 − 전체 출금 (통장 잔액에 가깝게 보는 값)
+  const balanceAllTime = sumIncome(incomes) - sumExpense(expenses);
+  const periodNet = totalIncome - totalExpense;
 
   // 월별 수입/지출 (선택된 연도)
   const monthlyStats = [];
   for (let m = 1; m <= 12; m++) {
     const monthStr = `${selectedYear}-${String(m).padStart(2, '0')}`;
     const monthIncome = incomes
-      .filter(i => i.income_date && i.income_date.startsWith(monthStr))
+      .filter((i) => i.income_date && i.income_date.startsWith(monthStr))
       .reduce((sum, i) => sum + (i.amount || 0), 0);
     const monthExpense = expenses
-      .filter(e => e.expense_date && e.expense_date.startsWith(monthStr))
+      .filter((e) => e.expense_date && e.expense_date.startsWith(monthStr))
       .reduce((sum, e) => sum + (e.amount || 0), 0);
     monthlyStats.push({ month: m, income: monthIncome, expense: monthExpense });
   }
 
   // 카테고리별 수입
-  const incomeCategories = db.getTable('income_categories');
-  const incomeByCategory = incomeCategories.map(cat => {
-    let filtered = incomes.filter(i => i.category_id === cat.id);
-    if (selectedYear) {
-      filtered = filtered.filter(i => i.income_date && i.income_date.startsWith(String(selectedYear)));
-    }
-    if (selectedMonth) {
-      const monthStr = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}`;
-      filtered = filtered.filter(i => i.income_date && i.income_date.startsWith(monthStr));
-    }
+  const incomeCategories = await db.getTableAsync('income_categories');
+  const incomeByCategory = incomeCategories.map((cat) => {
+    let filtered = incomesInPeriod.filter((i) => i.category_id === cat.id);
     return {
       name: cat.name,
       total: filtered.reduce((sum, i) => sum + (i.amount || 0), 0)
@@ -51,16 +76,9 @@ router.get('/', requireAuth, (req, res) => {
   }).sort((a, b) => b.total - a.total);
 
   // 카테고리별 지출
-  const expenseCategories = db.getTable('expense_categories');
-  const expenseByCategory = expenseCategories.map(cat => {
-    let filtered = expenses.filter(e => e.category_id === cat.id);
-    if (selectedYear) {
-      filtered = filtered.filter(e => e.expense_date && e.expense_date.startsWith(String(selectedYear)));
-    }
-    if (selectedMonth) {
-      const monthStr = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}`;
-      filtered = filtered.filter(e => e.expense_date && e.expense_date.startsWith(monthStr));
-    }
+  const expenseCategories = await db.getTableAsync('expense_categories');
+  const expenseByCategory = expenseCategories.map((cat) => {
+    let filtered = expensesInPeriod.filter((e) => e.category_id === cat.id);
     return {
       name: cat.name,
       total: filtered.reduce((sum, e) => sum + (e.amount || 0), 0)
@@ -69,7 +87,8 @@ router.get('/', requireAuth, (req, res) => {
 
   res.render('finance/dashboard', {
     title: '자금 관리',
-    balance,
+    balanceAllTime,
+    periodNet,
     totalIncome,
     totalExpense,
     monthlyStats,
@@ -82,12 +101,12 @@ router.get('/', requireAuth, (req, res) => {
 });
 
 // 입금 내역
-router.get('/income', requireAuth, (req, res) => {
+router.get('/income', requireAuth, async (req, res) => {
   const { year, month, category } = req.query;
 
-  let incomes = db.getTable('incomes');
-  const categories = db.getTable('income_categories');
-  const members = db.getTable('members');
+  let incomes = await db.getTableAsync('incomes');
+  const categories = await db.getTableAsync('income_categories');
+  const members = await db.getTableAsync('members');
 
   if (year) {
     incomes = incomes.filter(i => i.income_date && i.income_date.startsWith(year));
@@ -108,7 +127,7 @@ router.get('/income', requireAuth, (req, res) => {
     }))
     .sort((a, b) => (b.income_date || '').localeCompare(a.income_date || ''));
 
-  const total = incomes.reduce((sum, i) => sum + (i.amount || 0), 0);
+  const total = incomes.reduce((sum, i) => sum + (Number(i.amount) || 0), 0);
 
   res.render('finance/income-list', {
     title: '입금 내역',
@@ -121,9 +140,9 @@ router.get('/income', requireAuth, (req, res) => {
 });
 
 // 입금 등록 페이지
-router.get('/income/new', requireAuth, requireAdmin, (req, res) => {
-  const categories = db.getTable('income_categories');
-  const members = db.getTable('members').filter(m => m.status === 'active' && !m.is_admin);
+router.get('/income/new', requireAuth, requireAdmin, async (req, res) => {
+  const categories = await db.getTableAsync('income_categories');
+  const members = (await db.getTableAsync('members')).filter(m => m.status === 'active' && !m.is_admin);
 
   res.render('finance/income-form', {
     title: '입금 등록',
@@ -144,8 +163,8 @@ router.post('/income/new', requireAuth, requireAdmin, async (req, res) => {
   const dateResult = validateDate(income_date, { required: true, fieldName: '입금일' });
   const descResult = validateString(description, { maxLength: 500, fieldName: '설명' });
 
-  const categories = db.getTable('income_categories');
-  const members = db.getTable('members').filter(m => m.status === 'active' && !m.is_admin);
+  const categories = await db.getTableAsync('income_categories');
+  const members = (await db.getTableAsync('members')).filter(m => m.status === 'active' && !m.is_admin);
 
   if (!categoryResult.valid) {
     return res.render('finance/income-form', {
@@ -205,7 +224,7 @@ router.post('/income/new', requireAuth, requireAdmin, async (req, res) => {
 });
 
 // 입금 수정 페이지
-router.get('/income/:id/edit', requireAuth, requireAdmin, (req, res) => {
+router.get('/income/:id/edit', requireAuth, requireAdmin, async (req, res) => {
   const idResult = validateId(req.params.id, '입금 ID');
   if (!idResult.valid) {
     return res.status(400).render('error', { title: '오류', message: idResult.error });
@@ -217,8 +236,8 @@ router.get('/income/:id/edit', requireAuth, requireAdmin, (req, res) => {
     return res.status(404).render('error', { title: '오류', message: '입금 내역을 찾을 수 없습니다.' });
   }
 
-  const categories = db.getTable('income_categories');
-  const members = db.getTable('members').filter(m => m.status === 'active' && !m.is_admin);
+  const categories = await db.getTableAsync('income_categories');
+  const members = (await db.getTableAsync('members')).filter(m => m.status === 'active' && !m.is_admin);
 
   res.render('finance/income-form', {
     title: '입금 수정',
@@ -243,8 +262,8 @@ router.post('/income/:id/edit', requireAuth, requireAdmin, async (req, res) => {
   const amountResult = validateAmount(amount);
   const dateResult = validateDate(income_date, { required: true, fieldName: '입금일' });
 
-  const categories = db.getTable('income_categories');
-  const members = db.getTable('members').filter(m => m.status === 'active' && !m.is_admin);
+  const categories = await db.getTableAsync('income_categories');
+  const members = (await db.getTableAsync('members')).filter(m => m.status === 'active' && !m.is_admin);
 
   if (!categoryResult.valid || !amountResult.valid || !dateResult.valid) {
     return res.render('finance/income-form', {
@@ -311,11 +330,11 @@ router.post('/income/:id/delete', requireAuth, requireAdmin, async (req, res) =>
 });
 
 // 출금 내역
-router.get('/expense', requireAuth, (req, res) => {
+router.get('/expense', requireAuth, async (req, res) => {
   const { year, month, category } = req.query;
 
-  let expenses = db.getTable('expenses');
-  const categories = db.getTable('expense_categories');
+  let expenses = await db.getTableAsync('expenses');
+  const categories = await db.getTableAsync('expense_categories');
 
   if (year) {
     expenses = expenses.filter(e => e.expense_date && e.expense_date.startsWith(year));
@@ -335,7 +354,7 @@ router.get('/expense', requireAuth, (req, res) => {
     }))
     .sort((a, b) => (b.expense_date || '').localeCompare(a.expense_date || ''));
 
-  const total = expenses.reduce((sum, e) => sum + (e.amount || 0), 0);
+  const total = expenses.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
 
   res.render('finance/expense-list', {
     title: '출금 내역',
@@ -348,8 +367,8 @@ router.get('/expense', requireAuth, (req, res) => {
 });
 
 // 출금 등록 페이지
-router.get('/expense/new', requireAuth, requireAdmin, (req, res) => {
-  const categories = db.getTable('expense_categories');
+router.get('/expense/new', requireAuth, requireAdmin, async (req, res) => {
+  const categories = await db.getTableAsync('expense_categories');
 
   res.render('finance/expense-form', {
     title: '출금 등록',
@@ -368,7 +387,7 @@ router.post('/expense/new', requireAuth, requireAdmin, async (req, res) => {
   const amountResult = validateAmount(amount);
   const dateResult = validateDate(expense_date, { required: true, fieldName: '출금일' });
 
-  const categories = db.getTable('expense_categories');
+  const categories = await db.getTableAsync('expense_categories');
 
   if (!categoryResult.valid) {
     return res.render('finance/expense-form', {
@@ -424,7 +443,7 @@ router.post('/expense/new', requireAuth, requireAdmin, async (req, res) => {
 });
 
 // 출금 수정 페이지
-router.get('/expense/:id/edit', requireAuth, requireAdmin, (req, res) => {
+router.get('/expense/:id/edit', requireAuth, requireAdmin, async (req, res) => {
   const idResult = validateId(req.params.id, '출금 ID');
   if (!idResult.valid) {
     return res.status(400).render('error', { title: '오류', message: idResult.error });
@@ -436,7 +455,7 @@ router.get('/expense/:id/edit', requireAuth, requireAdmin, (req, res) => {
     return res.status(404).render('error', { title: '오류', message: '출금 내역을 찾을 수 없습니다.' });
   }
 
-  const categories = db.getTable('expense_categories');
+  const categories = await db.getTableAsync('expense_categories');
 
   res.render('finance/expense-form', {
     title: '출금 수정',
@@ -460,7 +479,7 @@ router.post('/expense/:id/edit', requireAuth, requireAdmin, async (req, res) => 
   const amountResult = validateAmount(amount);
   const dateResult = validateDate(expense_date, { required: true, fieldName: '출금일' });
 
-  const categories = db.getTable('expense_categories');
+  const categories = await db.getTableAsync('expense_categories');
 
   if (!categoryResult.valid || !amountResult.valid || !dateResult.valid) {
     return res.render('finance/expense-form', {

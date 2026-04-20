@@ -125,8 +125,12 @@
               <i class="bi bi-trophy-fill text-success"></i>
             </div>
             <div class="overflow-hidden">
-              <small class="text-muted d-block summary-label">총 라운딩</small>
-              <span class="fw-bold text-dark summary-value"><%= completedSchedulesCount %><small class="fw-normal">회</small></span>
+              <small class="text-muted d-block summary-label">나의 총 라운딩</small>
+              <% if (user && userStats) { %>
+              <span class="fw-bold text-dark summary-value"><%= userStats.totalRounds || 0 %><small class="fw-normal">회</small></span>
+              <% } else { %>
+              <span class="fw-bold text-muted summary-value">-</span>
+              <% } %>
             </div>
           </div>
         </div>

@@ -333,16 +333,20 @@ document.addEventListener('DOMContentLoaded', function() {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('api_key', sig.api_key);
-    formData.append('timestamp', sig.timestamp);
+    formData.append('timestamp', String(sig.timestamp));
     formData.append('signature', sig.signature);
     formData.append('folder', sig.folder);
+    console.log('[Cloudinary 업로드 시작]', file.name, file.type, file.size, resourceType);
     const res = await fetch(
       `https://api.cloudinary.com/v1_1/${sig.cloud_name}/${resourceType}/upload`,
       { method: 'POST', body: formData }
     );
-    const data = await res.json();
+    let data;
+    try { data = await res.json(); } catch (e) { throw new Error(`서버 응답 파싱 실패 (HTTP ${res.status})`); }
+    console.log('[Cloudinary 응답]', JSON.stringify(data).substring(0, 200));
     if (!data.secure_url) {
-      throw new Error((data.error && data.error.message) || '업로드 실패');
+      const msg = (data.error && data.error.message) || JSON.stringify(data);
+      throw new Error(`업로드 실패: ${msg}`);
     }
     return { url: data.secure_url, kind: isVid ? 'video' : 'image', name: file.name };
   }

@@ -109,7 +109,7 @@ router.get('/', async (req, res) => {
     .sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''))
     .slice(0, 5)
     .map(post => {
-      const member = members.find(m => m.id === post.member_id) || {};
+      const member = allMembers.find(m => m.id === post.member_id) || {};
       const commentCount = communityComments.filter(c => c.post_id === post.id).length;
       return {
         ...post,

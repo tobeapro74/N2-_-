@@ -354,6 +354,71 @@
   <% } %>
 </div>
 
+<!-- 실시간 교통 상황 -->
+<% if (user) { %>
+<div class="row mt-3">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header bg-white py-1 d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center gap-2">
+          <h6 class="home-section-title-bold mb-0">실시간 교통</h6>
+          <div class="dropdown">
+            <button class="btn btn-sm btn-outline-secondary dropdown-toggle py-0 px-2" type="button" id="trafficCourseDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="font-size: 0.8rem;">
+              <span id="selectedCourseName">양지파인</span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-start" aria-labelledby="trafficCourseDropdown">
+              <li><a class="dropdown-item" href="#" onclick="selectTrafficCourse('yangji'); return false;">양지파인</a></li>
+              <li><a class="dropdown-item" href="#" onclick="selectTrafficCourse('daeyoungHills'); return false;">대영힐스</a></li>
+              <li><a class="dropdown-item" href="#" onclick="selectTrafficCourse('daeyoungBase'); return false;">대영베이스</a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="d-flex align-items-center">
+          <span class="badge bg-light text-dark me-2 home-card-meta" id="trafficUpdateTime"></span>
+          <button class="btn btn-outline-primary btn-sm py-0 px-2 home-card-meta" onclick="refreshTrafficInfo()">
+            <i class="bi bi-arrow-clockwise"></i> 새로고침
+          </button>
+        </div>
+      </div>
+      <div class="card-body p-2" id="trafficWidget">
+        <div id="trafficCards">
+          <div class="col-12 text-center py-2">
+            <div class="spinner-border spinner-border-sm text-primary" role="status">
+              <span class="visually-hidden">로딩중...</span>
+            </div>
+            <p class="text-muted mt-1 mb-0 home-card-text">교통 정보를 불러오는 중...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<% } %>
+
+<!-- 골프장 날씨 현황 -->
+<% if (user) { %>
+<div class="row mt-3">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header bg-white py-2 d-flex justify-content-between align-items-center">
+        <h6 class="home-section-title-bold">골프장 날씨</h6>
+        <span class="home-card-subtitle" id="weatherDate"></span>
+      </div>
+      <div class="card-body p-2" id="weatherWidget">
+        <div class="row g-2" id="weatherCards">
+          <div class="col-12 text-center py-2">
+            <div class="spinner-border spinner-border-sm text-success" role="status">
+              <span class="visually-hidden">로딩중...</span>
+            </div>
+            <p class="text-muted mt-1 mb-0 home-card-text">날씨 정보를 불러오는 중...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<% } %>
+
 <!-- 골프장 정보 -->
 <div class="row mt-4">
   <div class="col-12">
@@ -452,71 +517,6 @@
     </div>
   </div>
 </div>
-
-<!-- 실시간 교통 상황 -->
-<% if (user) { %>
-<div class="row mt-3">
-  <div class="col-12">
-    <div class="card">
-      <div class="card-header bg-white py-1 d-flex justify-content-between align-items-center">
-        <div class="d-flex align-items-center gap-2">
-          <h6 class="home-section-title-bold mb-0">실시간 교통</h6>
-          <div class="dropdown">
-            <button class="btn btn-sm btn-outline-secondary dropdown-toggle py-0 px-2" type="button" id="trafficCourseDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="font-size: 0.8rem;">
-              <span id="selectedCourseName">양지파인</span>
-            </button>
-            <ul class="dropdown-menu dropdown-menu-start" aria-labelledby="trafficCourseDropdown">
-              <li><a class="dropdown-item" href="#" onclick="selectTrafficCourse('yangji'); return false;">양지파인</a></li>
-              <li><a class="dropdown-item" href="#" onclick="selectTrafficCourse('daeyoungHills'); return false;">대영힐스</a></li>
-              <li><a class="dropdown-item" href="#" onclick="selectTrafficCourse('daeyoungBase'); return false;">대영베이스</a></li>
-            </ul>
-          </div>
-        </div>
-        <div class="d-flex align-items-center">
-          <span class="badge bg-light text-dark me-2 home-card-meta" id="trafficUpdateTime"></span>
-          <button class="btn btn-outline-primary btn-sm py-0 px-2 home-card-meta" onclick="refreshTrafficInfo()">
-            <i class="bi bi-arrow-clockwise"></i> 새로고침
-          </button>
-        </div>
-      </div>
-      <div class="card-body p-2" id="trafficWidget">
-        <div id="trafficCards">
-          <div class="col-12 text-center py-2">
-            <div class="spinner-border spinner-border-sm text-primary" role="status">
-              <span class="visually-hidden">로딩중...</span>
-            </div>
-            <p class="text-muted mt-1 mb-0 home-card-text">교통 정보를 불러오는 중...</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-<% } %>
-
-<!-- 골프장 날씨 현황 -->
-<% if (user) { %>
-<div class="row mt-3">
-  <div class="col-12">
-    <div class="card">
-      <div class="card-header bg-white py-2 d-flex justify-content-between align-items-center">
-        <h6 class="home-section-title-bold">골프장 날씨</h6>
-        <span class="home-card-subtitle" id="weatherDate"></span>
-      </div>
-      <div class="card-body p-2" id="weatherWidget">
-        <div class="row g-2" id="weatherCards">
-          <div class="col-12 text-center py-2">
-            <div class="spinner-border spinner-border-sm text-success" role="status">
-              <span class="visually-hidden">로딩중...</span>
-            </div>
-            <p class="text-muted mt-1 mb-0 home-card-text">날씨 정보를 불러오는 중...</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-<% } %>
 
 <!-- 군산CC 안내 모달 -->
 <div class="modal fade" id="gunsanModal" tabindex="-1">

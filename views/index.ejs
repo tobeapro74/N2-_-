@@ -2,70 +2,28 @@
 
 
 <% if (user) { %>
-<!-- 개인 통계 롤링 카드 (로그인 시) -->
-<div class="row mb-3">
-  <div class="col-12">
-    <div class="stats-carousel-container">
-      <div class="stats-carousel" id="statsCarousel" style="width:200%;display:flex;transition:transform 0.5s ease-in-out;">
-        <!-- 슬라이드 1: 최근 스코어 + 평균 스코어 -->
-        <div class="stats-card" style="flex:0 0 50%;padding:0 4px;">
-          <div class="stats-card-inner stats-card-green">
-            <div class="d-flex w-100 gap-3">
-              <div class="d-flex align-items-center flex-grow-1">
-                <div class="stats-icon me-3">
-                  <i class="bi bi-flag-fill"></i>
-                </div>
-                <div class="stats-content">
-                  <span class="stats-label">최근 스코어</span>
-                  <span class="stats-value"><%= userStats && userStats.recentScore ? userStats.recentScore : '-' %></span>
-                </div>
-              </div>
-              <div class="stats-divider"></div>
-              <div class="d-flex align-items-center flex-grow-1">
-                <div class="stats-icon me-3">
-                  <i class="bi bi-graph-up"></i>
-                </div>
-                <div class="stats-content">
-                  <span class="stats-label">평균 스코어</span>
-                  <span class="stats-value"><%= userStats && userStats.avgScore ? userStats.avgScore : '-' %></span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <!-- 슬라이드 2: 최근 방문 + 총 라운딩 -->
-        <div class="stats-card" style="flex:0 0 50%;padding:0 4px;">
-          <div class="stats-card-inner stats-card-purple">
-            <div class="d-flex w-100 gap-3">
-              <div class="d-flex align-items-center flex-grow-1">
-                <div class="stats-icon me-3">
-                  <i class="bi bi-geo-alt-fill"></i>
-                </div>
-                <div class="stats-content">
-                  <span class="stats-label">최근 방문</span>
-                  <span class="stats-value stats-value-text"><%= userStats && userStats.recentCourse ? userStats.recentCourse : '-' %></span>
-                </div>
-              </div>
-              <div class="stats-divider"></div>
-              <div class="d-flex align-items-center flex-grow-1">
-                <div class="stats-icon me-3">
-                  <i class="bi bi-trophy-fill"></i>
-                </div>
-                <div class="stats-content">
-                  <span class="stats-label">총 라운딩</span>
-                  <span class="stats-value"><%= userStats && userStats.totalRounds ? userStats.totalRounds : 0 %>회</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <!-- 인디케이터 -->
-      <div class="stats-indicators" id="statsIndicators">
-        <span class="stats-indicator active"></span>
-        <span class="stats-indicator"></span>
-      </div>
-    </div>
+<!-- 개인 통계 칩 (로그인 시) -->
+<div class="stat-chips-wrap mb-3">
+  <div class="stat-chips-scroll">
+    <a href="/schedules" class="stat-chip">
+      <span class="stat-chip-label">최근 스코어</span>
+      <span class="stat-chip-value"><%= userStats && userStats.recentScore ? userStats.recentScore : '-' %></span>
+    </a>
+    <div class="stat-chip-divider"></div>
+    <a href="/schedules" class="stat-chip">
+      <span class="stat-chip-label">평균 스코어</span>
+      <span class="stat-chip-value"><%= userStats && userStats.avgScore ? userStats.avgScore : '-' %></span>
+    </a>
+    <div class="stat-chip-divider"></div>
+    <a href="/schedules" class="stat-chip">
+      <span class="stat-chip-label">최근 방문</span>
+      <span class="stat-chip-value stat-chip-value--sm"><%= userStats && userStats.recentCourse ? userStats.recentCourse : '-' %></span>
+    </a>
+    <div class="stat-chip-divider"></div>
+    <a href="/schedules" class="stat-chip">
+      <span class="stat-chip-label">총 라운딩</span>
+      <span class="stat-chip-value"><%= userStats && userStats.totalRounds ? userStats.totalRounds : 0 %>회</span>
+    </a>
   </div>
 </div>
 <% } else { %>

@@ -329,68 +329,6 @@
       }
     })();
   </script>
-  <!-- 개인 통계 롤링 카드 -->
-  <script>
-    (function() {
-      const carousel = document.getElementById('statsCarousel');
-      const indicators = document.querySelectorAll('.stats-indicator');
-      if (!carousel || indicators.length === 0) return;
-
-      let currentIndex = 0;
-      const totalSlides = 2;
-      const intervalTime = 4000;
-
-      function goToSlide(index) {
-        currentIndex = index;
-        carousel.style.transform = `translateX(-${index * 50}%)`;
-        indicators.forEach((ind, i) => {
-          ind.classList.toggle('active', i === index);
-        });
-      }
-
-      function nextSlide() {
-        goToSlide((currentIndex + 1) % totalSlides);
-      }
-
-      // 자동 롤링
-      let autoSlide = setInterval(nextSlide, intervalTime);
-
-      // 인디케이터 클릭
-      indicators.forEach((ind, i) => {
-        ind.addEventListener('click', () => {
-          clearInterval(autoSlide);
-          goToSlide(i);
-          autoSlide = setInterval(nextSlide, intervalTime);
-        });
-      });
-
-      // 터치 스와이프 지원
-      let touchStartX = 0;
-      let touchEndX = 0;
-
-      carousel.addEventListener('touchstart', (e) => {
-        touchStartX = e.changedTouches[0].screenX;
-      }, { passive: true });
-
-      carousel.addEventListener('touchend', (e) => {
-        touchEndX = e.changedTouches[0].screenX;
-        handleSwipe();
-      }, { passive: true });
-
-      function handleSwipe() {
-        const diff = touchStartX - touchEndX;
-        if (Math.abs(diff) > 50) {
-          clearInterval(autoSlide);
-          if (diff > 0) {
-            goToSlide((currentIndex + 1) % totalSlides);
-          } else {
-            goToSlide((currentIndex - 1 + totalSlides) % totalSlides);
-          }
-          autoSlide = setInterval(nextSlide, intervalTime);
-        }
-      }
-    })();
-  </script>
   <!-- 읽지 않은 알림 개수 조회 및 토스트 표시 -->
   <script>
     (function() {

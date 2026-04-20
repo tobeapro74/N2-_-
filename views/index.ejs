@@ -463,12 +463,12 @@
           <h6 class="home-section-title-bold mb-0">실시간 교통</h6>
           <div class="dropdown">
             <button class="btn btn-sm btn-outline-secondary dropdown-toggle py-0 px-2" type="button" id="trafficCourseDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="font-size: 0.8rem;">
-              <span id="selectedCourseName">양지파인CC</span>
+              <span id="selectedCourseName">양지파인</span>
             </button>
             <ul class="dropdown-menu dropdown-menu-start" aria-labelledby="trafficCourseDropdown">
-              <li><a class="dropdown-item" href="#" onclick="selectTrafficCourse('yangji'); return false;">양지파인CC</a></li>
-              <li><a class="dropdown-item" href="#" onclick="selectTrafficCourse('daeyoungHills'); return false;">대영힐스CC</a></li>
-              <li><a class="dropdown-item" href="#" onclick="selectTrafficCourse('daeyoungBase'); return false;">대영베이스CC</a></li>
+              <li><a class="dropdown-item" href="#" onclick="selectTrafficCourse('yangji'); return false;">양지파인</a></li>
+              <li><a class="dropdown-item" href="#" onclick="selectTrafficCourse('daeyoungHills'); return false;">대영힐스</a></li>
+              <li><a class="dropdown-item" href="#" onclick="selectTrafficCourse('daeyoungBase'); return false;">대영베이스</a></li>
             </ul>
           </div>
         </div>
@@ -1599,7 +1599,7 @@ let selectedTrafficCourse = 'yangji';
 function selectTrafficCourse(key) {
   selectedTrafficCourse = key;
   const nameEl = document.getElementById('selectedCourseName');
-  if (nameEl) nameEl.textContent = trafficRoutes[key].name;
+  if (nameEl) nameEl.textContent = trafficRoutes[key].name.replace('CC', '').trim();
   renderTrafficCards(trafficDataCache);
 }
 

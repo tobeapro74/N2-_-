@@ -492,6 +492,9 @@ document.addEventListener('DOMContentLoaded', function() {
           v.className = 'rounded border';
           v.style.maxHeight = '280px';
           v.style.maxWidth = '100%';
+          // Cloudinary 썸네일: 원본 URL에서 /upload/ 뒤에 so_0(0초 프레임) 삽입
+          const posterUrl = m.url.replace('/upload/', '/upload/so_0/').replace(/\.(mp4|mov|webm)$/, '.jpg');
+          v.poster = posterUrl;
           const src = document.createElement('source');
           src.src = m.url;
           src.type = 'video/mp4';

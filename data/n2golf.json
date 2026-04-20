@@ -1347,6 +1347,196 @@
       "income_date": "2025-12-19",
       "created_at": "2025-12-24T07:38:14.572Z",
       "updated_at": "2025-12-24T07:45:19.823Z"
+    },
+    {
+      "id": 5,
+      "category_id": 2,
+      "member_id": null,
+      "amount": 830000,
+      "description": "[통장] 일반입금 NH투자증권",
+      "income_date": "2026-01-21",
+      "created_at": "2026-04-20T00:00:00.000Z",
+      "updated_at": "2026-04-20T00:00:00.000Z"
+    },
+    {
+      "id": 6,
+      "category_id": 5,
+      "member_id": null,
+      "amount": 69,
+      "description": "[통장] 예금이자 (입출금통장 이자)",
+      "income_date": "2026-01-24",
+      "created_at": "2026-04-20T00:00:00.000Z",
+      "updated_at": "2026-04-20T00:00:00.000Z"
+    },
+    {
+      "id": 7,
+      "category_id": 2,
+      "member_id": null,
+      "amount": 920000,
+      "description": "[통장] 일반입금 NH투자증권",
+      "income_date": "2026-02-20",
+      "created_at": "2026-04-20T00:00:00.000Z",
+      "updated_at": "2026-04-20T00:00:00.000Z"
+    },
+    {
+      "id": 8,
+      "category_id": 5,
+      "member_id": null,
+      "amount": 158,
+      "description": "[통장] 예금이자 (입출금통장 이자)",
+      "income_date": "2026-02-28",
+      "created_at": "2026-04-20T00:00:00.000Z",
+      "updated_at": "2026-04-20T00:00:00.000Z"
+    },
+    {
+      "id": 9,
+      "category_id": 5,
+      "member_id": null,
+      "amount": 300,
+      "description": "[통장] 모임 체크카드 캐시백",
+      "income_date": "2026-03-14",
+      "created_at": "2026-04-20T00:00:00.000Z",
+      "updated_at": "2026-04-20T00:00:00.000Z"
+    },
+    {
+      "id": 10,
+      "category_id": 2,
+      "member_id": null,
+      "amount": 990000,
+      "description": "[통장] 일반입금 NH투자증권",
+      "income_date": "2026-03-20",
+      "created_at": "2026-04-20T00:00:00.000Z",
+      "updated_at": "2026-04-20T00:00:00.000Z"
+    },
+    {
+      "id": 11,
+      "category_id": 5,
+      "member_id": null,
+      "amount": 173,
+      "description": "[통장] 예금이자 (입출금통장 이자)",
+      "income_date": "2026-03-28",
+      "created_at": "2026-04-20T00:00:00.000Z",
+      "updated_at": "2026-04-20T00:00:00.000Z"
+    },
+    {
+      "id": 12,
+      "category_id": 5,
+      "member_id": null,
+      "amount": 300,
+      "description": "[통장] 모임 체크카드 캐시백",
+      "income_date": "2026-03-28",
+      "created_at": "2026-04-20T00:00:00.000Z",
+      "updated_at": "2026-04-20T00:00:00.000Z"
+    },
+    {
+      "id": 13,
+      "category_id": 5,
+      "member_id": null,
+      "amount": 300,
+      "description": "[통장] 모임 체크카드 캐시백 (성마루국밥 결제 후)",
+      "income_date": "2026-03-28",
+      "created_at": "2026-04-20T00:00:00.000Z",
+      "updated_at": "2026-04-20T00:00:00.000Z"
+    },
+    {
+      "id": 14,
+      "category_id": 2,
+      "member_id": null,
+      "amount": 969500,
+      "description": "[통장] 일반입금 엔에이치투자증권",
+      "income_date": "2026-04-06",
+      "created_at": "2026-04-20T00:00:00.000Z",
+      "updated_at": "2026-04-20T00:00:00.000Z"
+    },
+    {
+      "id": 15,
+      "category_id": 5,
+      "member_id": null,
+      "amount": 300,
+      "description": "[통장] 모임 체크카드 캐시백",
+      "income_date": "2026-04-11",
+      "created_at": "2026-04-20T00:00:00.000Z",
+      "updated_at": "2026-04-20T00:00:00.000Z"
+    },
+    {
+      "id": 16,
+      "category_id": 5,
+      "member_id": null,
+      "amount": 300,
+      "description": "[통장] 모임 체크카드 캐시백",
+      "income_date": "2026-04-11",
+      "created_at": "2026-04-20T00:00:00.000Z",
+      "updated_at": "2026-04-20T00:00:00.000Z"
+    },
+    {
+      "id": 17,
+      "category_id": 5,
+      "member_id": null,
+      "amount": 300,
+      "description": "[통장] 모임 체크카드 캐시백",
+      "income_date": "2026-04-11",
+      "created_at": "2026-04-20T00:00:00.000Z",
+      "updated_at": "2026-04-20T00:00:00.000Z"
+    },
+    {
+      "id": 18,
+      "category_id": 5,
+      "member_id": null,
+      "amount": 3000,
+      "description": "[통장] 모임 체크카드 캐시백",
+      "income_date": "2026-04-18",
+      "created_at": "2026-04-20T00:00:00.000Z",
+      "updated_at": "2026-04-20T00:00:00.000Z"
+    },
+    {
+      "id": 19,
+      "category_id": 5,
+      "member_id": null,
+      "amount": 300,
+      "description": "[통장] 모임 체크카드 캐시백",
+      "income_date": "2026-04-18",
+      "created_at": "2026-04-20T00:00:00.000Z",
+      "updated_at": "2026-04-20T00:00:00.000Z"
+    },
+    {
+      "id": 20,
+      "category_id": 5,
+      "member_id": null,
+      "amount": 300,
+      "description": "[통장] 모임 체크카드 캐시백",
+      "income_date": "2026-04-18",
+      "created_at": "2026-04-20T00:00:00.000Z",
+      "updated_at": "2026-04-20T00:00:00.000Z"
+    },
+    {
+      "id": 21,
+      "category_id": 5,
+      "member_id": null,
+      "amount": 300,
+      "description": "[통장] 모임 체크카드 캐시백",
+      "income_date": "2026-04-18",
+      "created_at": "2026-04-20T00:00:00.000Z",
+      "updated_at": "2026-04-20T00:00:00.000Z"
+    },
+    {
+      "id": 22,
+      "category_id": 4,
+      "member_id": 20,
+      "amount": 1000000,
+      "description": "[통장] 일반입금 박병철",
+      "income_date": "2026-04-19",
+      "created_at": "2026-04-20T00:00:00.000Z",
+      "updated_at": "2026-04-20T00:00:00.000Z"
+    },
+    {
+      "id": 23,
+      "category_id": 5,
+      "member_id": null,
+      "amount": 3000,
+      "description": "[통장] 모임 체크카드 캐시백",
+      "income_date": "2026-04-19",
+      "created_at": "2026-04-20T00:00:00.000Z",
+      "updated_at": "2026-04-20T00:00:00.000Z"
     }
   ],
   "expenses": [
@@ -1376,6 +1566,142 @@
       "expense_date": "2025-12-12",
       "created_at": "2025-12-24T07:38:14.572Z",
       "updated_at": "2025-12-24T07:48:00.038Z"
+    },
+    {
+      "id": 5,
+      "category_id": 9,
+      "amount": 41500,
+      "description": "[통장] 일반이체 플래카드 구매",
+      "expense_date": "2026-03-03",
+      "created_at": "2026-04-20T00:00:00.000Z",
+      "updated_at": "2026-04-20T00:00:00.000Z"
+    },
+    {
+      "id": 6,
+      "category_id": 3,
+      "amount": 389000,
+      "description": "[통장] 체크카드결제 미래개발 주식회사",
+      "expense_date": "2026-03-14",
+      "created_at": "2026-04-20T00:00:00.000Z",
+      "updated_at": "2026-04-20T00:00:00.000Z"
+    },
+    {
+      "id": 7,
+      "category_id": 4,
+      "amount": 121000,
+      "description": "[통장] 체크카드결제 들밥",
+      "expense_date": "2026-03-14",
+      "created_at": "2026-04-20T00:00:00.000Z",
+      "updated_at": "2026-04-20T00:00:00.000Z"
+    },
+    {
+      "id": 8,
+      "category_id": 9,
+      "amount": 86350,
+      "description": "[통장] 간편이체(김재민)",
+      "expense_date": "2026-03-14",
+      "created_at": "2026-04-20T00:00:00.000Z",
+      "updated_at": "2026-04-20T00:00:00.000Z"
+    },
+    {
+      "id": 9,
+      "category_id": 3,
+      "amount": 679000,
+      "description": "[통장] 체크카드결제 (주)대영베이스",
+      "expense_date": "2026-03-28",
+      "created_at": "2026-04-20T00:00:00.000Z",
+      "updated_at": "2026-04-20T00:00:00.000Z"
+    },
+    {
+      "id": 10,
+      "category_id": 4,
+      "amount": 196000,
+      "description": "[통장] 체크카드결제 성마루국밥",
+      "expense_date": "2026-03-28",
+      "created_at": "2026-04-20T00:00:00.000Z",
+      "updated_at": "2026-04-20T00:00:00.000Z"
+    },
+    {
+      "id": 11,
+      "category_id": 3,
+      "amount": 613000,
+      "description": "[통장] 체크카드결제 미래개발 주식회사",
+      "expense_date": "2026-04-11",
+      "created_at": "2026-04-20T00:00:00.000Z",
+      "updated_at": "2026-04-20T00:00:00.000Z"
+    },
+    {
+      "id": 12,
+      "category_id": 3,
+      "amount": 100000,
+      "description": "[통장] 체크카드결제 미래개발 주식회사",
+      "expense_date": "2026-04-11",
+      "created_at": "2026-04-20T00:00:00.000Z",
+      "updated_at": "2026-04-20T00:00:00.000Z"
+    },
+    {
+      "id": 13,
+      "category_id": 4,
+      "amount": 177000,
+      "description": "[통장] 체크카드결제 들밥",
+      "expense_date": "2026-04-11",
+      "created_at": "2026-04-20T00:00:00.000Z",
+      "updated_at": "2026-04-20T00:00:00.000Z"
+    },
+    {
+      "id": 14,
+      "category_id": 4,
+      "amount": 448000,
+      "description": "[통장] 체크카드결제 고향집",
+      "expense_date": "2026-04-18",
+      "created_at": "2026-04-20T00:00:00.000Z",
+      "updated_at": "2026-04-20T00:00:00.000Z"
+    },
+    {
+      "id": 15,
+      "category_id": 9,
+      "amount": 100100,
+      "description": "[통장] 체크카드결제 옥구농업협동조합",
+      "expense_date": "2026-04-18",
+      "created_at": "2026-04-20T00:00:00.000Z",
+      "updated_at": "2026-04-20T00:00:00.000Z"
+    },
+    {
+      "id": 16,
+      "category_id": 9,
+      "amount": 145000,
+      "description": "[통장] 체크카드결제 군신레져산업주식회사",
+      "expense_date": "2026-04-18",
+      "created_at": "2026-04-20T00:00:00.000Z",
+      "updated_at": "2026-04-20T00:00:00.000Z"
+    },
+    {
+      "id": 17,
+      "category_id": 4,
+      "amount": 1299000,
+      "description": "[통장] 체크카드결제 하제끝집",
+      "expense_date": "2026-04-18",
+      "created_at": "2026-04-20T00:00:00.000Z",
+      "updated_at": "2026-04-20T00:00:00.000Z"
+    },
+    {
+      "id": 18,
+      "category_id": 4,
+      "amount": 461000,
+      "description": "[통장] 체크카드결제 언니네",
+      "expense_date": "2026-04-19",
+      "created_at": "2026-04-20T00:00:00.000Z",
+      "updated_at": "2026-04-20T00:00:00.000Z"
+    },
+    {
+      "id": 19,
+      "category_id": 9,
+      "member_id": 20,
+      "amount": 500000,
+      "description": "[통장] 일반이체 박병철",
+      "expense_date": "2026-04-19",
+      "created_at": "2026-04-20T00:00:00.000Z",
+      "updated_at": "2026-04-20T00:00:00.000Z"
     }
   ],
   "schedules": [
@@ -2194,8 +2520,8 @@
       "golf_courses": 3,
       "income_categories": 5,
       "expense_categories": 9,
-      "incomes": 4,
-      "expenses": 4,
+      "incomes": 23,
+      "expenses": 19,
       "schedules": 18,
       "reservations": 9,
       "membership_fees": 0,

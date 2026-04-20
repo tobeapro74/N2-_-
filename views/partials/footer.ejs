@@ -300,7 +300,7 @@
   <!-- 읽지 않은 알림 개수 조회 및 토스트 표시 -->
   <script>
     (function() {
-      // 마지막으로 확인한 알림 ID (세션 스토리지에 저장)
+      // 마지막으로 확인한 알림 ID (localStorage에 저장 - 탭 닫아도 유지)
       const LAST_SEEN_KEY = 'lastSeenNotificationId';
 
       // 알림 배지 업데이트
@@ -353,22 +353,18 @@
 
             // 읽지 않은 알림이 있을 때 토스트 표시 조건 확인
             if (data.count > 0) {
-              const lastSeenId = parseInt(sessionStorage.getItem(LAST_SEEN_KEY) || '0');
-
               // 최신 알림 조회
               const latestResponse = await fetch('/notifications/latest');
               const latestData = await latestResponse.json();
 
               if (latestData.success && latestData.notification) {
                 const latest = latestData.notification;
-
-                // 토스트 표시 조건: 새로운 알림 ID인 경우에만 표시
-                // (이미 본 알림은 다시 표시하지 않음)
+                const lastSeenId = parseInt(localStorage.getItem(LAST_SEEN_KEY) || '0');
                 const isNewNotification = latest.id > lastSeenId;
 
                 if (isNewNotification) {
                   showToast(latest.title, latest.body, latest.url);
-                  sessionStorage.setItem(LAST_SEEN_KEY, latest.id.toString());
+                  localStorage.setItem(LAST_SEEN_KEY, latest.id.toString());
                 }
               }
             }

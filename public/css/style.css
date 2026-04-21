@@ -2108,7 +2108,177 @@ a:active .card {
 }
 
 /* =============================================
-   아이콘 그리드 메뉴 (Phase 3)
+   스마트스코어 스타일 홈 컴포넌트
+   ============================================= */
+
+/* ① 나의 스탯 카드 행 */
+.ss-stat-row {
+  display: flex;
+  gap: 8px;
+}
+.ss-stat-card {
+  flex: 1;
+  background: #fff;
+  border-radius: 12px;
+  padding: 10px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-decoration: none;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.07);
+  -webkit-tap-highlight-color: transparent;
+}
+.ss-stat-card:active { opacity: 0.75; }
+.ss-stat-label {
+  font-size: 0.65rem;
+  color: #868e96;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.ss-stat-val {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #198754;
+  line-height: 1;
+}
+.ss-stat-val--sm {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #198754;
+}
+
+/* ② 메인 CTA 히어로 카드 */
+.ss-hero-row {
+  display: flex;
+  gap: 10px;
+}
+.ss-hero-card {
+  flex: 1;
+  border-radius: 18px;
+  padding: 18px 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-decoration: none;
+  min-height: 160px;
+  position: relative;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+.ss-hero-card:active { opacity: 0.85; transform: scale(0.98); }
+.ss-hero-card--dark {
+  background: linear-gradient(145deg, #1a1a2e 0%, #16213e 60%, #0f3460 100%);
+}
+.ss-hero-card--green {
+  background: linear-gradient(145deg, #1b5e20 0%, #2e7d32 60%, #388e3c 100%);
+}
+.ss-hero-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: rgba(255,255,255,0.6);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.ss-hero-score {
+  font-size: 3rem;
+  font-weight: 900;
+  color: #4ade80;
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+.ss-hero-icon {
+  font-size: 2.5rem;
+  color: rgba(255,255,255,0.85);
+  line-height: 1;
+}
+.ss-hero-sub {
+  font-size: 0.78rem;
+  color: rgba(255,255,255,0.7);
+  line-height: 1.4;
+}
+.ss-hero-btn {
+  margin-top: auto;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #fff;
+  background: rgba(255,255,255,0.15);
+  border-radius: 8px;
+  padding: 6px 10px;
+  display: inline-block;
+  align-self: flex-start;
+  backdrop-filter: blur(4px);
+}
+
+/* ③ 공지 배너 */
+.ss-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #fff;
+  border-radius: 14px;
+  padding: 14px 16px;
+  box-shadow: 0 1px 8px rgba(0,0,0,0.07);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.ss-banner:active { opacity: 0.85; }
+.ss-banner-icon {
+  font-size: 1.8rem;
+  flex-shrink: 0;
+}
+.ss-banner-text { flex: 1; min-width: 0; }
+.ss-banner-date {
+  font-size: 0.7rem;
+  color: #198754;
+  font-weight: 600;
+  margin-bottom: 3px;
+}
+.ss-banner-msg {
+  font-size: 0.82rem;
+  color: #212529;
+  font-weight: 500;
+  line-height: 1.4;
+}
+.ss-banner-arrow {
+  color: #adb5bd;
+  flex-shrink: 0;
+  font-size: 0.85rem;
+}
+
+/* ④ 원형 아이콘 그리드 */
+.ss-icon-grid {
+  display: flex;
+  justify-content: space-between;
+}
+.ss-icon-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.ss-icon-item:active .ss-icon-circle { transform: scale(0.9); }
+.ss-icon-circle {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  transition: transform 0.12s ease;
+}
+.ss-icon-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #495057;
+}
+
+/* =============================================
+   아이콘 그리드 메뉴 (Phase 3) - 레거시 유지
    ============================================= */
 .icon-grid {
   display: flex;

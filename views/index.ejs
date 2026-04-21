@@ -1,358 +1,247 @@
 <%- include('partials/header') %>
 
+<%
+  // 다가오는 첫 번째 일정 기반 배너 문구 생성
+  var nextSchedule = upcomingSchedules && upcomingSchedules.length > 0 ? upcomingSchedules[0] : null;
+  var bannerMsg = '';
+  var bannerCourse = '';
+  var bannerDate = '';
+  if (nextSchedule) {
+    bannerCourse = nextSchedule.course_name || '';
+    bannerDate = moment(nextSchedule.play_date).format('M/D (ddd)');
+    var month = moment(nextSchedule.play_date).month() + 1;
+    var msgs = [
+      '함께하는 라운드가 더 빛나는 날, N2골프와 함께해요!',
+      '봄바람과 함께 초록 잔디 위로, 다 같이 나가요!',
+      '푸른 하늘 아래 N2골프, 이번 라운드도 기대되네요!',
+      '상쾌한 아침 공기와 함께하는 골프, 최고 아닌가요?',
+      '뜨거운 여름도 N2와 함께라면 즐겁습니다!'
+    ];
+    if (month >= 3 && month <= 5) {
+      bannerMsg = '푸른 잔디가 올라오는 계절, 다 함께 ' + bannerCourse + '로 가요!';
+    } else if (month >= 6 && month <= 8) {
+      bannerMsg = '뜨거운 열정을 식힐 라운드, ' + bannerCourse + '에서 기다립니다!';
+    } else if (month >= 9 && month <= 11) {
+      bannerMsg = '단풍 물드는 계절, ' + bannerCourse + '에서 추억 만들어요!';
+    } else {
+      bannerMsg = '차가운 겨울도 N2골프와 함께라면 따뜻해요! ' + bannerCourse;
+    }
+  } else {
+    bannerMsg = '우리 모두가 주인공인 즐거운 라운드, N2골프';
+  }
+%>
 
-<% if (user) { %>
-<!-- 개인 통계 칩 (로그인 시) -->
-<div class="stat-chips-wrap mb-3 mt-1">
-  <div class="stat-chips-scroll">
-    <a href="/schedules" class="stat-chip">
-      <span class="stat-chip-label">최근 스코어</span>
-      <span class="stat-chip-value"><%= userStats && userStats.recentScore ? userStats.recentScore : '-' %></span>
-    </a>
-    <div class="stat-chip-divider"></div>
-    <a href="/schedules" class="stat-chip">
-      <span class="stat-chip-label">평균 스코어</span>
-      <span class="stat-chip-value"><%= userStats && userStats.avgScore ? userStats.avgScore : '-' %></span>
-    </a>
-    <div class="stat-chip-divider"></div>
-    <a href="/schedules" class="stat-chip">
-      <span class="stat-chip-label">최근 방문</span>
-      <span class="stat-chip-value stat-chip-value--sm"><%= userStats && userStats.recentCourse ? userStats.recentCourse : '-' %></span>
-    </a>
-    <div class="stat-chip-divider"></div>
-    <a href="/schedules" class="stat-chip">
-      <span class="stat-chip-label">총 라운딩</span>
-      <span class="stat-chip-value"><%= userStats && userStats.totalRounds ? userStats.totalRounds : 0 %>회</span>
-    </a>
-  </div>
-</div>
-<% } else { %>
-<!-- 메인 배너 (비로그인 시) -->
-<div class="row mb-3">
-  <div class="col-12">
-    <% if (typeof newMembers !== 'undefined' && newMembers.length > 0) { %>
-    <!-- 신규 회원 환영 배너 (가입 10일 이내) -->
-    <div id="welcomeBannerCarousel" class="bg-primary bg-gradient text-white rounded-2 py-2 px-3">
-      <div class="welcome-banner-container" style="min-height: 28px; position: relative; overflow: hidden;">
-        <% newMembers.forEach((member, idx) => { %>
-        <div class="welcome-banner-slide <%= idx === 0 ? 'active' : '' %>" data-index="<%= idx %>" style="position: absolute; top: 0; left: 0; right: 0; opacity: <%= idx === 0 ? 1 : 0 %>; transition: opacity 0.5s ease;">
-          <div class="d-flex align-items-center justify-content-center">
-            <i class="bi bi-stars me-2 home-banner-icon"></i>
-            <span class="home-banner-text welcome-message" data-name="<%= member.name %>"></span>
-          </div>
-        </div>
-        <% }) %>
-      </div>
-    </div>
-    <% } else { %>
-    <!-- 기본 배너 -->
-    <div class="bg-success bg-gradient text-white rounded-2 py-2 px-3">
-      <div class="d-flex align-items-center justify-content-center">
-        <i class="bi bi-trophy me-2 home-banner-icon"></i>
-        <span class="home-banner-text">우리 모두가 주인공인 즐거운 라운드, N2골프</span>
-      </div>
-    </div>
-    <% } %>
-  </div>
+<!-- ① 나의 스탯 카드 (로그인 시) -->
+<% if (user && userStats) { %>
+<div class="ss-stat-row mb-3">
+  <a href="/schedules" class="ss-stat-card">
+    <span class="ss-stat-label">최근 스코어</span>
+    <span class="ss-stat-val"><%= userStats.recentScore || '-' %></span>
+  </a>
+  <a href="/schedules" class="ss-stat-card">
+    <span class="ss-stat-label">평균 스코어</span>
+    <span class="ss-stat-val"><%= userStats.avgScore || '-' %></span>
+  </a>
+  <a href="/schedules" class="ss-stat-card">
+    <span class="ss-stat-label">최근 방문</span>
+    <span class="ss-stat-val ss-stat-val--sm"><%= userStats.recentCourse || '-' %></span>
+  </a>
+  <a href="/schedules" class="ss-stat-card">
+    <span class="ss-stat-label">총 라운딩</span>
+    <span class="ss-stat-val"><%= userStats.totalRounds || 0 %>회</span>
+  </a>
 </div>
 <% } %>
 
-<!-- 요약 카드 -->
-<div class="row g-2 mb-3">
-  <div class="col-6">
-    <a href="/members" class="text-decoration-none">
-      <div class="card h-100 border-0 shadow-sm summary-card">
-        <div class="card-body py-2 px-2 py-md-3 px-md-3">
-          <div class="d-flex align-items-center">
-            <div class="rounded-circle bg-info bg-opacity-10 p-2 me-2 me-md-3 d-flex align-items-center justify-content-center summary-icon">
-              <i class="bi bi-people-fill text-info"></i>
-            </div>
-            <div class="overflow-hidden">
-              <small class="text-muted d-block summary-label">활동 회원</small>
-              <span class="fw-bold text-dark summary-value"><%= memberStats.active || 0 %><small class="fw-normal">명</small></span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </a>
-  </div>
-  <div class="col-6">
-    <a href="/schedules" class="text-decoration-none">
-      <div class="card h-100 border-0 shadow-sm summary-card">
-        <div class="card-body py-2 px-2 py-md-3 px-md-3">
-          <div class="d-flex align-items-center">
-            <div class="rounded-circle bg-success bg-opacity-10 p-2 me-2 me-md-3 d-flex align-items-center justify-content-center summary-icon">
-              <i class="bi bi-trophy-fill text-success"></i>
-            </div>
-            <div class="overflow-hidden">
-              <small class="text-muted d-block summary-label">나의 총 라운딩</small>
-              <% if (user && userStats) { %>
-              <span class="fw-bold text-dark summary-value"><%= userStats.totalRounds || 0 %><small class="fw-normal">회</small></span>
-              <% } else { %>
-              <span class="fw-bold text-muted summary-value">-</span>
-              <% } %>
-            </div>
-          </div>
-        </div>
-      </div>
-    </a>
-  </div>
-</div>
-
-<!-- 아이콘 그리드 메뉴 -->
-<div class="icon-grid mb-3">
-  <a href="/schedules" class="icon-grid-item">
-    <div class="icon-grid-icon bg-success-subtle">
-      <i class="bi bi-calendar3 text-success"></i>
-    </div>
-    <span class="icon-grid-label">일정</span>
-  </a>
-  <a href="/reservations/available" class="icon-grid-item">
-    <div class="icon-grid-icon bg-primary-subtle">
-      <i class="bi bi-bookmark-check text-primary"></i>
-    </div>
-    <span class="icon-grid-label">예약</span>
-  </a>
-  <a href="/community" class="icon-grid-item">
-    <div class="icon-grid-icon bg-warning-subtle">
-      <i class="bi bi-chat-heart text-warning"></i>
-    </div>
-    <span class="icon-grid-label">톡톡</span>
-  </a>
-  <a href="/finance" class="icon-grid-item">
-    <div class="icon-grid-icon bg-danger-subtle">
-      <i class="bi bi-cash-stack text-danger"></i>
-    </div>
-    <span class="icon-grid-label">자금</span>
-  </a>
-  <a href="/members" class="icon-grid-item">
-    <div class="icon-grid-icon" style="background:#eef2ff;">
-      <i class="bi bi-people-fill" style="color:#6366f1;"></i>
-    </div>
-    <span class="icon-grid-label">회원</span>
-  </a>
-</div>
-
-<!-- 최근 라운딩 스코어 Top5 -->
-<% if (typeof recentRoundTop5 !== 'undefined' && recentRoundTop5.length > 0) { %>
-<div class="row mb-3">
-  <div class="col-12">
-    <div class="card border-0 shadow-sm" style="cursor: pointer;" onclick="location.href='/schedules/<%= recentRoundScheduleId %>/results'">
-      <div class="card-header bg-white py-1 d-flex justify-content-between align-items-center">
-        <span class="home-section-title mb-0" style="font-size: 0.9rem;">
-          <i class="bi bi-trophy-fill text-warning me-1"></i>최근 라운딩 Top 5
-        </span>
-        <small class="text-muted" style="font-size: 0.75rem;"><%= recentRoundTop5[0].courseName %> · <%= recentRoundTop5[0].playDate %> <i class="bi bi-chevron-right"></i></small>
-      </div>
-      <div class="card-body p-2">
-        <div class="list-group list-group-flush">
-          <% recentRoundTop5.forEach(function(r) { %>
-          <div class="list-group-item py-2 px-1 border-0 d-flex align-items-center justify-content-between">
-            <div class="d-flex align-items-center">
-              <% if (r.rank === 1) { %>
-              <span class="me-2" style="font-size: 1.1rem;">🥇</span>
-              <% } else if (r.rank === 2) { %>
-              <span class="me-2" style="font-size: 1.1rem;">🥈</span>
-              <% } else if (r.rank === 3) { %>
-              <span class="me-2" style="font-size: 1.1rem;">🥉</span>
-              <% } else { %>
-              <span class="me-2 text-muted fw-bold" style="font-size: 0.85rem; min-width: 24px; text-align: center;"><%= r.rank %></span>
-              <% } %>
-              <span class="fw-bold" style="font-size: 0.9rem;"><%= r.name %></span>
-            </div>
-            <span class="badge bg-success text-white" style="font-size: 0.85rem;"><%= r.score %>타</span>
-          </div>
-          <% }); %>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-<% } %>
-
-<!-- 일상톡톡 커뮤니티 -->
-<div class="row mb-3">
-  <div class="col-12">
-    <div class="card border-0 shadow-sm">
-      <div class="card-header bg-white py-1 d-flex justify-content-between align-items-center">
-        <span class="home-section-title mb-0" style="font-size: 0.9rem;">
-          <i class="bi bi-chat-heart text-success me-1"></i>일상톡톡
-        </span>
-        <a href="/community" class="btn btn-sm btn-outline-success py-0 px-2" style="font-size: 0.85rem;">더보기</a>
-      </div>
-      <div class="card-body p-2">
-        <% if (!user) { %>
-        <p class="text-muted text-center py-2 mb-0" style="font-size: 0.85rem;">로그인 후 이용 가능합니다.</p>
-        <% } else if (typeof recentCommunityPosts === 'undefined' || recentCommunityPosts.length === 0) { %>
-        <div class="text-center py-3">
-          <p class="text-muted mb-2" style="font-size: 0.85rem;">아직 게시글이 없습니다.</p>
-          <a href="/community" class="btn btn-success btn-sm">첫 글 작성하기</a>
-        </div>
-        <% } else { %>
-        <div class="list-group list-group-flush">
-          <% recentCommunityPosts.slice(0, 3).forEach(post => { 
-            var _mf = post.media_files || [];
-            var _hasVid = _mf.some(function(m) { return m && m.kind === 'video'; });
-          %>
-          <a href="/community#post-<%= post.id %>" class="list-group-item list-group-item-action py-2 px-1 border-0">
-            <div class="d-flex justify-content-between align-items-start">
-              <div class="flex-grow-1 overflow-hidden">
-                <div class="d-flex align-items-center mb-1">
-                  <span class="fw-bold me-2" style="font-size: 0.85rem;"><%= post.member_name %></span>
-                  <small class="text-muted" style="font-size: 0.85rem;"><%= moment(post.created_at).fromNow() %></small>
-                </div>
-                <p class="mb-0 text-truncate text-dark" style="font-size: 0.85rem; max-width: 100%;"><%= post.content || (_mf.length ? (_hasVid ? '(동영상)' : '(사진)') : (post.image_url ? '(이미지)' : '')) %></p>
-              </div>
-              <div class="d-flex align-items-center gap-2 ms-2 flex-shrink-0">
-                <% if (_mf.length || post.image_url) { %><i class="bi <%= _hasVid ? 'bi-film' : 'bi-image' %> text-muted" style="font-size: 0.85rem;"></i><% } %>
-                <span class="badge bg-light text-secondary" style="font-size: 0.85rem;"><i class="bi bi-chat"></i> <%= post.comment_count %></span>
-              </div>
-            </div>
-          </a>
-          <% }) %>
-        </div>
-        <% } %>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="row g-3">
-  <!-- 다가오는 일정 CTA 카드 -->
-  <div class="col-12">
-    <div class="d-flex justify-content-between align-items-center mb-2 px-1">
-      <span class="home-section-title-bold">다가오는 일정</span>
-      <a href="/schedules" class="upcoming-more-link">전체보기 <i class="bi bi-chevron-right"></i></a>
-    </div>
-    <% if (upcomingSchedules.length === 0) { %>
-    <div class="upcoming-empty">
-      <i class="bi bi-calendar-x text-muted" style="font-size: 2rem;"></i>
-      <p class="text-muted mt-2 mb-0">예정된 일정이 없습니다.</p>
-    </div>
-    <% } else { %>
-    <div class="upcoming-cta-list">
-      <% upcomingSchedules.slice(0, 2).forEach(function(schedule) {
-        var today = moment().startOf('day');
-        var playDay = moment(schedule.play_date).startOf('day');
-        var dday = playDay.diff(today, 'days');
-        var ddayText = dday === 0 ? 'D-Day' : (dday > 0 ? 'D-' + dday : 'D+' + Math.abs(dday));
-        var isOpen = schedule.status === 'open' || schedule.status === 'closed';
-        var isFull = schedule.status === 'closed' || (schedule.reserved_count >= schedule.max_members);
-        var fillPct = schedule.max_members > 0 ? Math.min(100, Math.round(schedule.reserved_count / schedule.max_members * 100)) : 0;
-      %>
-      <a href="/schedules/<%= schedule.id %>" class="upcoming-cta-card text-decoration-none">
-        <div class="upcoming-cta-top">
-          <div class="upcoming-cta-date">
-            <span class="upcoming-cta-month"><%= moment(schedule.play_date).format('M') %>월</span>
-            <span class="upcoming-cta-day"><%= moment(schedule.play_date).format('D') %></span>
-            <span class="upcoming-cta-weekday"><%= moment(schedule.play_date).format('ddd') %></span>
-          </div>
-          <div class="upcoming-cta-info">
-            <div class="upcoming-cta-course"><%= schedule.course_name %></div>
-            <div class="upcoming-cta-location"><i class="bi bi-geo-alt"></i> <%= schedule.location %></div>
-          </div>
-          <div class="upcoming-cta-right">
-            <span class="upcoming-cta-dday <%= dday <= 7 ? 'upcoming-cta-dday--near' : '' %>"><%= ddayText %></span>
-            <% if (!isOpen) { %>
-            <span class="upcoming-cta-status upcoming-cta-status--pending">오픈전</span>
-            <% } else if (isFull) { %>
-            <span class="upcoming-cta-status upcoming-cta-status--full">마감</span>
-            <% } else { %>
-            <span class="upcoming-cta-status upcoming-cta-status--open">예약중</span>
-            <% } %>
-          </div>
-        </div>
-        <% if (isOpen) { %>
-        <div class="upcoming-cta-bottom">
-          <div class="upcoming-cta-progress-wrap">
-            <div class="upcoming-cta-progress-bar" style="width: <%= fillPct %>%;"></div>
-          </div>
-          <span class="upcoming-cta-seats"><%= schedule.reserved_count %>/<%= schedule.max_members %>명</span>
-        </div>
-        <% } %>
-      </a>
-      <% }) %>
-      <% if (upcomingSchedules.length > 2) { %>
-      <a href="/schedules" class="upcoming-more-card text-decoration-none">
-        <i class="bi bi-calendar3"></i>
-        <span>일정 <%= upcomingSchedules.length - 2 %>개 더보기</span>
-        <i class="bi bi-chevron-right"></i>
-      </a>
+<!-- ② 메인 CTA 카드 2개 (검은 배경) -->
+<div class="ss-hero-row mb-3">
+  <a href="/schedules/<%= recentRoundScheduleId ? recentRoundScheduleId + '/results' : '' %>" class="ss-hero-card ss-hero-card--dark">
+    <div class="ss-hero-badge">라운드 기록</div>
+    <div class="ss-hero-score">
+      <% if (typeof recentRoundTop5 !== 'undefined' && recentRoundTop5.length > 0) { %>
+      <%= recentRoundTop5[0].score %>
+      <% } else { %>
+      -
       <% } %>
     </div>
+    <div class="ss-hero-sub">
+      <% if (typeof recentRoundTop5 !== 'undefined' && recentRoundTop5.length > 0) { %>
+      <%= recentRoundTop5[0].courseName %> Top
+      <% } else { %>
+      최근 라운딩 기록
+      <% } %>
+    </div>
+    <div class="ss-hero-btn">결과 보기</div>
+  </a>
+  <a href="/reservations/available" class="ss-hero-card ss-hero-card--green">
+    <div class="ss-hero-badge">예약하기</div>
+    <div class="ss-hero-icon"><i class="bi bi-calendar-check-fill"></i></div>
+    <div class="ss-hero-sub">
+      <% if (nextSchedule) { %>
+      <%= nextSchedule.course_name %><br><%= bannerDate %>
+      <% } else { %>
+      다음 라운드를<br>예약해보세요
+      <% } %>
+    </div>
+    <div class="ss-hero-btn">예약 신청</div>
+  </a>
+</div>
+
+<!-- ③ 공지 배너 (다가오는 일정 + 날씨 문구) -->
+<% if (nextSchedule) { %>
+<div class="ss-banner mb-3" onclick="location.href='/schedules/<%= nextSchedule.id %>'">
+  <div class="ss-banner-icon" id="bannerWeatherIcon">⛳</div>
+  <div class="ss-banner-text">
+    <div class="ss-banner-date"><%= bannerDate %> · <%= nextSchedule.course_name %></div>
+    <div class="ss-banner-msg"><%= bannerMsg %></div>
+  </div>
+  <i class="bi bi-chevron-right ss-banner-arrow"></i>
+</div>
+<% } %>
+
+<!-- ④ 원형 아이콘 그리드 -->
+<div class="ss-icon-grid mb-3">
+  <a href="/schedules" class="ss-icon-item">
+    <div class="ss-icon-circle" style="background:#e8f5e9;">
+      <i class="bi bi-calendar3" style="color:#2e7d32;"></i>
+    </div>
+    <span class="ss-icon-label">일정</span>
+  </a>
+  <a href="/reservations/available" class="ss-icon-item">
+    <div class="ss-icon-circle" style="background:#e3f2fd;">
+      <i class="bi bi-bookmark-check-fill" style="color:#1565c0;"></i>
+    </div>
+    <span class="ss-icon-label">예약</span>
+  </a>
+  <a href="/community" class="ss-icon-item">
+    <div class="ss-icon-circle" style="background:#fff8e1;">
+      <i class="bi bi-chat-heart-fill" style="color:#f57f17;"></i>
+    </div>
+    <span class="ss-icon-label">톡톡</span>
+  </a>
+  <a href="/finance" class="ss-icon-item">
+    <div class="ss-icon-circle" style="background:#fce4ec;">
+      <i class="bi bi-cash-stack" style="color:#c62828;"></i>
+    </div>
+    <span class="ss-icon-label">자금</span>
+  </a>
+  <a href="/members" class="ss-icon-item">
+    <div class="ss-icon-circle" style="background:#ede7f6;">
+      <i class="bi bi-people-fill" style="color:#4527a0;"></i>
+    </div>
+    <span class="ss-icon-label">회원</span>
+  </a>
+</div>
+
+<!-- ⑤ 최근 라운딩 Top5 -->
+<% if (typeof recentRoundTop5 !== 'undefined' && recentRoundTop5.length > 0) { %>
+<div class="info-section mb-3" style="cursor:pointer;" onclick="location.href='/schedules/<%= recentRoundScheduleId %>/results'">
+  <div class="info-section-header">
+    <span class="info-section-title">최근 라운딩 Top 5</span>
+    <small class="info-update-time"><%= recentRoundTop5[0].courseName %> · <%= recentRoundTop5[0].playDate %> <i class="bi bi-chevron-right"></i></small>
+  </div>
+  <div class="info-section-body pt-1 pb-2 px-3">
+    <% recentRoundTop5.forEach(function(r) { %>
+    <div class="d-flex align-items-center justify-content-between py-2 border-bottom" style="border-color:#f8f9fa!important;">
+      <div class="d-flex align-items-center gap-2">
+        <% if (r.rank === 1) { %><span style="font-size:1.1rem;">🥇</span>
+        <% } else if (r.rank === 2) { %><span style="font-size:1.1rem;">🥈</span>
+        <% } else if (r.rank === 3) { %><span style="font-size:1.1rem;">🥉</span>
+        <% } else { %><span class="text-muted fw-bold" style="font-size:0.85rem;min-width:22px;text-align:center;"><%= r.rank %></span>
+        <% } %>
+        <span class="fw-600" style="font-size:0.9rem;"><%= r.name %></span>
+      </div>
+      <span class="badge bg-success"><%= r.score %>타</span>
+    </div>
+    <% }); %>
+  </div>
+</div>
+<% } %>
+
+<!-- ⑥ 일상톡톡 -->
+<div class="info-section mb-3">
+  <div class="info-section-header">
+    <span class="info-section-title">일상톡톡</span>
+    <a href="/community" class="info-update-time text-decoration-none" style="color:#198754;">더보기 <i class="bi bi-chevron-right"></i></a>
+  </div>
+  <div class="info-section-body pt-1 pb-2">
+    <% if (!user) { %>
+    <p class="text-muted text-center py-3 mb-0" style="font-size:var(--text-sm);">로그인 후 이용 가능합니다.</p>
+    <% } else if (typeof recentCommunityPosts === 'undefined' || recentCommunityPosts.length === 0) { %>
+    <div class="text-center py-3">
+      <p class="text-muted mb-2" style="font-size:var(--text-sm);">아직 게시글이 없습니다.</p>
+      <a href="/community" class="btn btn-success btn-sm">첫 글 작성하기</a>
+    </div>
+    <% } else { %>
+    <% recentCommunityPosts.slice(0, 3).forEach(post => {
+      var _mf = post.media_files || [];
+      var _hasVid = _mf.some(function(m) { return m && m.kind === 'video'; });
+    %>
+    <a href="/community#post-<%= post.id %>" class="d-flex align-items-start gap-2 py-2 px-1 text-decoration-none border-bottom" style="border-color:#f8f9fa!important;">
+      <div class="flex-grow-1 overflow-hidden">
+        <div class="d-flex align-items-center gap-2 mb-1">
+          <span class="fw-bold" style="font-size:var(--text-sm);color:#212529;"><%= post.member_name %></span>
+          <small class="text-muted" style="font-size:var(--text-xs);"><%= moment(post.created_at).fromNow() %></small>
+        </div>
+        <p class="mb-0 text-truncate" style="font-size:var(--text-sm);color:#495057;"><%= post.content || (_mf.length ? (_hasVid ? '(동영상)' : '(사진)') : (post.image_url ? '(이미지)' : '')) %></p>
+      </div>
+      <div class="d-flex align-items-center gap-1 flex-shrink-0 text-muted" style="font-size:var(--text-xs);">
+        <% if (_mf.length || post.image_url) { %><i class="bi <%= _hasVid ? 'bi-film' : 'bi-image' %>"></i><% } %>
+        <i class="bi bi-chat"></i><%= post.comment_count %>
+      </div>
+    </a>
+    <% }) %>
     <% } %>
   </div>
+</div>
 
-  <%# 최근 입출금 - 임시 숨김 처리 (나중에 사용하려면 false를 true로 변경) %>
-  <% if (false) { %>
-  <div class="col-md-6">
-    <div class="card h-100">
-      <div class="card-header bg-white py-2">
-        <h6 class="mb-0"><i class="bi bi-cash-stack text-primary"></i> 최근 입출금</h6>
+<!-- ⑦ 다가오는 일정 -->
+<div class="info-section mb-3">
+  <div class="info-section-header">
+    <span class="info-section-title">다가오는 일정</span>
+    <a href="/schedules" class="info-update-time text-decoration-none" style="color:#198754;">전체보기 <i class="bi bi-chevron-right"></i></a>
+  </div>
+  <% if (upcomingSchedules.length === 0) { %>
+  <div class="text-center py-4 text-muted" style="font-size:var(--text-sm);">예정된 일정이 없습니다.</div>
+  <% } else { %>
+  <div class="course-list">
+    <% upcomingSchedules.slice(0, 3).forEach(function(schedule) {
+      var today2 = moment().startOf('day');
+      var playDay2 = moment(schedule.play_date).startOf('day');
+      var dday2 = playDay2.diff(today2, 'days');
+      var ddayText2 = dday2 === 0 ? 'D-Day' : 'D-' + dday2;
+      var isOpen2 = schedule.status === 'open' || schedule.status === 'closed';
+      var isFull2 = schedule.status === 'closed' || (schedule.reserved_count >= schedule.max_members);
+    %>
+    <a href="/schedules/<%= schedule.id %>" class="course-row text-decoration-none">
+      <div class="upcoming-cta-date" style="min-width:44px;">
+        <span class="upcoming-cta-month"><%= moment(schedule.play_date).format('M') %>월</span>
+        <span class="upcoming-cta-day"><%= moment(schedule.play_date).format('D') %></span>
+        <span class="upcoming-cta-weekday"><%= moment(schedule.play_date).format('ddd') %></span>
       </div>
-      <div class="card-body p-2">
-        <% if (!user) { %>
-        <!-- 비로그인 시 블러 처리된 샘플 데이터 -->
-        <div class="blur-content">
-          <table class="table table-sm mb-0" style="font-size: 0.85rem;">
-            <tbody>
-              <tr>
-                <td class="py-1"><span class="badge bg-primary" style="font-size: 0.85rem;">입금</span></td>
-                <td class="py-1">월회비</td>
-                <td class="text-end py-1 text-primary">+50,000</td>
-                <td class="text-muted text-end py-1"><small>12/25</small></td>
-              </tr>
-              <tr>
-                <td class="py-1"><span class="badge bg-danger" style="font-size: 0.85rem;">출금</span></td>
-                <td class="py-1">그린피</td>
-                <td class="text-end py-1 text-danger">-120,000</td>
-                <td class="text-muted text-end py-1"><small>12/24</small></td>
-              </tr>
-              <tr>
-                <td class="py-1"><span class="badge bg-primary" style="font-size: 0.85rem;">입금</span></td>
-                <td class="py-1">월회비</td>
-                <td class="text-end py-1 text-primary">+50,000</td>
-                <td class="text-muted text-end py-1"><small>12/23</small></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <% } else if (recentTransactions.length === 0) { %>
-        <p class="text-muted text-center py-2 mb-0 small">입출금 내역이 없습니다.</p>
+      <div class="course-row-info">
+        <span class="course-row-name"><%= schedule.course_name %></span>
+        <span class="course-row-sub"><%= schedule.location %> · <%= schedule.reserved_count %>/<%= schedule.max_members %>명</span>
+      </div>
+      <div class="d-flex flex-column align-items-end gap-1">
+        <span class="upcoming-cta-dday <%= dday2 <= 7 ? 'upcoming-cta-dday--near' : '' %>"><%= ddayText2 %></span>
+        <% if (!isOpen2) { %>
+        <span class="upcoming-cta-status upcoming-cta-status--pending">오픈전</span>
+        <% } else if (isFull2) { %>
+        <span class="upcoming-cta-status upcoming-cta-status--full">마감</span>
         <% } else { %>
-        <div class="table-responsive">
-          <table class="table table-sm mb-0" style="font-size: 0.85rem;">
-            <tbody>
-              <% recentTransactions.slice(0, 5).forEach(t => { %>
-              <tr>
-                <td class="py-1">
-                  <span class="badge <%= t.type === 'income' ? 'bg-primary' : 'bg-danger' %>" style="font-size: 0.85rem;">
-                    <%= t.type === 'income' ? '입금' : '출금' %>
-                  </span>
-                </td>
-                <td class="py-1" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80px;"><%= t.category %></td>
-                <td class="text-end py-1 <%= t.type === 'income' ? 'text-primary' : 'text-danger' %>" style="white-space: nowrap;">
-                  <%= t.type === 'income' ? '+' : '-' %><%= t.amount.toLocaleString() %>
-                </td>
-                <td class="text-muted text-end py-1"><small><%= moment(t.date).format('MM/DD') %></small></td>
-              </tr>
-              <% }) %>
-            </tbody>
-          </table>
-        </div>
+        <span class="upcoming-cta-status upcoming-cta-status--open">예약중</span>
         <% } %>
       </div>
-      <div class="card-footer bg-white py-2 d-flex justify-content-center">
-        <a href="/finance" class="btn btn-outline-primary btn-sm w-100 py-1 d-flex justify-content-center align-items-center" style="font-size: 0.85rem;">자금 현황 보기</a>
-      </div>
-    </div>
+    </a>
+    <% }) %>
   </div>
   <% } %>
 </div>
 
-<!-- 실시간 교통 상황 -->
+<!-- ⑧ 실시간 교통 -->
 <% if (user) { %>
-<div class="info-section mt-3">
+<div class="info-section mb-3">
   <div class="info-section-header">
     <div class="d-flex align-items-center gap-2">
       <span class="info-section-title">실시간 교통</span>
@@ -369,27 +258,23 @@
     </div>
     <div class="d-flex align-items-center gap-2">
       <span class="info-update-time" id="trafficUpdateTime"></span>
-      <button class="info-refresh-btn" onclick="refreshTrafficInfo()">
-        <i class="bi bi-arrow-clockwise"></i>
-      </button>
+      <button class="info-refresh-btn" onclick="refreshTrafficInfo()"><i class="bi bi-arrow-clockwise"></i></button>
     </div>
   </div>
   <div class="info-section-body" id="trafficWidget">
     <div id="trafficCards">
       <div class="text-center py-3">
-        <div class="spinner-border spinner-border-sm text-success" role="status">
-          <span class="visually-hidden">로딩중...</span>
-        </div>
-        <p class="text-muted mt-2 mb-0" style="font-size: var(--text-sm);">불러오는 중...</p>
+        <div class="spinner-border spinner-border-sm text-success" role="status"><span class="visually-hidden">로딩중...</span></div>
+        <p class="text-muted mt-2 mb-0" style="font-size:var(--text-sm);">불러오는 중...</p>
       </div>
     </div>
   </div>
 </div>
 <% } %>
 
-<!-- 골프장 날씨 현황 -->
+<!-- ⑨ 골프장 날씨 -->
 <% if (user) { %>
-<div class="info-section mt-3">
+<div class="info-section mb-3">
   <div class="info-section-header">
     <span class="info-section-title">골프장 날씨</span>
     <span class="info-update-time" id="weatherDate"></span>
@@ -397,89 +282,61 @@
   <div class="info-section-body" id="weatherWidget">
     <div class="row g-2" id="weatherCards">
       <div class="col-12 text-center py-3">
-        <div class="spinner-border spinner-border-sm text-success" role="status">
-          <span class="visually-hidden">로딩중...</span>
-        </div>
-        <p class="text-muted mt-2 mb-0" style="font-size: var(--text-sm);">불러오는 중...</p>
+        <div class="spinner-border spinner-border-sm text-success" role="status"><span class="visually-hidden">로딩중...</span></div>
+        <p class="text-muted mt-2 mb-0" style="font-size:var(--text-sm);">불러오는 중...</p>
       </div>
     </div>
   </div>
 </div>
 <% } %>
 
-<!-- 골프장 정보 -->
-<div class="info-section mt-3">
+<!-- ⑩ 2026년 연회원 골프장 -->
+<div class="info-section mb-3">
   <div class="info-section-header">
     <span class="info-section-title">2026년 연회원 골프장</span>
   </div>
   <div class="info-section-body p-0">
     <div class="course-list">
-
       <div class="course-row course-clickable" role="button" tabindex="0" data-course="yangji">
-        <div class="course-row-icon">
-          <i class="bi bi-flag-fill text-success"></i>
-        </div>
+        <div class="course-row-icon"><i class="bi bi-flag-fill text-success"></i></div>
         <div class="course-row-info">
           <span class="course-row-name">양지파인CC</span>
           <span class="course-row-sub">경기도 용인시 · 매월 2째주 토</span>
         </div>
-        <a href="javascript:void(0)" class="course-row-dir direction-btn" data-course="yangji">
-          <i class="bi bi-navigation-fill"></i>
-        </a>
+        <a href="javascript:void(0)" class="course-row-dir direction-btn" data-course="yangji"><i class="bi bi-navigation-fill"></i></a>
       </div>
-
       <div class="course-row course-clickable" role="button" tabindex="0" data-course="daeyoungHills">
-        <div class="course-row-icon">
-          <i class="bi bi-flag-fill text-success"></i>
-        </div>
+        <div class="course-row-icon"><i class="bi bi-flag-fill text-success"></i></div>
         <div class="course-row-info">
           <span class="course-row-name">대영힐스CC</span>
           <span class="course-row-sub">충북 충주시 · 짝수달 4째주 토</span>
         </div>
-        <a href="javascript:void(0)" class="course-row-dir direction-btn" data-course="daeyoungHills">
-          <i class="bi bi-navigation-fill"></i>
-        </a>
+        <a href="javascript:void(0)" class="course-row-dir direction-btn" data-course="daeyoungHills"><i class="bi bi-navigation-fill"></i></a>
       </div>
-
       <div class="course-row course-clickable" role="button" tabindex="0" data-course="daeyoungBase">
-        <div class="course-row-icon">
-          <i class="bi bi-flag-fill text-success"></i>
-        </div>
+        <div class="course-row-icon"><i class="bi bi-flag-fill text-success"></i></div>
         <div class="course-row-info">
           <span class="course-row-name">대영베이스CC</span>
           <span class="course-row-sub">충북 충주시 · 홀수달 4째주 토</span>
         </div>
-        <a href="javascript:void(0)" class="course-row-dir direction-btn" data-course="daeyoungBase">
-          <i class="bi bi-navigation-fill"></i>
-        </a>
+        <a href="javascript:void(0)" class="course-row-dir direction-btn" data-course="daeyoungBase"><i class="bi bi-navigation-fill"></i></a>
       </div>
-
       <div class="course-row course-clickable" role="button" tabindex="0" data-course="gunsanCC">
-        <div class="course-row-icon">
-          <i class="bi bi-flag-fill text-success"></i>
-        </div>
+        <div class="course-row-icon"><i class="bi bi-flag-fill text-success"></i></div>
         <div class="course-row-info">
           <span class="course-row-name">군산CC</span>
           <span class="course-row-sub">전북특별자치도 군산시</span>
         </div>
-        <a href="javascript:void(0)" class="course-row-dir direction-btn" data-course="gunsanCC">
-          <i class="bi bi-navigation-fill"></i>
-        </a>
+        <a href="javascript:void(0)" class="course-row-dir direction-btn" data-course="gunsanCC"><i class="bi bi-navigation-fill"></i></a>
       </div>
-
       <div class="course-row">
-        <div class="course-row-icon">
-          <i class="bi bi-display text-muted"></i>
-        </div>
+        <div class="course-row-icon"><i class="bi bi-display text-muted"></i></div>
         <div class="course-row-info">
           <span class="course-row-name">문래 SK스크린골프</span>
           <span class="course-row-sub">서울시 영등포구 · 비정기 모임</span>
         </div>
-        <a href="javascript:void(0)" class="course-row-dir direction-btn" data-course="screenGolf">
-          <i class="bi bi-navigation-fill"></i>
-        </a>
+        <a href="javascript:void(0)" class="course-row-dir direction-btn" data-course="screenGolf"><i class="bi bi-navigation-fill"></i></a>
       </div>
-
     </div>
   </div>
 </div>

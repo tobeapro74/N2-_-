@@ -2107,6 +2107,10 @@ a:active .card {
   flex-shrink: 0;
 }
 
+/* 홈 전용 타이포 유틸리티 */
+.fs-home-label { font-size: var(--text-xs); }
+.fs-home-sub   { font-size: var(--text-sm); }
+
 /* =============================================
    스마트스코어 스타일 홈 컴포넌트
    ============================================= */
@@ -2131,19 +2135,19 @@ a:active .card {
 }
 .ss-stat-card:active { opacity: 0.75; }
 .ss-stat-label {
-  font-size: 0.65rem;
+  font-size: var(--text-xs);
   color: #868e96;
   font-weight: 500;
   white-space: nowrap;
 }
 .ss-stat-val {
-  font-size: 1.25rem;
+  font-size: var(--text-xl);
   font-weight: 800;
   color: #198754;
   line-height: 1;
 }
 .ss-stat-val--sm {
-  font-size: 0.85rem;
+  font-size: var(--text-sm);
   font-weight: 700;
   color: #198754;
 }
@@ -2174,32 +2178,32 @@ a:active .card {
   background: linear-gradient(145deg, #1b5e20 0%, #2e7d32 60%, #388e3c 100%);
 }
 .ss-hero-badge {
-  font-size: 0.7rem;
+  font-size: var(--text-xs);
   font-weight: 700;
   color: rgba(255,255,255,0.6);
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
 .ss-hero-score {
-  font-size: 3rem;
+  font-size: 2.2rem;
   font-weight: 900;
   color: #4ade80;
   line-height: 1;
   letter-spacing: -0.03em;
 }
 .ss-hero-icon {
-  font-size: 2.5rem;
+  font-size: 2rem;
   color: rgba(255,255,255,0.85);
   line-height: 1;
 }
 .ss-hero-sub {
-  font-size: 0.78rem;
+  font-size: var(--text-sm);
   color: rgba(255,255,255,0.7);
   line-height: 1.4;
 }
 .ss-hero-btn {
   margin-top: auto;
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
   font-weight: 700;
   color: #fff;
   background: rgba(255,255,255,0.15);
@@ -2224,18 +2228,18 @@ a:active .card {
 }
 .ss-banner:active { opacity: 0.85; }
 .ss-banner-icon {
-  font-size: 1.8rem;
+  font-size: 1.6rem;
   flex-shrink: 0;
 }
 .ss-banner-text { flex: 1; min-width: 0; }
 .ss-banner-date {
-  font-size: 0.7rem;
+  font-size: var(--text-xs);
   color: #198754;
   font-weight: 600;
   margin-bottom: 3px;
 }
 .ss-banner-msg {
-  font-size: 0.82rem;
+  font-size: var(--text-sm);
   color: #212529;
   font-weight: 500;
   line-height: 1.4;
@@ -2243,7 +2247,7 @@ a:active .card {
 .ss-banner-arrow {
   color: #adb5bd;
   flex-shrink: 0;
-  font-size: 0.85rem;
+  font-size: var(--text-sm);
 }
 
 /* My스코어 헤더 */
@@ -2524,19 +2528,19 @@ a:active .card {
   padding: 8px 10px;
 }
 .upcoming-cta-month {
-  font-size: 0.65rem;
+  font-size: var(--text-xs);
   color: #198754;
   font-weight: 600;
   line-height: 1;
 }
 .upcoming-cta-day {
-  font-size: 1.6rem;
+  font-size: var(--text-2xl);
   font-weight: 800;
   color: #198754;
   line-height: 1.1;
 }
 .upcoming-cta-weekday {
-  font-size: 0.65rem;
+  font-size: var(--text-xs);
   color: #198754;
   font-weight: 500;
   line-height: 1;
@@ -2547,7 +2551,7 @@ a:active .card {
   min-width: 0;
 }
 .upcoming-cta-course {
-  font-size: 1rem;
+  font-size: var(--text-md);
   font-weight: 700;
   color: #212529;
   white-space: nowrap;
@@ -2555,7 +2559,7 @@ a:active .card {
   text-overflow: ellipsis;
 }
 .upcoming-cta-location {
-  font-size: 0.78rem;
+  font-size: var(--text-xs);
   color: #6c757d;
   margin-top: 2px;
 }
@@ -2568,14 +2572,14 @@ a:active .card {
   flex-shrink: 0;
 }
 .upcoming-cta-dday {
-  font-size: 0.85rem;
+  font-size: var(--text-sm);
   font-weight: 700;
   color: #6c757d;
 }
 .upcoming-cta-dday--near { color: #dc3545; }
 
 .upcoming-cta-status {
-  font-size: 0.72rem;
+  font-size: var(--text-xs);
   font-weight: 600;
   padding: 3px 8px;
   border-radius: 20px;
@@ -2604,7 +2608,7 @@ a:active .card {
   transition: width 0.4s ease;
 }
 .upcoming-cta-seats {
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
   color: #6c757d;
   white-space: nowrap;
 }

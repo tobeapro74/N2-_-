@@ -108,10 +108,10 @@
   </div>
   <div class="info-section-body pt-1 pb-2">
     <% if (!user) { %>
-    <p class="text-muted text-center py-3 mb-0" style="font-size:var(--text-sm);">로그인 후 이용 가능합니다.</p>
+    <p class="text-muted text-center py-3 mb-0 fs-home-sub">로그인 후 이용 가능합니다.</p>
     <% } else if (typeof recentCommunityPosts === 'undefined' || recentCommunityPosts.length === 0) { %>
     <div class="text-center py-3">
-      <p class="text-muted mb-2" style="font-size:var(--text-sm);">아직 게시글이 없습니다.</p>
+      <p class="text-muted mb-2 fs-home-sub">아직 게시글이 없습니다.</p>
       <a href="/community" class="btn btn-success btn-sm">첫 글 작성하기</a>
     </div>
     <% } else { %>
@@ -122,12 +122,12 @@
     <a href="/community#post-<%= post.id %>" class="d-flex align-items-start gap-2 py-2 px-1 text-decoration-none border-bottom" style="border-color:#f8f9fa!important;">
       <div class="flex-grow-1 overflow-hidden">
         <div class="d-flex align-items-center gap-2 mb-1">
-          <span class="fw-bold" style="font-size:var(--text-sm);color:#212529;"><%= post.member_name %></span>
-          <small class="text-muted" style="font-size:var(--text-xs);"><%= moment(post.created_at).fromNow() %></small>
+          <span class="fw-bold fs-home-sub text-dark"><%= post.member_name %></span>
+          <small class="text-muted fs-home-label"><%= moment(post.created_at).fromNow() %></small>
         </div>
-        <p class="mb-0 text-truncate" style="font-size:var(--text-sm);color:#495057;"><%= post.content || (_mf.length ? (_hasVid ? '(동영상)' : '(사진)') : (post.image_url ? '(이미지)' : '')) %></p>
+        <p class="mb-0 text-truncate fs-home-sub text-secondary"><%= post.content || (_mf.length ? (_hasVid ? '(동영상)' : '(사진)') : (post.image_url ? '(이미지)' : '')) %></p>
       </div>
-      <div class="d-flex align-items-center gap-1 flex-shrink-0 text-muted" style="font-size:var(--text-xs);">
+      <div class="d-flex align-items-center gap-1 flex-shrink-0 text-muted fs-home-label">
         <% if (_mf.length || post.image_url) { %><i class="bi <%= _hasVid ? 'bi-film' : 'bi-image' %>"></i><% } %>
         <i class="bi bi-chat"></i><%= post.comment_count %>
       </div>
@@ -144,7 +144,7 @@
     <a href="/schedules" class="info-update-time text-decoration-none" style="color:#198754;">전체보기 <i class="bi bi-chevron-right"></i></a>
   </div>
   <% if (upcomingSchedules.length === 0) { %>
-  <div class="text-center py-4 text-muted" style="font-size:var(--text-sm);">예정된 일정이 없습니다.</div>
+  <div class="text-center py-4 text-muted fs-home-sub">예정된 일정이 없습니다.</div>
   <% } else { %>
   <div class="course-list">
     <% upcomingSchedules.slice(0, 3).forEach(function(schedule) {

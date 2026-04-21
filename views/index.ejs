@@ -99,30 +99,6 @@
 </div>
 <% } %>
 
-<!-- ⑤ 최근 라운딩 Top5 -->
-<% if (typeof recentRoundTop5 !== 'undefined' && recentRoundTop5.length > 0) { %>
-<div class="info-section mb-3" style="cursor:pointer;" onclick="location.href='/schedules/<%= recentRoundScheduleId %>/results'">
-  <div class="info-section-header">
-    <span class="info-section-title">최근 라운딩 Top 5</span>
-    <small class="info-update-time"><%= recentRoundTop5[0].courseName %> · <%= recentRoundTop5[0].playDate %> <i class="bi bi-chevron-right"></i></small>
-  </div>
-  <div class="info-section-body pt-1 pb-2 px-3">
-    <% recentRoundTop5.forEach(function(r) { %>
-    <div class="d-flex align-items-center justify-content-between py-2 border-bottom" style="border-color:#f8f9fa!important;">
-      <div class="d-flex align-items-center gap-2">
-        <% if (r.rank === 1) { %><span style="font-size:1.1rem;">🥇</span>
-        <% } else if (r.rank === 2) { %><span style="font-size:1.1rem;">🥈</span>
-        <% } else if (r.rank === 3) { %><span style="font-size:1.1rem;">🥉</span>
-        <% } else { %><span class="text-muted fw-bold" style="font-size:0.85rem;min-width:22px;text-align:center;"><%= r.rank %></span>
-        <% } %>
-        <span class="fw-600" style="font-size:0.9rem;"><%= r.name %></span>
-      </div>
-      <span class="badge bg-success"><%= r.score %>타</span>
-    </div>
-    <% }); %>
-  </div>
-</div>
-<% } %>
 
 <!-- ⑥ 일상톡톡 -->
 <div class="info-section mb-3">

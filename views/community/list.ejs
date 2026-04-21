@@ -440,8 +440,10 @@ document.addEventListener('DOMContentLoaded', function() {
       return;
     }
 
-    posts.forEach(post => {
-      const postEl = createPostElement(post);
+    // 첫 페이지 게시글은 eager 로딩 (즉시 표시)
+    const isFirstPage = currentPage === 1;
+    posts.forEach((post, idx) => {
+      const postEl = createPostElement(post, isFirstPage && idx < 5);
       postsContainer.appendChild(postEl);
     });
 
@@ -450,7 +452,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   // 게시글 요소 생성
-  function createPostElement(post) {
+  function createPostElement(post, eagerLoad = false) {
     const clone = postTemplate.content.cloneNode(true);
     const card = clone.querySelector('.post-card');
 
@@ -483,7 +485,7 @@ document.addEventListener('DOMContentLoaded', function() {
           const img = document.createElement('img');
           img.src = m.url;
           img.alt = '첨부 이미지';
-          img.loading = 'lazy';
+          img.loading = eagerLoad ? 'eager' : 'lazy';
           img.className = 'rounded border';
           img.style.maxHeight = '220px';
           img.style.maxWidth = imageOnlyCount === 1 && post.media.length === 1 ? '100%' : '48%';
@@ -499,7 +501,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const img = document.createElement('img');
       img.src = post.image_url;
       img.alt = '첨부 이미지';
-      img.loading = 'lazy';
+      img.loading = eagerLoad ? 'eager' : 'lazy';
       img.className = 'rounded';
       img.style.maxHeight = '300px';
       img.style.maxWidth = '100%';

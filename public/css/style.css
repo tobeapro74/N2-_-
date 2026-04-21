@@ -2,6 +2,28 @@
    N2골프 관리 시스템 - shadcn 스타일 테마
    ============================================= */
 
+/* =============================================
+   Phase 4 - 타이포그래피 & 색상 시스템
+   ============================================= */
+
+/* 폰트 변수 */
+:root {
+  --font-sans: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif;
+
+  /* 타입 스케일 */
+  --text-xs:   0.72rem;   /* 보조 라벨 */
+  --text-sm:   0.82rem;   /* 서브텍스트 */
+  --text-base: 0.92rem;   /* 기본 본문 */
+  --text-md:   1rem;      /* 강조 본문 */
+  --text-lg:   1.1rem;    /* 소제목 */
+  --text-xl:   1.25rem;   /* 섹션 제목 */
+  --text-2xl:  1.5rem;    /* 페이지 제목 */
+
+  /* 앱 배경 */
+  --app-bg: #f5f6f8;
+  --surface: #ffffff;
+}
+
 /* CSS 변수 - shadcn 스타일 컬러 시스템 */
 :root {
   /* 기본 색상 */
@@ -64,12 +86,17 @@
 }
 
 body {
-  background-color: hsl(240, 4.8%, 95.9%);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: 1.6;
+  background-color: var(--app-bg);
   color: hsl(var(--foreground));
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-feature-settings: "rlig" 1, "calt" 1;
+  word-break: keep-all;
+  overflow-wrap: break-word;
 }
 
 /* =============================================
@@ -1616,115 +1643,76 @@ footer {
 
 /* 섹션 타이틀 (카드 헤더) */
 .home-section-title {
-  font-size: 1rem;
+  font-size: var(--text-md);
   font-weight: 600;
   margin-bottom: 0;
 }
 
 .home-section-title i {
-  font-size: 0.95rem;
+  font-size: var(--text-base);
 }
 
-/* 섹션 타이틀 - 아이콘 없이 볼드 강화 */
 .home-section-title-bold {
-  font-size: 1.1rem;
+  font-size: var(--text-lg);
   font-weight: 800;
   margin-bottom: 0;
   letter-spacing: -0.02em;
   color: hsl(var(--foreground));
 }
 
-/* 카드 내부 텍스트 */
 .home-card-title {
-  font-size: 0.9rem;
+  font-size: var(--text-base);
   font-weight: 600;
   margin-bottom: 0.25rem;
 }
 
 .home-card-subtitle {
-  font-size: 0.8rem;
+  font-size: var(--text-sm);
   color: #6c757d;
   margin-bottom: 0;
 }
 
 .home-card-meta {
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
 }
 
 .home-card-badge {
-  font-size: 0.75rem !important;
+  font-size: var(--text-xs) !important;
   padding: 0.25em 0.5em;
 }
 
 .home-card-text {
-  font-size: 0.85rem;
+  font-size: var(--text-sm);
 }
 
 .home-card-btn {
-  font-size: 0.85rem;
+  font-size: var(--text-sm);
   padding: 0.4rem 0.75rem;
 }
 
-/* 골프장 정보 카드 */
 .course-title {
-  font-size: 0.95rem;
+  font-size: var(--text-md);
   font-weight: 600;
   margin-bottom: 0.25rem;
 }
 
 .course-location {
-  font-size: 0.8rem;
+  font-size: var(--text-sm);
   color: #6c757d;
   margin-bottom: 0.25rem;
 }
 
 .course-badge {
-  font-size: 0.75rem !important;
+  font-size: var(--text-xs) !important;
 }
 
-/* 배너 */
 .home-banner-icon {
-  font-size: 1rem;
+  font-size: var(--text-md);
 }
 
 .home-banner-text {
-  font-size: 0.9375rem;
-}
-
-/* 모바일 대응 */
-@media (max-width: 576px) {
-  .home-section-title {
-    font-size: 0.95rem;
-  }
-
-  .home-section-title i {
-    font-size: 0.9rem;
-  }
-
-  .home-section-title-bold {
-    font-size: 1.05rem;
-    font-weight: 800;
-  }
-
-  .home-card-title {
-    font-size: 0.85rem;
-  }
-
-  .home-card-subtitle {
-    font-size: 0.75rem;
-  }
-
-  .course-title {
-    font-size: 0.9rem;
-  }
-
-  .course-location {
-    font-size: 0.75rem;
-  }
-
-  .home-banner-text {
-    font-size: 0.85rem;
-  }
+  font-size: var(--text-md);
+  font-weight: 500;
 }
 
 /* =============================================

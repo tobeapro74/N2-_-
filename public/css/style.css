@@ -2484,6 +2484,8 @@ a:active .card {
 .course-list {
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+  border-radius: 0 0 16px 16px;
 }
 
 .course-row {
@@ -2532,8 +2534,8 @@ a:active .card {
   justify-content: center;
   width: 28px;
   height: 28px;
-  color: #ced4da;
-  font-size: 0.9rem;
+  color: #adb5bd;
+  font-size: 1rem;
   text-decoration: none;
   transition: color 0.15s;
 }

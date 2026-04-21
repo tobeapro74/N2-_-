@@ -137,6 +137,44 @@ body {
 /* =============================================
    네비게이션
    ============================================= */
+/* 모바일 전용 앱바 */
+.mobile-appbar {
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: #ffffff;
+  border-bottom: 1px solid #f1f3f5;
+  position: sticky;
+  top: 0;
+  z-index: 1030;
+}
+.mobile-appbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+}
+.mobile-appbar-logo {
+  height: 28px;
+  width: auto;
+  border-radius: 6px;
+}
+.mobile-appbar-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #198754;
+}
+.mobile-appbar-user {
+  font-size: var(--text-sm);
+  color: #6c757d;
+}
+.mobile-appbar-login {
+  font-size: var(--text-sm);
+  color: #198754;
+  text-decoration: none;
+  font-weight: 600;
+}
+
 .navbar {
   backdrop-filter: blur(10px);
   border-bottom: 1px solid hsl(var(--border) / 0.5);

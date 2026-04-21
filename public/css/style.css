@@ -2246,6 +2246,44 @@ a:active .card {
   font-size: 0.85rem;
 }
 
+/* My스코어 헤더 */
+.ss-myscore-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: linear-gradient(135deg, #1b5e20, #2e7d32);
+  border-radius: 16px;
+  padding: 18px 20px;
+  color: #fff;
+}
+.ss-myscore-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  flex-shrink: 0;
+}
+.ss-myscore-name {
+  font-size: var(--text-lg);
+  font-weight: 700;
+}
+.ss-myscore-sub {
+  font-size: var(--text-sm);
+  color: rgba(255,255,255,0.75);
+  margin-top: 2px;
+}
+
+/* 라운딩 스코어 표시 */
+.ss-round-score {
+  font-size: var(--text-md);
+  font-weight: 800;
+  color: #198754;
+}
+
 /* ④ 원형 아이콘 그리드 */
 .ss-icon-grid {
   display: flex;

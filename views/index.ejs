@@ -181,7 +181,25 @@
   <% } %>
 </div>
 
-<!-- ⑧ 실시간 교통 -->
+<!-- ⑧ 골프장 날씨 (교통 위로 이동) -->
+<% if (user) { %>
+<div class="info-section mb-3">
+  <div class="info-section-header">
+    <span class="info-section-title">골프장 날씨</span>
+    <span class="info-update-time" id="weatherDate"></span>
+  </div>
+  <div id="weatherWidget">
+    <div id="weatherCards">
+      <div class="text-center py-3">
+        <div class="spinner-border spinner-border-sm text-success" role="status"><span class="visually-hidden">로딩중...</span></div>
+        <p class="text-muted mt-2 mb-0 fs-home-sub">불러오는 중...</p>
+      </div>
+    </div>
+  </div>
+</div>
+<% } %>
+
+<!-- ⑨ 실시간 교통 -->
 <% if (user) { %>
 <div class="info-section mb-3">
   <div class="info-section-header">
@@ -207,25 +225,7 @@
     <div id="trafficCards">
       <div class="text-center py-3">
         <div class="spinner-border spinner-border-sm text-success" role="status"><span class="visually-hidden">로딩중...</span></div>
-        <p class="text-muted mt-2 mb-0" style="font-size:var(--text-sm);">불러오는 중...</p>
-      </div>
-    </div>
-  </div>
-</div>
-<% } %>
-
-<!-- ⑨ 골프장 날씨 -->
-<% if (user) { %>
-<div class="info-section mb-3">
-  <div class="info-section-header">
-    <span class="info-section-title">골프장 날씨</span>
-    <span class="info-update-time" id="weatherDate"></span>
-  </div>
-  <div class="info-section-body" id="weatherWidget">
-    <div class="row g-2" id="weatherCards">
-      <div class="col-12 text-center py-3">
-        <div class="spinner-border spinner-border-sm text-success" role="status"><span class="visually-hidden">로딩중...</span></div>
-        <p class="text-muted mt-2 mb-0" style="font-size:var(--text-sm);">불러오는 중...</p>
+        <p class="text-muted mt-2 mb-0 fs-home-sub">불러오는 중...</p>
       </div>
     </div>
   </div>
@@ -262,14 +262,6 @@
           <span class="course-row-sub">충북 충주시 · 홀수달 4째주 토</span>
         </div>
         <a href="javascript:void(0)" class="course-row-dir direction-btn" data-course="daeyoungBase"><i class="bi bi-navigation-fill"></i></a>
-      </div>
-      <div class="course-row course-clickable" role="button" tabindex="0" data-course="gunsanCC">
-        <div class="course-row-icon"><i class="bi bi-flag-fill text-success"></i></div>
-        <div class="course-row-info">
-          <span class="course-row-name">군산CC</span>
-          <span class="course-row-sub">전북특별자치도 군산시</span>
-        </div>
-        <a href="javascript:void(0)" class="course-row-dir direction-btn" data-course="gunsanCC"><i class="bi bi-navigation-fill"></i></a>
       </div>
       <div class="course-row">
         <div class="course-row-icon"><i class="bi bi-display text-muted"></i></div>
@@ -931,7 +923,6 @@ async function loadWeatherWidget() {
   if (!weatherCards) return;
 
   let html = '';
-  let mobileHtml = '';
   let todayDate = '';
 
   for (const course of courses) {
@@ -950,76 +941,28 @@ async function loadWeatherWidget() {
         }
       }
 
-      // 색상 결정
-      let bgColor = 'success';
-      if (course.includes('힐스')) bgColor = 'primary';
-      else if (course.includes('베이스')) bgColor = 'warning';
-
-      // 데스크탑용 카드
+      // 단일 row 카드 (교통과 동일 톤)
       html += `
-        <div class="col-md-4 d-none d-md-block">
-          <div class="card h-100">
-            <div class="card-header bg-${bgColor} ${bgColor === 'warning' ? 'text-dark' : 'text-white'} py-1 text-center">
-              <strong style="font-size: 0.85rem;">${course}</strong>
-              <small class="d-block" style="font-size: 0.85rem; opacity: 0.85;">${data.region}</small>
-            </div>
-            <div class="card-body py-2 px-2">
-              <div class="d-flex align-items-center mb-2">
-                <i class="bi ${today.icon} fs-3 text-${today.color} me-2"></i>
-                <div>
-                  <div class="fs-5 fw-bold">${today.temperature.current}°C</div>
-                  <small class="text-muted" style="font-size: 0.85rem;">${today.weather}</small>
-                </div>
-                <div class="ms-auto text-end">
-                  <small class="text-primary" style="font-size: 0.85rem;">${today.temperature.low}°</small> /
-                  <small class="text-danger" style="font-size: 0.85rem;">${today.temperature.high}°</small>
-                  <div class="text-muted" style="font-size: 0.85rem;">
-                    <i class="bi bi-droplet"></i> ${today.precipitation}%
-                  </div>
-                </div>
-              </div>
-              <div class="d-flex justify-content-between border-top pt-1">
-                ${data.forecast.slice(1, 5).map(day => `
-                  <div class="text-center" style="flex: 1;">
-                    <small class="text-muted d-block" style="font-size: 0.85rem;">${day.dayOfWeek}</small>
-                    <i class="bi ${day.icon} text-${day.color}" style="font-size: 0.85rem;"></i>
-                    <small class="d-block" style="font-size: 0.85rem;">${day.temperature.high}°</small>
-                  </div>
-                `).join('')}
-              </div>
-            </div>
-            <div class="card-footer bg-white py-1 px-2">
-              <a href="${isLoggedIn ? '/weather/view/' + encodeURIComponent(course) : '#'}"
-                 onclick="${isLoggedIn ? '' : "return requireLogin('날씨 상세 정보를 보려면 로그인이 필요합니다.');"}"
-                 class="btn btn-outline-secondary btn-sm w-100 py-0" style="font-size: 0.85rem;">
-                <i class="bi bi-calendar-week"></i> 상세
-              </a>
-            </div>
-          </div>
-        </div>
-      `;
-
-      // 모바일용 컴팩트 카드
-      mobileHtml += `
         <a href="${isLoggedIn ? '/weather/view/' + encodeURIComponent(course) : '#'}"
            onclick="${isLoggedIn ? '' : "return requireLogin('날씨 상세 정보를 보려면 로그인이 필요합니다.');"}"
-           class="text-decoration-none flex-shrink-0 weather-card-link" style="width: 130px;">
-          <div class="border rounded overflow-hidden h-100 weather-card">
-            <div class="bg-${bgColor} ${bgColor === 'warning' ? 'text-dark' : 'text-white'} px-2 py-1 text-center">
-              <div class="fw-bold" style="font-size: 0.85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${course}</div>
-            </div>
-            <div class="p-2 text-center">
-              <div class="d-flex align-items-center justify-content-center gap-1">
-                <i class="bi ${today.icon} text-${today.color}" style="font-size: 1.2rem;"></i>
-                <span class="fw-bold text-dark">${today.temperature.current}°</span>
-              </div>
-              <div class="text-muted" style="font-size: 0.85rem;">${today.weather}</div>
-              <div style="font-size: 0.85rem;">
-                <span class="text-primary">${today.temperature.low}°</span>/<span class="text-danger">${today.temperature.high}°</span>
-                <span class="text-muted ms-1"><i class="bi bi-droplet"></i>${today.precipitation}%</span>
-              </div>
-            </div>
+           class="weather-row text-decoration-none">
+          <div class="weather-row-left">
+            <span class="weather-row-course">${course.replace('CC','')}</span>
+            <span class="weather-row-desc">${today.weather}</span>
           </div>
+          <div class="weather-row-center">
+            <i class="bi ${today.icon} weather-row-icon text-${today.color}"></i>
+            <span class="weather-row-temp">${today.temperature.current}°</span>
+          </div>
+          <div class="weather-row-right">
+            <span class="weather-row-range">
+              <span class="weather-low">${today.temperature.low}°</span>
+              <span class="weather-sep">/</span>
+              <span class="weather-high">${today.temperature.high}°</span>
+            </span>
+            <span class="weather-row-rain"><i class="bi bi-droplet-fill"></i> ${today.precipitation}%</span>
+          </div>
+          <i class="bi bi-chevron-right weather-row-arrow"></i>
         </a>
       `;
     } catch (error) {
@@ -1027,20 +970,11 @@ async function loadWeatherWidget() {
     }
   }
 
-  if (html || mobileHtml) {
-    // 데스크탑 + 모바일 레이아웃 결합
-    weatherCards.innerHTML = html + `
-      <div class="col-12 d-md-none">
-        <div class="d-flex gap-2 overflow-auto pb-1" style="scrollbar-width: thin;">
-          ${mobileHtml}
-        </div>
-      </div>
-    `;
-
-    // 날씨 카드 터치 피드백 바인딩
+  if (html) {
+    weatherCards.innerHTML = html;
     bindWeatherCardTouchEvents();
   } else {
-    weatherCards.innerHTML = '<div class="col-12 text-center text-muted py-2 small">날씨 정보를 불러올 수 없습니다.</div>';
+    weatherCards.innerHTML = '<div class="text-center text-muted py-3 fs-home-sub">날씨 정보를 불러올 수 없습니다.</div>';
   }
 }
 

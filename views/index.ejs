@@ -99,40 +99,6 @@
 </div>
 <% } %>
 
-<!-- ④ 원형 아이콘 그리드 -->
-<div class="ss-icon-grid mb-3">
-  <a href="/schedules" class="ss-icon-item">
-    <div class="ss-icon-circle" style="background:#e8f5e9;">
-      <i class="bi bi-calendar3" style="color:#2e7d32;"></i>
-    </div>
-    <span class="ss-icon-label">일정</span>
-  </a>
-  <a href="/reservations/available" class="ss-icon-item">
-    <div class="ss-icon-circle" style="background:#e3f2fd;">
-      <i class="bi bi-bookmark-check-fill" style="color:#1565c0;"></i>
-    </div>
-    <span class="ss-icon-label">예약</span>
-  </a>
-  <a href="/community" class="ss-icon-item">
-    <div class="ss-icon-circle" style="background:#fff8e1;">
-      <i class="bi bi-chat-heart-fill" style="color:#f57f17;"></i>
-    </div>
-    <span class="ss-icon-label">톡톡</span>
-  </a>
-  <a href="/finance" class="ss-icon-item">
-    <div class="ss-icon-circle" style="background:#fce4ec;">
-      <i class="bi bi-cash-stack" style="color:#c62828;"></i>
-    </div>
-    <span class="ss-icon-label">자금</span>
-  </a>
-  <a href="/members" class="ss-icon-item">
-    <div class="ss-icon-circle" style="background:#ede7f6;">
-      <i class="bi bi-people-fill" style="color:#4527a0;"></i>
-    </div>
-    <span class="ss-icon-label">회원</span>
-  </a>
-</div>
-
 <!-- ⑤ 최근 라운딩 Top5 -->
 <% if (typeof recentRoundTop5 !== 'undefined' && recentRoundTop5.length > 0) { %>
 <div class="info-section mb-3" style="cursor:pointer;" onclick="location.href='/schedules/<%= recentRoundScheduleId %>/results'">

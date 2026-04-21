@@ -62,22 +62,26 @@
     </div>
   </div>
   <div class="col-4">
-    <div class="card border-0 shadow-sm bg-primary bg-opacity-10">
-      <div class="card-body text-center py-2 px-1">
-        <small class="text-muted d-block" style="font-size: 0.75rem;">총 수입</small>
-        <small class="text-muted d-block" style="font-size: 0.65rem;"><%= selectedYear %>년<%= selectedMonth ? ' ' + selectedMonth + '월' : ' 전체' %></small>
-        <h6 class="mb-0 fw-bold text-primary" style="font-size: 0.9rem;"><%= totalIncome.toLocaleString() %></h6>
+    <a href="/finance/income?year=<%= selectedYear %><%= selectedMonth ? '&month=' + selectedMonth : '' %>" class="text-decoration-none">
+      <div class="card border-0 shadow-sm bg-primary bg-opacity-10" style="cursor: pointer;">
+        <div class="card-body text-center py-2 px-1">
+          <small class="text-muted d-block" style="font-size: 0.75rem;">총 수입</small>
+          <small class="text-muted d-block" style="font-size: 0.65rem;"><%= selectedYear %>년<%= selectedMonth ? ' ' + selectedMonth + '월' : ' 전체' %></small>
+          <h6 class="mb-0 fw-bold text-primary" style="font-size: 0.9rem;"><%= totalIncome.toLocaleString() %></h6>
+        </div>
       </div>
-    </div>
+    </a>
   </div>
   <div class="col-4">
-    <div class="card border-0 shadow-sm bg-danger bg-opacity-10">
-      <div class="card-body text-center py-2 px-1">
-        <small class="text-muted d-block" style="font-size: 0.75rem;">총 지출</small>
-        <small class="text-muted d-block" style="font-size: 0.65rem;"><%= selectedYear %>년<%= selectedMonth ? ' ' + selectedMonth + '월' : ' 전체' %></small>
-        <h6 class="mb-0 fw-bold text-danger" style="font-size: 0.9rem;"><%= totalExpense.toLocaleString() %></h6>
+    <a href="/finance/expense?year=<%= selectedYear %><%= selectedMonth ? '&month=' + selectedMonth : '' %>" class="text-decoration-none">
+      <div class="card border-0 shadow-sm bg-danger bg-opacity-10" style="cursor: pointer;">
+        <div class="card-body text-center py-2 px-1">
+          <small class="text-muted d-block" style="font-size: 0.75rem;">총 지출</small>
+          <small class="text-muted d-block" style="font-size: 0.65rem;"><%= selectedYear %>년<%= selectedMonth ? ' ' + selectedMonth + '월' : ' 전체' %></small>
+          <h6 class="mb-0 fw-bold text-danger" style="font-size: 0.9rem;"><%= totalExpense.toLocaleString() %></h6>
+        </div>
       </div>
-    </div>
+    </a>
   </div>
 </div>
 <p class="text-muted small mb-3 px-1" style="font-size: 0.7rem;">선택 기간 순액(수입−지출): <strong class="text-dark"><%= periodNet.toLocaleString() %></strong>원 · 아래 카테고리·차트와 동일 범위로 집계됩니다.</p>

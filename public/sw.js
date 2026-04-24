@@ -1,4 +1,4 @@
-const CACHE_NAME = 'n2golf-v35';
+const CACHE_NAME = 'n2golf-v36';
 
 // 초기 캐시할 정적 파일
 const STATIC_ASSETS = [
@@ -160,17 +160,8 @@ async function staleWhileRevalidate(request) {
 async function networkFirst(request) {
   try {
     const response = await fetch(request);
-    if (response.status === 200) {
-      const cache = await caches.open(CACHE_NAME);
-      cache.put(request, response.clone());
-    }
     return response;
   } catch (error) {
-    const cached = await caches.match(request);
-    if (cached) {
-      console.log('[SW] 오프라인 캐시 반환:', request.url);
-      return cached;
-    }
     return new Response('오프라인 상태입니다.', { status: 503 });
   }
 }

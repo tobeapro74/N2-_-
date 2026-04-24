@@ -1132,6 +1132,7 @@ tr[data-href]:focus {
 }
 
 .mobile-card-item {
+  display: block;
   background: hsl(var(--card));
   border: 1px solid hsl(var(--border));
   border-radius: var(--radius-lg);
@@ -1161,6 +1162,9 @@ tr[data-href]:focus {
 .mobile-card-item .item-meta {
   font-size: 0.85rem;
   color: hsl(var(--muted-foreground));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .mobile-card-item .item-footer {

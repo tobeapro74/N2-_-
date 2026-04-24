@@ -124,10 +124,10 @@
       <% members.forEach((member, index) => { %>
       <a href="/members/<%= member.id %>" class="mobile-card-item text-decoration-none text-dark" aria-label="<%= member.name %> 회원 상세 보기">
         <div class="item-header">
-          <h3 class="item-title">
+          <div class="item-title">
             <%= member.name %>
             <% if (member.role) { %><span class="badge bg-primary ms-1" style="font-size: 0.85rem;"><%= member.role %></span><% } %>
-          </h3>
+          </div>
           <% if (member.status === 'active') { %>
           <span class="badge bg-success">활동</span>
           <% } else if (member.status === 'inactive') { %>

@@ -1691,6 +1691,98 @@ MONGODB_URI="mongodb+srv://..." node scripts/sync-bank-transactions-to-mongodb.j
 
 ---
 
+## 20. 회원 목록 모바일 카드 구조 깨짐 (골프채 이미지/선 표시, 잘못된 링크 이동)
+
+### 증상
+- 모바일 회원 목록에서 카드 사이에 골프채 모양의 선(타임라인)이 표시됨
+- 박병철 카드를 클릭하면 박동국 상세 페이지로 이동
+- 평균 타수 배지가 다음 회원 카드 이름 위에 붙어 보임
+- 강동식 카드에 `>` 화살표와 footer가 보이지 않고, 강애련 카드 위에 독립 행으로 표시
+
+### 원인 1: `<a>` 태그의 기본 `display: inline`
+`mobile-card-item`에 `display` 속성이 없어 `<a>` 태그가 `inline`으로 동작.  
+`<a>` 안에 `<div>` 블록 요소들이 있으면 브라우저가 구조를 분리하여 `item-footer`가 다음 카드 앞에 독립 행으로 렌더링됨.
+
+### 원인 2: `<a>` 안의 `<h3>` 블록 요소
+기존 코드에서 `<a>` 태그 안에 `<h3>` 태그를 사용. HTML 파서가 컨텍스트에 따라 `<a>` 링크 영역을 강제 분리하여 `item-footer`의 화살표(>)가 이전 카드 링크에 연결됨.
+
+### 원인 3: SW(Service Worker) HTML 페이지 캐싱
+`networkFirst` 함수에서 HTML 페이지를 캐시에 저장하여, 이전 버전의 HTML이 캐시에 고착되어 계속 표시됨.
+
+### 해결 방법
+
+**수정 1: `display: block` 추가 (`public/css/style.css`)**
+```css
+.mobile-card-item {
+  display: block;   /* 추가 */
+  background: ...;
+}
+```
+
+**수정 2: `<h3>` → `<div>` 교체 (`views/members/list.ejs`)**
+```html
+<!-- 수정 전 -->
+<h3 class="item-title">이름</h3>
+<!-- 수정 후 -->
+<div class="item-title">이름</div>
+```
+
+**수정 3: SW HTML 캐싱 제거 (`public/sw.js`)**
+```javascript
+// 수정 전: networkFirst가 HTML을 캐시에 저장
+async function networkFirst(request) {
+  const response = await fetch(request);
+  if (response.status === 200) {
+    const cache = await caches.open(CACHE_NAME);
+    cache.put(request, response.clone());  // ← HTML 캐싱 원인
+  }
+  return response;
+}
+
+// 수정 후: HTML은 캐시하지 않음
+async function networkFirst(request) {
+  try {
+    return await fetch(request);
+  } catch (error) {
+    return new Response('오프라인 상태입니다.', { status: 503 });
+  }
+}
+```
+
+### 예방 방법
+- `<a>` 태그를 카드 컨테이너로 사용할 때는 반드시 `display: block` 명시
+- `<a>` 안에 블록 요소(`<h1>`~`<h6>`, `<div>` 등) 중 헤딩 태그는 사용 지양
+- SW의 `networkFirst`에서 HTML 페이지는 캐시하지 않도록 설정
+
+---
+
+## 21. 라운딩 결과 순위 테이블 스코어 컬럼 스와이프 필요
+
+### 증상
+라운딩 결과 순위 탭에서 순위/성별/이름/스코어 4개 컬럼이 균등 분배되어 스코어 컬럼이 화면 밖으로 밀림. 스코어를 보려면 가로 스와이프 필요.
+
+### 원인
+`<table>` 기본 레이아웃에서 컬럼 너비 미지정 시 브라우저가 콘텐츠 기준으로 균등 분배.
+
+### 해결 방법
+
+**`views/schedules/results.ejs` 수정 - `<colgroup>` 추가**
+```html
+<table class="table table-hover mb-0 result-table" style="table-layout: fixed;">
+  <colgroup>
+    <col style="width: 52px;">   <!-- 순위 -->
+    <col style="width: 44px;">   <!-- 성별 -->
+    <col>                         <!-- 이름: 나머지 공간 -->
+    <col style="width: 60px;">   <!-- 스코어 -->
+  </colgroup>
+  ...
+</table>
+```
+
+`table-layout: fixed`와 `<colgroup>`으로 순위/성별/스코어 너비를 고정하고 이름이 남은 공간을 모두 차지하게 함.
+
+---
+
 ## 빠른 진단 체크리스트 (종합)
 
 ### CDN 캐시 관련 문제

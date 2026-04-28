@@ -2530,5 +2530,354 @@
     }
   },
   "notifications": [],
-  "push_subscriptions": []
+  "push_subscriptions": [],
+  "event_budgets": [
+    {
+      "_id": "69ca27ad1fd3e55e8cab2d90",
+      "id": 1,
+      "year": 2026,
+      "half": "first",
+      "company_support": 2765000,
+      "used_support": 2765000,
+      "monthly_fee": 1100000,
+      "fee_months": 2,
+      "carryover": 1857698,
+      "events": [
+        {
+          "name": "3월 1회 대영베이스CC",
+          "date": "2026-03-14",
+          "type": "normal",
+          "weight": 1,
+          "members": 12,
+          "budget": 596350,
+          "spent": 596350,
+          "status": "completed",
+          "items": [
+            {
+              "name": "행사비(커피,그늘집,카트비,점심,간식)",
+              "planned": 596350,
+              "actual": 596350
+            }
+          ]
+        },
+        {
+          "name": "3월 2회 대영베이스CC",
+          "date": "2026-03-28",
+          "type": "normal",
+          "weight": 1,
+          "members": 10,
+          "budget": 875000,
+          "spent": 875000,
+          "status": "completed",
+          "items": [
+            {
+              "name": "그린피/카트비",
+              "planned": 679000,
+              "actual": 679000
+            },
+            {
+              "name": "식사(성마루국밥)",
+              "planned": 196000,
+              "actual": 196000
+            }
+          ]
+        },
+        {
+          "name": "4월 1회 양지파인CC",
+          "date": "2026-04-11",
+          "type": "normal",
+          "weight": 1,
+          "members": 12,
+          "budget": 890000,
+          "spent": 890000,
+          "status": "completed",
+          "items": [
+            {
+              "name": "그린피/카트비(미래개발)",
+              "planned": 613000,
+              "actual": 613000
+            },
+            {
+              "name": "식사(들밥)",
+              "planned": 177000,
+              "actual": 177000
+            },
+            {
+              "name": "기타 행사비",
+              "planned": 100000,
+              "actual": 100000
+            }
+          ]
+        },
+        {
+          "name": "4월 2회 군산CC 1박2일",
+          "date": "2026-04-18",
+          "type": "overnight",
+          "weight": 1.5,
+          "members": 24,
+          "budget": 2453100,
+          "spent": 2453100,
+          "status": "completed",
+          "items": [
+            {
+              "name": "그린피/카트비(군산레져산업)",
+              "planned": 1299000,
+              "actual": 1299000
+            },
+            {
+              "name": "그린피/카트비(옥구농협)",
+              "planned": 448000,
+              "actual": 448000
+            },
+            {
+              "name": "식사(고향집)",
+              "planned": 100100,
+              "actual": 100100
+            },
+            {
+              "name": "식사(언니네)",
+              "planned": 461000,
+              "actual": 461000
+            },
+            {
+              "name": "기타 행사비",
+              "planned": 145000,
+              "actual": 145000
+            }
+          ]
+        },
+        {
+          "name": "4월 3회 대영힐스CC",
+          "date": "2026-04-25",
+          "type": "normal",
+          "weight": 1,
+          "members": 12,
+          "budget": 719500,
+          "spent": 719500,
+          "status": "completed",
+          "items": [
+            {
+              "name": "그린피/카트비",
+              "planned": 504500,
+              "actual": 504500
+            },
+            {
+              "name": "식사(명태어장쭈갑골 충주)",
+              "planned": 215000,
+              "actual": 215000
+            }
+          ]
+        },
+        {
+          "name": "5월 1회 양지파인CC",
+          "date": "2026-05-09",
+          "type": "normal",
+          "weight": 1,
+          "members": 16,
+          "teams": 4,
+          "budget": 1100000,
+          "spent": 0,
+          "status": "planned",
+          "saving": 100000,
+          "saving_detail": "카트비 1팀 면제(+100,000)",
+          "items": [
+            {
+              "name": "카트비 (4팀-1면제=3팀×100,000)",
+              "planned": 300000,
+              "actual": 0
+            },
+            {
+              "name": "커피 (10,000×16명)",
+              "planned": 160000,
+              "actual": 0
+            },
+            {
+              "name": "그늘집 (20,000×16명)",
+              "planned": 320000,
+              "actual": 0
+            },
+            {
+              "name": "점심 (20,000×16명)",
+              "planned": 320000,
+              "actual": 0
+            }
+          ]
+        },
+        {
+          "name": "5월 2회 대영힐스CC",
+          "date": "2026-05-23",
+          "type": "normal",
+          "weight": 1,
+          "members": 12,
+          "teams": 3,
+          "budget": 900000,
+          "spent": 0,
+          "status": "planned",
+          "saving": 0,
+          "saving_detail": "그린피 면제 1명 → 개인 혜택 적용",
+          "items": [
+            {
+              "name": "카트비 (3팀×100,000)",
+              "planned": 300000,
+              "actual": 0
+            },
+            {
+              "name": "커피 (10,000×12명)",
+              "planned": 120000,
+              "actual": 0
+            },
+            {
+              "name": "그늘집 (20,000×12명)",
+              "planned": 240000,
+              "actual": 0
+            },
+            {
+              "name": "점심 (20,000×12명)",
+              "planned": 240000,
+              "actual": 0
+            }
+          ]
+        },
+        {
+          "name": "6월 1회 양지파인CC",
+          "date": "2026-06-13",
+          "type": "normal",
+          "weight": 1,
+          "members": 12,
+          "teams": 3,
+          "budget": 900000,
+          "spent": 0,
+          "status": "planned",
+          "saving": 100000,
+          "saving_detail": "카트비 1팀 면제(+100,000)",
+          "items": [
+            {
+              "name": "카트비 (3팀-1면제=2팀×100,000)",
+              "planned": 200000,
+              "actual": 0
+            },
+            {
+              "name": "커피 (10,000×12명)",
+              "planned": 120000,
+              "actual": 0
+            },
+            {
+              "name": "그늘집 (20,000×12명)",
+              "planned": 240000,
+              "actual": 0
+            },
+            {
+              "name": "점심 (20,000×12명)",
+              "planned": 240000,
+              "actual": 0
+            }
+          ]
+        },
+        {
+          "name": "6월 2회 대영힐스CC",
+          "date": "2026-06-27",
+          "type": "normal",
+          "weight": 1,
+          "members": 12,
+          "teams": 3,
+          "budget": 900000,
+          "spent": 0,
+          "status": "planned",
+          "saving": 0,
+          "saving_detail": "그린피 면제 1명 → 개인 혜택 적용",
+          "items": [
+            {
+              "name": "카트비 (3팀×100,000)",
+              "planned": 300000,
+              "actual": 0
+            },
+            {
+              "name": "커피 (10,000×12명)",
+              "planned": 120000,
+              "actual": 0
+            },
+            {
+              "name": "그늘집 (20,000×12명)",
+              "planned": 240000,
+              "actual": 0
+            },
+            {
+              "name": "점심 (20,000×12명)",
+              "planned": 240000,
+              "actual": 0
+            }
+          ]
+        }
+      ],
+      "created_at": "2026-03-30T07:35:09.409Z",
+      "updated_at": "2026-04-28T06:48:07.366Z",
+      "current_balance": 1857698,
+      "jun_fee_expected": 1100000,
+      "may_fee_expected": 1100000,
+      "per_event_budget": 900000,
+      "remaining_events": 4,
+      "total_available": 4057698,
+      "course_conditions": {
+        "yangji_pine": {
+          "name": "양지파인CC",
+          "schedule": "매월 2째주 토요일 6시대",
+          "greenfee_by_month": {
+            "3월": 130000,
+            "4월": 150000,
+            "5월": 150000,
+            "6월": 150000,
+            "9월": 150000,
+            "10~11월": 160000
+          },
+          "cart_per_team": 100000,
+          "benefits": [
+            "카트비 면제: 3~4팀=1팀(회장 or 총무), 5팀이상=2팀",
+            "그린피 면제: 없음",
+            "주말 연단체 그린피: 홈페이지 고시금액 대비 2만원 할인"
+          ],
+          "club_support": "카트비 1팀 면제(100,000원)"
+        },
+        "daeyoung_hills": {
+          "name": "대영힐스CC",
+          "schedule": "짝수달 4째주 토요일 6시대 (주말 토 7시이전)",
+          "greenfee_by_month": {
+            "3월": 119000,
+            "4월": 139000,
+            "5~6월": 159000,
+            "7~8월": 109000,
+            "9월": 159000,
+            "10~11월": 179000
+          },
+          "cart_per_team": 100000,
+          "benefits": [
+            "그린피 면제: 3팀=1명, 5팀=2명, 7팀=3명, 9팀=4명, 11팀=5명",
+            "면제 조건: 팀당 4인 필수",
+            "카트비 면제: 없음",
+            "7시 이전 단체 - 라운드 전 조식 제공 (7~8월 제외)"
+          ],
+          "club_support": "그린피 면제 1명 → 개인 혜택 적용 (동호회 재원 미포함)"
+        },
+        "daeyoung_base": {
+          "name": "대영베이스CC",
+          "schedule": "홀수달 4째주 토요일 6시대 (주말 토 7시이전)",
+          "greenfee_by_month": {
+            "3월": 129000,
+            "4월": 149000,
+            "5~6월": 169000,
+            "7~8월": 119000,
+            "9월": 169000,
+            "10~11월": 189000
+          },
+          "cart_per_team": 100000,
+          "benefits": [
+            "그린피 면제: 3팀=1명, 5팀=2명, 7팀=3명, 9팀=4명, 11팀=5명",
+            "면제 조건: 팀당 4인 필수",
+            "카트비 면제: 없음",
+            "7시 이전 단체 - 라운드 전 조식 제공 (7~8월 제외)"
+          ],
+          "club_support": "그린피 면제 1명 → 개인 혜택 적용 (동호회 재원 미포함)"
+        }
+      }
+    }
+  ]
 }

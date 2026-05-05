@@ -188,34 +188,34 @@
     <div class="card">
       <div class="card-body p-0">
         <div class="table-responsive">
-          <table class="table table-hover mb-0 result-table" style="table-layout: fixed;">
+          <table class="table table-hover mb-0 result-table" style="table-layout: fixed; width: 100%;">
             <colgroup>
+              <col style="width: 48px;">
+              <col>
               <col style="width: 52px;">
-              <col style="width: 44px;">
-              <col style="width: 90px;">
-              <col style="width: 60px;">
             </colgroup>
             <thead class="table-light">
               <tr>
-                <th class="text-center ps-2">순위</th>
-                <th class="text-center px-1">성별</th>
-                <th class="ps-2">이름</th>
-                <th class="text-center pe-2">스코어</th>
+                <th class="text-center px-1">순위</th>
+                <th class="px-2">이름</th>
+                <th class="text-center px-1">스코어</th>
               </tr>
             </thead>
             <tbody>
               <% results.forEach(r => { %>
               <tr>
-                <td class="text-center ps-2">
+                <td class="text-center px-1">
                   <% if (r.rank <= 3) { %>
                   <span class="rank-medal rank-<%= r.rank %>"><%= r.rank %></span>
                   <% } else { %>
-                  <span><%= r.rank %>위</span>
+                  <span class="text-muted" style="font-size:0.85rem;"><%= r.rank %>위</span>
                   <% } %>
                 </td>
-                <td class="text-center px-1"><span class="badge <%= r.gender === '여' ? 'bg-danger' : 'bg-primary' %>" style="font-size:0.7rem"><%= r.gender %></span></td>
-                <td class="ps-2"><strong><%= r.member_name %></strong></td>
-                <td class="text-center pe-2"><strong><%= r.score %></strong></td>
+                <td class="px-2">
+                  <strong><%= r.member_name %></strong>
+                  <span class="badge <%= r.gender === '여' ? 'bg-danger' : 'bg-primary' %> ms-1" style="font-size:0.6rem;vertical-align:middle;"><%= r.gender %></span>
+                </td>
+                <td class="text-center px-1"><strong><%= r.score %></strong></td>
               </tr>
               <% }) %>
             </tbody>

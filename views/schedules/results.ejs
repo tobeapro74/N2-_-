@@ -189,14 +189,14 @@
       <div class="card-body p-0">
         <table class="table table-hover mb-0 result-table" style="table-layout:fixed;width:100%;">
           <colgroup>
-            <col style="width:56px;">
-            <col>
-            <col style="width:56px;">
+            <col style="width:33%;">
+            <col style="width:34%;">
+            <col style="width:33%;">
           </colgroup>
           <thead class="table-light">
             <tr>
               <th class="text-center px-1">순위</th>
-              <th class="px-2">이름</th>
+              <th class="text-center px-1">이름</th>
               <th class="text-center px-1">스코어</th>
             </tr>
           </thead>
@@ -210,7 +210,7 @@
                 <span class="text-muted" style="font-size:0.85rem;"><%= r.rank %>위</span>
                 <% } %>
               </td>
-              <td class="px-2" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+              <td class="text-center px-1">
                 <strong><%= r.member_name %></strong>
                 <span class="badge <%= r.gender === '여' ? 'bg-danger' : 'bg-primary' %> ms-1" style="font-size:0.6rem;vertical-align:middle;"><%= r.gender %></span>
               </td>

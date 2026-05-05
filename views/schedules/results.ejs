@@ -187,35 +187,38 @@
   <div class="tab-pane fade show active" id="tabRanking" role="tabpanel">
     <div class="card">
       <div class="card-body p-0">
-        <div class="table-responsive">
-          <table class="table table-hover mb-0 result-table" style="width: 100%;">
-            <thead class="table-light">
-              <tr>
-                <th class="text-center px-1" style="width:1%;white-space:nowrap;">순위</th>
-                <th class="px-2">이름</th>
-                <th class="text-center px-1" style="width:1%;white-space:nowrap;">스코어</th>
-              </tr>
-            </thead>
-            <tbody>
-              <% results.forEach(r => { %>
-              <tr>
-                <td class="text-center px-1" style="white-space:nowrap;">
-                  <% if (r.rank <= 3) { %>
-                  <span class="rank-medal rank-<%= r.rank %>"><%= r.rank %></span>
-                  <% } else { %>
-                  <span class="text-muted" style="font-size:0.85rem;"><%= r.rank %>위</span>
-                  <% } %>
-                </td>
-                <td class="px-2">
-                  <strong><%= r.member_name %></strong>
-                  <span class="badge <%= r.gender === '여' ? 'bg-danger' : 'bg-primary' %> ms-1" style="font-size:0.6rem;vertical-align:middle;"><%= r.gender %></span>
-                </td>
-                <td class="text-center px-1" style="white-space:nowrap;"><strong><%= r.score %></strong></td>
-              </tr>
-              <% }) %>
-            </tbody>
-          </table>
-        </div>
+        <table class="table table-hover mb-0 result-table" style="table-layout:fixed;width:100%;">
+          <colgroup>
+            <col style="width:56px;">
+            <col>
+            <col style="width:56px;">
+          </colgroup>
+          <thead class="table-light">
+            <tr>
+              <th class="text-center px-1">순위</th>
+              <th class="px-2">이름</th>
+              <th class="text-center px-1">스코어</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% results.forEach(r => { %>
+            <tr>
+              <td class="text-center px-1">
+                <% if (r.rank <= 3) { %>
+                <span class="rank-medal rank-<%= r.rank %>"><%= r.rank %></span>
+                <% } else { %>
+                <span class="text-muted" style="font-size:0.85rem;"><%= r.rank %>위</span>
+                <% } %>
+              </td>
+              <td class="px-2" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                <strong><%= r.member_name %></strong>
+                <span class="badge <%= r.gender === '여' ? 'bg-danger' : 'bg-primary' %> ms-1" style="font-size:0.6rem;vertical-align:middle;"><%= r.gender %></span>
+              </td>
+              <td class="text-center px-1"><strong><%= r.score %></strong></td>
+            </tr>
+            <% }) %>
+          </tbody>
+        </table>
       </div>
     </div>
   </div>

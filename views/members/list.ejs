@@ -228,21 +228,13 @@ function saveContact() {
   ].filter(Boolean).join('\r\n');
 
   // iOS Safari는 Blob+download 미지원 → data URI로 열기
-  const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent);
-  if (isIOS) {
-    const encoded = encodeURIComponent(lines);
-    window.location.href = 'data:text/x-vcard;charset=utf-8,' + encoded;
-  } else {
-    const blob = new Blob([lines], { type: 'text/vcard;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = name + '.vcf';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  }
+  const encoded = encodeURIComponent(lines);
+  const a = document.createElement('a');
+  a.href = 'data:text/x-vcard;charset=utf-8,' + encoded;
+  a.download = name + '.vcf';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
 }
 </script>
 

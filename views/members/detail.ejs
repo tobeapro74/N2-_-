@@ -48,7 +48,7 @@
           <% } %>
           <tr>
             <th class="py-1 text-muted">휴대폰</th>
-            <td class="py-1"><% if (member.mobile) { %><a href="#" class="text-decoration-none" onclick="showContactMenu(event,'<%= member.name %>','<%= member.mobile %>','<%= member.position || '' %>','<%= member.department || '' %>')"><%= member.mobile %></a><% } else { %>-<% } %></td>
+            <td class="py-1"><% if (member.mobile) { %><a href="#" class="text-decoration-none" onclick="showContactMenu(event,'<%= member.name %>','<%= member.mobile %>',<%= member.id %>)"><%= member.mobile %></a><% } else { %>-<% } %></td>
           </tr>
           <tr>
             <th class="py-1 text-muted">가입일</th>
@@ -265,12 +265,12 @@ function saveScore() {
 </style>
 
 <script>
-let _contactData = {};
+let _contactMemberId = null;
 
-function showContactMenu(event, name, mobile, position, department) {
+function showContactMenu(event, name, mobile, memberId) {
   event.preventDefault();
   event.stopPropagation();
-  _contactData = { name, mobile, position, department };
+  _contactMemberId = memberId;
   document.getElementById('contactModalName').textContent = name;
   document.getElementById('contactModalPhone').textContent = mobile;
   document.getElementById('contactCallBtn').href = 'tel:' + mobile;
@@ -278,27 +278,7 @@ function showContactMenu(event, name, mobile, position, department) {
 }
 
 function saveContact() {
-  const { name, mobile, position, department } = _contactData;
-  const last = name.length >= 2 ? name.slice(0, 1) : name;
-  const first = name.length >= 2 ? name.slice(1) : '';
-  const lines = [
-    'BEGIN:VCARD',
-    'VERSION:3.0',
-    'N:' + last + ';' + first + ';;;',
-    'FN:' + name,
-    'TEL;TYPE=CELL:' + mobile,
-    position ? 'TITLE:' + position : null,
-    'ORG:N2골프' + (department ? ';' + department : ''),
-    'END:VCARD'
-  ].filter(Boolean).join('\r\n');
-
-  const encoded = encodeURIComponent(lines);
-  const a = document.createElement('a');
-  a.href = 'data:text/x-vcard;charset=utf-8,' + encoded;
-  a.download = name + '.vcf';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
+  window.location.href = '/members/' + _contactMemberId + '/vcard';
 }
 </script>
 

@@ -235,6 +235,34 @@ router.post('/reservation/:reservationId/score', requireAuth, requireAdmin, asyn
   }
 });
 
+// 회원 vCard 다운로드
+router.get('/:id/vcard', requireAuth, async (req, res) => {
+  const idResult = validateId(req.params.id, '회원 ID');
+  if (!idResult.valid) return res.status(400).send('잘못된 요청');
+
+  const members = await db.getTableAsync('members');
+  const member = members.find(m => m.id === idResult.value);
+  if (!member) return res.status(404).send('회원 없음');
+
+  const name = member.name || '';
+  const last = name.length >= 2 ? name.slice(0, 1) : name;
+  const first = name.length >= 2 ? name.slice(1) : '';
+  const lines = [
+    'BEGIN:VCARD',
+    'VERSION:3.0',
+    'N:' + last + ';' + first + ';;;',
+    'FN:' + name,
+    member.mobile ? 'TEL;TYPE=CELL:' + member.mobile : null,
+    member.position ? 'TITLE:' + member.position : null,
+    'ORG:N2골프' + (member.department ? ';' + member.department : ''),
+    'END:VCARD'
+  ].filter(Boolean).join('\r\n');
+
+  res.setHeader('Content-Type', 'text/vcard; charset=utf-8');
+  res.setHeader('Content-Disposition', 'attachment; filename="' + encodeURIComponent(name) + '.vcf"');
+  res.send(lines);
+});
+
 // 회원 상세
 router.get('/:id', requireAuth, async (req, res) => {
   const idResult = validateId(req.params.id, '회원 ID');

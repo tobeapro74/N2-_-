@@ -48,7 +48,7 @@
           <% } %>
           <tr>
             <th class="py-1 text-muted">휴대폰</th>
-            <td class="py-1"><% if (member.mobile) { %><a href="tel:<%= member.mobile %>" class="text-decoration-none"><%= member.mobile %></a> <a href="/members/<%= member.id %>/vcard" class="text-muted ms-2" title="연락처 저장"><i class="bi bi-person-plus"></i> 연락처 저장</a><% } else { %>-<% } %></td>
+            <td class="py-1"><% if (member.mobile) { %><a href="tel:<%= member.mobile %>" class="text-decoration-none"><%= member.mobile %></a> <a href="/members/<%= member.id %>/vcard" class="text-muted ms-2" title="연락처 저장" onclick="showVcardTip()"><i class="bi bi-person-plus"></i> 연락처 저장</a><% } else { %>-<% } %></td>
           </tr>
           <tr>
             <th class="py-1 text-muted">가입일</th>
@@ -228,6 +228,19 @@ function saveScore() {
     .catch(err => {
       alert('오류가 발생했습니다.');
     });
+}
+</script>
+
+<!-- 연락처 저장 안내 토스트 -->
+<div id="vcardTip" style="display:none;position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9999;background:rgba(0,0,0,0.82);color:#fff;padding:12px 20px;border-radius:12px;font-size:0.85rem;text-align:center;max-width:280px;line-height:1.5;">
+  화면에서 <strong>'새로운 연락처 등록'</strong>을 눌러주세요
+</div>
+
+<script>
+function showVcardTip() {
+  const tip = document.getElementById('vcardTip');
+  tip.style.display = 'block';
+  setTimeout(() => { tip.style.display = 'none'; }, 4000);
 }
 </script>
 

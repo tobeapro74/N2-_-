@@ -141,8 +141,8 @@
         </div>
         <% if (member.mobile) { %>
         <div class="item-meta mt-1">
-          <a href="tel:<%= member.mobile %>" class="text-decoration-none text-dark" onclick="event.stopPropagation()"><i class="bi bi-phone"></i> <%= member.mobile %></a>
-          <a href="#" class="text-muted ms-2" onclick="event.stopPropagation();event.preventDefault();goVcard('/members/<%= member.id %>/vcard')" title="연락처 저장"><i class="bi bi-person-plus"></i></a>
+          <span class="text-dark" onclick="event.preventDefault();event.stopPropagation();location.href='tel:<%= member.mobile %>'"><i class="bi bi-phone"></i> <%= member.mobile %></span>
+          <span class="text-muted ms-2" onclick="event.preventDefault();event.stopPropagation();goVcard('/members/<%= member.id %>/vcard')" title="연락처 저장" style="cursor:pointer;"><i class="bi bi-person-plus"></i></span>
         </div>
         <% } %>
         <% if (member.position || member.department) { %>

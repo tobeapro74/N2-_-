@@ -1803,4 +1803,55 @@ async function networkFirst(request) {
 
 ---
 
-*마지막 업데이트: 2026-04-20*
+---
+
+## 20. iOS Safari vCard 연락처 저장 안 됨
+
+### 증상
+- 휴대폰 번호 터치 → 연락처 저장 클릭 시 저장이 안 되거나 모달만 닫힘
+- iOS 연락처 화면에서 "이름 추가" 상태로 이름이 비어있음
+- 체크버튼을 눌러도 반응 없음
+
+### 원인
+1. `<a>` 태그 안에 `<a>` 태그 중첩 → HTML 규격 위반으로 브라우저가 태그 강제 분리
+2. iOS Safari는 `Blob URL + a.download`, `data: URI + window.location.href` 방식 모두 차단
+3. Bootstrap 모달 안의 `<a>` 클릭이 모달 dismiss로 처리됨
+4. vCard `N:` 필드를 `N:성;이름;;;`으로 분리하면 iOS가 이름을 별도 필드로 인식해 "이름 추가" 표시
+
+### 해결
+1. 서버에 `/members/:id/vcard` GET 엔드포인트 추가 → `Content-Type: text/vcard`, `Content-Disposition: attachment`로 응답
+2. 연락처 저장 버튼을 `<a href="/members/:id/vcard">` 직접 링크로 변경 (모달 제거)
+3. vCard `N:` 필드를 `N:강희령;;;;` (풀네임 통째로) 방식으로 변경
+4. 클릭 시 2초 딜레이 후 페이지 이동 → 그 사이 토스트로 "허용 후 새로운 연락처 등록 클릭" 안내
+5. `<a>` 중첩 제거 → `<span onclick>` 방식으로 전화/저장 링크 처리
+
+### iOS 연락처 저장 최종 흐름
+1. `👤+` 아이콘 클릭 → 토스트 표시 (2초)
+2. `/members/:id/vcard` 이동 → iOS "연락처 카드 다운로드 허용?" 팝업
+3. **허용** → 연락처 미리보기 화면
+4. **새로운 연락처 등록** → 저장 완료
+
+---
+
+## 21. 회원 목록 수 불일치 (JSON 캐시 vs MongoDB)
+
+### 증상
+- 회원 목록 화면에 82명 표시, 실제 MongoDB에는 116명
+
+### 원인
+- `routes/members.js`의 회원 목록 라우터가 `db.getTable('members')` (앱 시작 시 로드한 JSON 캐시) 사용
+- 앱 배포 이후 MongoDB에 추가된 회원이 캐시에 반영되지 않음
+
+### 해결
+```javascript
+// 변경 전
+let members = db.getTable('members').filter(m => !m.is_admin);
+
+// 변경 후
+const allMembers = await db.getTableAsync('members');
+let members = allMembers.filter(m => !m.is_admin);
+```
+
+---
+
+*마지막 업데이트: 2026-05-06*

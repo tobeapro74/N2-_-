@@ -1366,3 +1366,31 @@ async function handleReaction(commentId, reactionType, card) {
 // public/sw.js
 const CACHE_NAME = 'n2golf-v12';  // 버전 증가
 ```
+
+---
+
+## 12. 회원 연락처 저장 (vCard)
+
+### 구조
+- `GET /members/:id/vcard` — 서버에서 `.vcf` 파일 직접 응답
+- `Content-Type: text/vcard; charset=utf-8`
+- `Content-Disposition: attachment; filename="이름.vcf"`
+
+### vCard 포맷 (VERSION:3.0)
+```
+BEGIN:VCARD
+VERSION:3.0
+FN:강희령
+N:강희령;;;;
+TEL;TYPE=CELL:010-XXXX-XXXX
+TITLE:차장
+ORG:N2골프;업무혁신부
+END:VCARD
+```
+- `N:` 필드는 한국 이름을 분리하지 않고 풀네임 그대로 사용 (iOS 호환)
+- iOS Safari는 서버에서 직접 내려주는 파일만 정상 처리 (Blob/data URI 차단)
+
+### 운영 도메인
+- **현재**: `n2golf.vercel.app` (2026-05-06 변경)
+- **이전**: `my-first-app-nine-alpha.vercel.app`
+- Vercel 프로젝트명: `n2golf`

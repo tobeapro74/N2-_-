@@ -13,7 +13,8 @@ router.get('/', requireAuth, async (req, res) => {
   // 기본 필터: active (탈퇴 회원 제외), 'all'이면 전체 표시
   const status = req.query.status || 'active';
 
-  let members = db.getTable('members').filter(m => !m.is_admin);
+  const allMembers = await db.getTableAsync('members');
+  let members = allMembers.filter(m => !m.is_admin);
 
   if (status && status !== 'all') {
     members = members.filter(m => m.status === status);

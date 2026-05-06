@@ -245,13 +245,11 @@ router.get('/:id/vcard', requireAuth, async (req, res) => {
   if (!member) return res.status(404).send('회원 없음');
 
   const name = member.name || '';
-  const last = name.length >= 2 ? name.slice(0, 1) : name;
-  const first = name.length >= 2 ? name.slice(1) : '';
   const lines = [
     'BEGIN:VCARD',
     'VERSION:3.0',
-    'N:' + last + ';' + first + ';;;',
     'FN:' + name,
+    'N:' + name + ';;;;',
     member.mobile ? 'TEL;TYPE=CELL:' + member.mobile : null,
     member.position ? 'TITLE:' + member.position : null,
     'ORG:N2골프' + (member.department ? ';' + member.department : ''),

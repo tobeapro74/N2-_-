@@ -177,9 +177,9 @@
           <a id="contactCallBtn" href="#" class="btn btn-success btn-lg">
             <i class="bi bi-telephone-fill me-2"></i>전화 연결
           </a>
-          <button class="btn btn-outline-primary btn-lg" onclick="saveContact()">
+          <a id="contactSaveBtn" href="#" class="btn btn-outline-primary btn-lg">
             <i class="bi bi-person-plus-fill me-2"></i>연락처 저장
-          </button>
+          </a>
         </div>
       </div>
       <div class="modal-footer border-0 pt-0 pb-3 justify-content-center">
@@ -200,20 +200,14 @@
 </style>
 
 <script>
-let _contactMemberId = null;
-
 function showContactMenu(event, name, mobile, memberId) {
   event.preventDefault();
   event.stopPropagation();
-  _contactMemberId = memberId;
   document.getElementById('contactModalName').textContent = name;
   document.getElementById('contactModalPhone').textContent = mobile;
   document.getElementById('contactCallBtn').href = 'tel:' + mobile;
+  document.getElementById('contactSaveBtn').href = '/members/' + memberId + '/vcard';
   new bootstrap.Modal(document.getElementById('contactModal')).show();
-}
-
-function saveContact() {
-  window.location.href = '/members/' + _contactMemberId + '/vcard';
 }
 </script>
 

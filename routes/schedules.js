@@ -1316,7 +1316,7 @@ router.get('/:id/results', requireAuth, async (req, res) => {
       .filter(r => r.schedule_id === scheduleId)
       .map(r => {
         const member = members.find(m => m.id === r.member_id) || {};
-        return { ...r, member_name: member.name, gender: member.gender, department: member.department };
+        return { ...r, member_name: member.name || r.name, gender: r.gender || member.gender || '', department: member.department };
       })
       .sort((a, b) => a.rank - b.rank);
 

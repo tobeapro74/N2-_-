@@ -48,7 +48,7 @@
           <% } %>
           <tr>
             <th class="py-1 text-muted">휴대폰</th>
-            <td class="py-1"><%= member.mobile || '-' %></td>
+            <td class="py-1"><% if (member.mobile) { %><a href="tel:<%= member.mobile %>" class="text-decoration-none"><%= member.mobile %></a><% } else { %>-<% } %></td>
           </tr>
           <tr>
             <th class="py-1 text-muted">가입일</th>

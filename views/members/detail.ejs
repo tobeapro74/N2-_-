@@ -48,7 +48,7 @@
           <% } %>
           <tr>
             <th class="py-1 text-muted">휴대폰</th>
-            <td class="py-1"><% if (member.mobile) { %><a href="tel:<%= member.mobile %>" class="text-decoration-none"><%= member.mobile %></a><% } else { %>-<% } %></td>
+            <td class="py-1"><% if (member.mobile) { %><a href="#" class="text-decoration-none" onclick="showContactMenu(event,'<%= member.name %>','<%= member.mobile %>','<%= member.position || '' %>','<%= member.department || '' %>')"><%= member.mobile %></a><% } else { %>-<% } %></td>
           </tr>
           <tr>
             <th class="py-1 text-muted">가입일</th>
@@ -228,6 +228,76 @@ function saveScore() {
     .catch(err => {
       alert('오류가 발생했습니다.');
     });
+}
+</script>
+
+<!-- 연락처 옵션 바텀시트 -->
+<div class="modal fade" id="contactModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-bottom mb-0">
+    <div class="modal-content rounded-top-3 rounded-bottom-0 border-0 shadow">
+      <div class="modal-body px-4 pt-4 pb-2 text-center">
+        <p class="fw-bold mb-0" id="contactModalName" style="font-size:1rem;"></p>
+        <p class="text-muted mb-3" id="contactModalPhone" style="font-size:0.9rem;"></p>
+        <div class="d-grid gap-2">
+          <a id="contactCallBtn" href="#" class="btn btn-success btn-lg">
+            <i class="bi bi-telephone-fill me-2"></i>전화 연결
+          </a>
+          <button class="btn btn-outline-primary btn-lg" onclick="saveContact()">
+            <i class="bi bi-person-plus-fill me-2"></i>연락처 저장
+          </button>
+        </div>
+      </div>
+      <div class="modal-footer border-0 pt-0 pb-3 justify-content-center">
+        <button type="button" class="btn btn-outline-secondary w-100" data-bs-dismiss="modal">취소</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.modal-dialog-bottom {
+  display: flex;
+  align-items: flex-end;
+  min-height: 100%;
+  margin: 0;
+  max-width: 100%;
+}
+</style>
+
+<script>
+let _contactData = {};
+
+function showContactMenu(event, name, mobile, position, department) {
+  event.preventDefault();
+  event.stopPropagation();
+  _contactData = { name, mobile, position, department };
+  document.getElementById('contactModalName').textContent = name;
+  document.getElementById('contactModalPhone').textContent = mobile;
+  document.getElementById('contactCallBtn').href = 'tel:' + mobile;
+  new bootstrap.Modal(document.getElementById('contactModal')).show();
+}
+
+function saveContact() {
+  const { name, mobile, position, department } = _contactData;
+  const nameParts = name.length >= 2 ? [name.slice(0,1), name.slice(1)] : [name, ''];
+  const vcard = [
+    'BEGIN:VCARD',
+    'VERSION:3.0',
+    'N:' + nameParts[0] + ';' + nameParts[1] + ';;;',
+    'FN:' + name,
+    'TEL;TYPE=CELL:' + mobile,
+    position ? 'TITLE:' + position : '',
+    department ? 'ORG:N2골프;' + department : 'ORG:N2골프',
+    'END:VCARD'
+  ].filter(Boolean).join('\r\n');
+
+  const blob = new Blob([vcard], { type: 'text/vcard;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = name + '.vcf';
+  a.click();
+  URL.revokeObjectURL(url);
 }
 </script>
 

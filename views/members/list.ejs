@@ -126,42 +126,30 @@
         <div class="item-header">
           <div class="item-title">
             <%= member.name %>
-            <% if (member.role) { %><span class="badge bg-primary ms-1" style="font-size: 0.85rem;"><%= member.role %></span><% } %>
+            <% if (member.role) { %><span class="badge bg-primary ms-1" style="font-size:0.75rem;"><%= member.role %></span><% } %>
           </div>
-          <% if (member.status === 'active') { %>
-          <span class="badge bg-success">활동</span>
-          <% } else if (member.status === 'inactive') { %>
-          <span class="badge bg-secondary">탈퇴</span>
-          <% } else { %>
-          <span class="badge bg-warning">대기</span>
-          <% } %>
-        </div>
-        <div class="item-meta">
-          <% if (member.internal_phone) { %>
-          <span><i class="bi bi-telephone" aria-hidden="true"></i> <%= member.internal_phone %></span>
-          <% } %>
-          <% if (member.mobile) { %>
-          <span class="ms-2">
-            <a href="tel:<%= member.mobile %>" class="text-decoration-none text-dark" onclick="event.stopPropagation()"><i class="bi bi-phone"></i> <%= member.mobile %></a>
-            <a href="#" class="text-muted ms-1" onclick="event.stopPropagation();event.preventDefault();goVcard('/members/<%= member.id %>/vcard')" title="연락처 저장"><i class="bi bi-person-plus"></i></a>
-          </span>
-          <% } %>
-          <% if (member.position) { %>
-          <span class="ms-2"><i class="bi bi-person-badge" aria-hidden="true"></i> <%= member.position %></span>
-          <% } %>
-          <% if (member.department) { %>
-          <span class="ms-2"><i class="bi bi-building" aria-hidden="true"></i> <%= member.department %></span>
-          <% } %>
-        </div>
-        <div class="item-footer">
-          <div>
-            <span class="badge bg-success me-1"><%= member.total_rounds || 0 %>R</span>
-            <% if (member.avg_score) { %>
-            <span class="badge bg-primary">평균 <%= member.avg_score %></span>
+          <div class="d-flex align-items-center gap-2">
+            <% if (member.status === 'active') { %>
+            <span class="badge bg-success">활동</span>
+            <% } else if (member.status === 'inactive') { %>
+            <span class="badge bg-secondary">탈퇴</span>
+            <% } else { %>
+            <span class="badge bg-warning">대기</span>
             <% } %>
+            <i class="bi bi-chevron-right text-muted" aria-hidden="true"></i>
           </div>
-          <i class="bi bi-chevron-right text-muted" aria-hidden="true"></i>
         </div>
+        <% if (member.mobile) { %>
+        <div class="item-meta mt-1">
+          <a href="tel:<%= member.mobile %>" class="text-decoration-none text-dark" onclick="event.stopPropagation()"><i class="bi bi-phone"></i> <%= member.mobile %></a>
+          <a href="#" class="text-muted ms-2" onclick="event.stopPropagation();event.preventDefault();goVcard('/members/<%= member.id %>/vcard')" title="연락처 저장"><i class="bi bi-person-plus"></i></a>
+        </div>
+        <% } %>
+        <% if (member.position || member.department) { %>
+        <div class="item-meta mt-1 text-muted" style="font-size:0.8rem;">
+          <% if (member.position) { %><%= member.position %><% } %><% if (member.position && member.department) { %> · <% } %><% if (member.department) { %><%= member.department %><% } %>
+        </div>
+        <% } %>
       </a>
       <% }) %>
       <% } %>

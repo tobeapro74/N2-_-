@@ -48,7 +48,7 @@
           <% } %>
           <tr>
             <th class="py-1 text-muted">휴대폰</th>
-            <td class="py-1"><% if (member.mobile) { %><a href="#" class="text-decoration-none" onclick="showContactMenu(event,'<%= member.name %>','<%= member.mobile %>',<%= member.id %>)"><%= member.mobile %></a><% } else { %>-<% } %></td>
+            <td class="py-1"><% if (member.mobile) { %><a href="tel:<%= member.mobile %>" class="text-decoration-none"><%= member.mobile %></a> <a href="/members/<%= member.id %>/vcard" class="text-muted ms-2" title="연락처 저장"><i class="bi bi-person-plus"></i> 연락처 저장</a><% } else { %>-<% } %></td>
           </tr>
           <tr>
             <th class="py-1 text-muted">가입일</th>
@@ -228,51 +228,6 @@ function saveScore() {
     .catch(err => {
       alert('오류가 발생했습니다.');
     });
-}
-</script>
-
-<!-- 연락처 옵션 바텀시트 -->
-<div class="modal fade" id="contactModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-bottom mb-0">
-    <div class="modal-content rounded-top-3 rounded-bottom-0 border-0 shadow">
-      <div class="modal-body px-4 pt-4 pb-2 text-center">
-        <p class="fw-bold mb-0" id="contactModalName" style="font-size:1rem;"></p>
-        <p class="text-muted mb-3" id="contactModalPhone" style="font-size:0.9rem;"></p>
-        <div class="d-grid gap-2">
-          <a id="contactCallBtn" href="#" class="btn btn-success btn-lg">
-            <i class="bi bi-telephone-fill me-2"></i>전화 연결
-          </a>
-          <a id="contactSaveBtn" href="#" class="btn btn-outline-primary btn-lg">
-            <i class="bi bi-person-plus-fill me-2"></i>연락처 저장
-          </a>
-        </div>
-      </div>
-      <div class="modal-footer border-0 pt-0 pb-3 justify-content-center">
-        <button type="button" class="btn btn-outline-secondary w-100" data-bs-dismiss="modal">취소</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<style>
-.modal-dialog-bottom {
-  display: flex;
-  align-items: flex-end;
-  min-height: 100%;
-  margin: 0;
-  max-width: 100%;
-}
-</style>
-
-<script>
-function showContactMenu(event, name, mobile, memberId) {
-  event.preventDefault();
-  event.stopPropagation();
-  document.getElementById('contactModalName').textContent = name;
-  document.getElementById('contactModalPhone').textContent = mobile;
-  document.getElementById('contactCallBtn').href = 'tel:' + mobile;
-  document.getElementById('contactSaveBtn').href = '/members/' + memberId + '/vcard';
-  new bootstrap.Modal(document.getElementById('contactModal')).show();
 }
 </script>
 

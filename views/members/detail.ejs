@@ -48,7 +48,7 @@
           <% } %>
           <tr>
             <th class="py-1 text-muted">휴대폰</th>
-            <td class="py-1"><% if (member.mobile) { %><a href="tel:<%= member.mobile %>" class="text-decoration-none"><%= member.mobile %></a> <a href="/members/<%= member.id %>/vcard" class="text-muted ms-2" title="연락처 저장" onclick="showVcardTip()"><i class="bi bi-person-plus"></i> 연락처 저장</a><% } else { %>-<% } %></td>
+            <td class="py-1"><% if (member.mobile) { %><a href="tel:<%= member.mobile %>" class="text-decoration-none"><%= member.mobile %></a> <a href="#" class="text-muted ms-2" title="연락처 저장" onclick="event.preventDefault();goVcard('/members/<%= member.id %>/vcard')"><i class="bi bi-person-plus"></i> 연락처 저장</a><% } else { %>-<% } %></td>
           </tr>
           <tr>
             <th class="py-1 text-muted">가입일</th>
@@ -237,10 +237,11 @@ function saveScore() {
 </div>
 
 <script>
-function showVcardTip() {
+function goVcard(url) {
   const tip = document.getElementById('vcardTip');
   tip.style.display = 'block';
-  setTimeout(() => { tip.style.display = 'none'; }, 4000);
+  setTimeout(() => { window.location.href = url; }, 2000);
+  setTimeout(() => { tip.style.display = 'none'; }, 6000);
 }
 </script>
 

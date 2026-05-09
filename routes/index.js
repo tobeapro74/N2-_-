@@ -111,7 +111,7 @@ router.get('/', async (req, res) => {
     .map(m => ({ name: m.name, join_date: m.join_date }));
 
   // 최근 라운딩 결과 (전체 참가자)
-  const completedSchedules = schedules.filter(s => s.has_result && s.play_date < today);
+  const completedSchedules = schedules.filter(s => s.has_result && s.play_date <= today);
   const latestSchedule = completedSchedules.sort((a, b) => b.play_date.localeCompare(a.play_date))[0];
   let recentRoundTop5 = [];
   let recentRoundAll = [];

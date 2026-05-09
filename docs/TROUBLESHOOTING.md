@@ -1854,4 +1854,42 @@ let members = allMembers.filter(m => !m.is_admin);
 
 ---
 
-*마지막 업데이트: 2026-05-06*
+## 20. 홈화면 라운드 기록에 당일 경기 결과가 나오지 않음
+
+### 증상
+- 당일 경기 결과를 등록했는데 홈화면 라운드 기록 카드에 이전 경기 결과가 표시됨
+
+### 원인
+- `routes/index.js`에서 완료 일정 필터 조건이 `s.play_date < today` (strict less than)로 되어 있어 당일 경기가 제외됨
+
+### 해결
+```javascript
+// 변경 전
+const completedSchedules = schedules.filter(s => s.has_result && s.play_date < today);
+
+// 변경 후
+const completedSchedules = schedules.filter(s => s.has_result && s.play_date <= today);
+```
+
+---
+
+## 21. 라운딩 결과를 잘못된 일정에 등록한 경우 원복 방법
+
+### 증상
+- OCR 사진 업로드로 A일정에 B일정 결과를 잘못 등록
+
+### 해결 (MongoDB 직접 삭제)
+```javascript
+// round_results 삭제
+await db.collection('round_results').deleteMany({ schedule_id: 잘못된일정ID });
+
+// schedules has_result 및 scorecard_images 초기화
+await db.collection('schedules').updateOne(
+  { id: 잘못된일정ID },
+  { $set: { has_result: false, scorecard_images: [] } }
+);
+```
+
+---
+
+*마지막 업데이트: 2026-05-09*

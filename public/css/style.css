@@ -2204,6 +2204,13 @@ a:active .card {
   color: rgba(255,255,255,0.7);
   line-height: 1.4;
 }
+.ss-hero-comment {
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.5);
+  line-height: 1.4;
+  font-style: italic;
+  min-height: 1.1em;
+}
 .ss-hero-btn {
   margin-top: auto;
   font-size: var(--text-xs);

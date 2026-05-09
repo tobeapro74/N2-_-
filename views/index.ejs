@@ -55,22 +55,23 @@
 
 <!-- ② 메인 CTA 카드 2개 (검은 배경) -->
 <div class="ss-hero-row mb-3">
-  <a href="/schedules/<%= recentRoundScheduleId ? recentRoundScheduleId + '/results' : '' %>" class="ss-hero-card ss-hero-card--dark">
+  <a href="/schedules/<%= recentRoundScheduleId ? recentRoundScheduleId + '/results' : '' %>" class="ss-hero-card ss-hero-card--dark" id="roundCard">
     <div class="ss-hero-badge">라운드 기록</div>
-    <div class="ss-hero-score">
-      <% if (typeof recentRoundTop5 !== 'undefined' && recentRoundTop5.length > 0) { %>
-      <%= recentRoundTop5[0].score %>
+    <div class="ss-hero-score" id="roundScore">
+      <% if (typeof recentRoundAll !== 'undefined' && recentRoundAll.length > 0) { %>
+      <%= recentRoundAll[0].score %>
       <% } else { %>
       -
       <% } %>
     </div>
-    <div class="ss-hero-sub">
-      <% if (typeof recentRoundTop5 !== 'undefined' && recentRoundTop5.length > 0) { %>
-      🥇 <%= recentRoundTop5[0].name %><br><%= recentRoundTop5[0].courseName %>
+    <div class="ss-hero-sub" id="roundSub">
+      <% if (typeof recentRoundAll !== 'undefined' && recentRoundAll.length > 0) { %>
+      <%= recentRoundAll[0].name %><br><%= recentRoundAll[0].courseName %>
       <% } else { %>
       최근 라운딩 기록
       <% } %>
     </div>
+    <div class="ss-hero-comment" id="roundComment"></div>
     <div class="ss-hero-btn">결과 보기</div>
   </a>
   <a href="/reservations/available" class="ss-hero-card ss-hero-card--green">
@@ -1599,6 +1600,93 @@ document.addEventListener('DOMContentLoaded', function() {
     el.addEventListener('click', handleDirectionClick);
   });
 });
+
+// 라운드 기록 카드 — 랜덤 슬라이드 (20초 간격)
+(function() {
+  const players = <%- JSON.stringify(typeof recentRoundAll !== 'undefined' ? recentRoundAll : []) %>;
+  if (!players.length) return;
+
+  const comments = {
+    60: [
+      '완벽한 라운드! 프로도 부러워할 스코어예요 🏆',
+      '60대라니, 오늘 필드의 MVP는 당신입니다! 🥇',
+      '이 스코어면 대회 나가셔도 됩니다! 대단해요 ✨'
+    ],
+    70: [
+      '환상적인 스코어! 오늘 완전 빛나셨어요 ⛳',
+      '70대는 아무나 치는 게 아니죠, 역시 실력자! 👏',
+      '꾸준한 연습의 결과가 필드에서 빛났네요 💫'
+    ],
+    80: [
+      '훌륭한 라운드! 80대는 탄탄한 실력의 증거예요 👍',
+      '안정적인 스코어, 꾸준함이 진짜 실력이에요 💪',
+      '오늘도 멋진 라운드! 다음엔 70대 도전해봐요 🎯'
+    ],
+    90: [
+      '좋은 스코어예요! 다음엔 더 좋은 결과가 기다려요 😊',
+      '90대면 충분히 잘 치신 거예요! 화이팅 🔥',
+      '꾸준히 치다 보면 곧 80대 진입이에요! 응원해요 💚'
+    ],
+    100: [
+      '즐거운 라운드 되셨나요? 다음 기회도 기대해요 🌟',
+      '100대도 노력하면 90대가 됩니다, 파이팅! ⛳',
+      '필드에 나온 것 자체가 즐거운 일! 수고 많으셨어요 🙌'
+    ],
+    110: [
+      '골프는 멘탈 스포츠! 다음엔 꼭 설욕해요 🔥',
+      '오늘 경험이 다음 라운드의 밑거름이 됩니다 💪',
+      '포기하지 않고 끝까지 치신 것만으로도 박수! 👏'
+    ],
+    120: [
+      '필드에 나온 것만으로도 충분해요! 화이팅 ⛳',
+      '모든 라운드가 실력이 되는 법, 다음엔 꼭! 😊',
+      '오늘 하루도 수고 많으셨어요! 다음에 더 즐겨봐요 🌈'
+    ]
+  };
+
+  function getComment(score) {
+    const tier = score < 70 ? 60 : score < 80 ? 70 : score < 90 ? 80 : score < 100 ? 90 : score < 110 ? 100 : score < 120 ? 110 : 120;
+    const pool = comments[tier];
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+
+  const scoreEl = document.getElementById('roundScore');
+  const subEl = document.getElementById('roundSub');
+  const commentEl = document.getElementById('roundComment');
+  if (!scoreEl || !subEl || !commentEl) return;
+
+  let usedIndices = [];
+
+  function pickRandom() {
+    if (usedIndices.length >= players.length) usedIndices = [];
+    let idx;
+    do { idx = Math.floor(Math.random() * players.length); } while (usedIndices.includes(idx));
+    usedIndices.push(idx);
+    return players[idx];
+  }
+
+  function showPlayer(p) {
+    scoreEl.style.opacity = '0';
+    subEl.style.opacity = '0';
+    commentEl.style.opacity = '0';
+    setTimeout(function() {
+      scoreEl.textContent = p.score;
+      subEl.innerHTML = p.name + '<br>' + p.courseName;
+      commentEl.textContent = getComment(p.score);
+      scoreEl.style.opacity = '1';
+      subEl.style.opacity = '1';
+      commentEl.style.opacity = '1';
+    }, 300);
+  }
+
+  scoreEl.style.transition = 'opacity 0.3s';
+  subEl.style.transition = 'opacity 0.3s';
+  commentEl.style.transition = 'opacity 0.3s';
+
+  // 첫 번째도 랜덤으로
+  showPlayer(pickRandom());
+  setInterval(function() { showPlayer(pickRandom()); }, 20000);
+})();
 </script>
 
 <%- include('partials/footer') %>

@@ -1695,8 +1695,8 @@ document.addEventListener('DOMContentLoaded', function() {
   if (!scoreEl || !subEl || !commentEl) return;
 
   let usedIndices = [];
-  // 선수별 마지막 노출 멘트 기억 (같은 멘트 연속 방지)
-  const lastComment = {};
+  // 선수별 이미 노출된 멘트 목록 (전체 소진 시 초기화)
+  const usedComments = {};
 
   function pickRandom() {
     if (usedIndices.length >= players.length) usedIndices = [];
@@ -1707,14 +1707,30 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function getUniqueComment(score, prevAvg, playerKey) {
-    const prev = lastComment[playerKey];
-    let text;
-    let attempts = 0;
-    do {
-      text = getComment(score, prevAvg);
-      attempts++;
-    } while (text === prev && attempts < 10);
-    lastComment[playerKey] = text;
+    if (!usedComments[playerKey]) usedComments[playerKey] = [];
+    const used = usedComments[playerKey];
+
+    // 후보 멘트 풀 구성 (이전 기록 있으면 비교 멘트, 없으면 점수대 멘트)
+    let pool;
+    if (prevAvg !== null && prevAvg !== undefined) {
+      const diff = score - prevAvg;
+      if (diff <= -5) pool = compareComments.muchBetter;
+      else if (diff <= -2) pool = compareComments.better;
+      else if (diff <= 1) pool = compareComments.similar;
+      else if (diff <= 4) pool = compareComments.worse;
+      else pool = compareComments.muchWorse;
+    } else {
+      const tier = score < 70 ? 60 : score < 80 ? 70 : score < 90 ? 80 : score < 100 ? 90 : score < 110 ? 100 : score < 120 ? 110 : 120;
+      pool = comments[tier];
+    }
+
+    // 아직 안 나온 멘트만 추림, 모두 나왔으면 초기화
+    const remaining = pool.filter(function(c) { return !used.includes(c); });
+    if (!remaining.length) usedComments[playerKey] = [];
+    const candidates = usedComments[playerKey].length === 0 ? pool : remaining;
+
+    const text = candidates[Math.floor(Math.random() * candidates.length)];
+    usedComments[playerKey].push(text);
     return text;
   }
 

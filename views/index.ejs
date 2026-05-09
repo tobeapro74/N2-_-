@@ -1695,6 +1695,8 @@ document.addEventListener('DOMContentLoaded', function() {
   if (!scoreEl || !subEl || !commentEl) return;
 
   let usedIndices = [];
+  // 선수별 마지막 노출 멘트 기억 (같은 멘트 연속 방지)
+  const lastComment = {};
 
   function pickRandom() {
     if (usedIndices.length >= players.length) usedIndices = [];
@@ -1704,6 +1706,18 @@ document.addEventListener('DOMContentLoaded', function() {
     return players[idx];
   }
 
+  function getUniqueComment(score, prevAvg, playerKey) {
+    const prev = lastComment[playerKey];
+    let text;
+    let attempts = 0;
+    do {
+      text = getComment(score, prevAvg);
+      attempts++;
+    } while (text === prev && attempts < 10);
+    lastComment[playerKey] = text;
+    return text;
+  }
+
   function showPlayer(p) {
     scoreEl.style.opacity = '0';
     subEl.style.opacity = '0';
@@ -1711,7 +1725,7 @@ document.addEventListener('DOMContentLoaded', function() {
     setTimeout(function() {
       scoreEl.textContent = p.score;
       subEl.innerHTML = p.name + '<br>' + p.courseName;
-      commentEl.textContent = getComment(p.score, p.prevAvg);
+      commentEl.textContent = getUniqueComment(p.score, p.prevAvg, p.name);
       scoreEl.style.opacity = '1';
       subEl.style.opacity = '1';
       commentEl.style.opacity = '1';
@@ -1722,9 +1736,8 @@ document.addEventListener('DOMContentLoaded', function() {
   subEl.style.transition = 'opacity 0.3s';
   commentEl.style.transition = 'opacity 0.3s';
 
-  // 첫 번째도 랜덤으로
   showPlayer(pickRandom());
-  setInterval(function() { showPlayer(pickRandom()); }, 20000);
+  setInterval(function() { showPlayer(pickRandom()); }, 15000);
 })();
 </script>
 

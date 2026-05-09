@@ -2206,7 +2206,7 @@ a:active .card {
 }
 .ss-hero-comment {
   font-size: 0.72rem;
-  color: rgba(255,255,255,0.5);
+  color: rgba(255,255,255,0.85);
   line-height: 1.4;
   font-style: italic;
   min-height: 1.1em;

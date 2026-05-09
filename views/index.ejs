@@ -1644,7 +1644,46 @@ document.addEventListener('DOMContentLoaded', function() {
     ]
   };
 
-  function getComment(score) {
+  // 이전 기록 대비 비교 멘트 (prevAvg가 있을 때)
+  const compareComments = {
+    muchBetter: [  // 5타 이상 줄었다
+      '이전보다 확 줄었네요! 이 페이스면 싱글이 머지않았어요 🔥',
+      '와, 몰라보게 좋아졌어요! 연습의 결실이 느껴집니다 🏆',
+      '이전 평균보다 확실히 발전했어요! 다음 목표는 더 낮춰볼까요? 💪'
+    ],
+    better: [  // 2~4타 줄었다
+      '이전보다 좋아지고 있어요! 꾸준함이 빛을 발하네요 📈',
+      '조금씩 나아지는 게 보여요, 이 흐름 계속 유지해요! 😊',
+      '착실하게 발전 중! 다음 라운드도 기대됩니다 👍'
+    ],
+    similar: [  // ±1타
+      '안정적인 스코어! 일관성이야말로 진짜 실력이죠 💎',
+      '평균을 딱 지켜냈네요, 안정감 있는 플레이였어요 ⛳',
+      '흔들림 없는 스코어, 멘탈 관리도 훌륭해요! 👏'
+    ],
+    worse: [  // 2~4타 늘었다
+      '이번엔 살짝 아쉬웠지만 다음엔 꼭 만회할 거예요! 💚',
+      '오늘은 컨디션이 좋지 않았나요? 다음 라운드 기대할게요 🌱',
+      '누구나 기복이 있죠. 다음엔 이전 기록 훌쩍 넘어봐요! 😤'
+    ],
+    muchWorse: [  // 5타 이상 늘었다
+      '오늘은 좀 힘드셨죠? 이런 날도 있어요, 다음엔 꼭! 🔄',
+      '골프는 멘탈 스포츠! 털고 다음 라운드 화이팅이에요 💪',
+      '이런 경험이 밑거름이 됩니다. 다음엔 반드시 설욕해요! 🔥'
+    ]
+  };
+
+  function getComment(score, prevAvg) {
+    if (prevAvg !== null && prevAvg !== undefined) {
+      const diff = score - prevAvg;
+      let pool;
+      if (diff <= -5) pool = compareComments.muchBetter;
+      else if (diff <= -2) pool = compareComments.better;
+      else if (diff <= 1) pool = compareComments.similar;
+      else if (diff <= 4) pool = compareComments.worse;
+      else pool = compareComments.muchWorse;
+      return pool[Math.floor(Math.random() * pool.length)];
+    }
     const tier = score < 70 ? 60 : score < 80 ? 70 : score < 90 ? 80 : score < 100 ? 90 : score < 110 ? 100 : score < 120 ? 110 : 120;
     const pool = comments[tier];
     return pool[Math.floor(Math.random() * pool.length)];
@@ -1672,7 +1711,7 @@ document.addEventListener('DOMContentLoaded', function() {
     setTimeout(function() {
       scoreEl.textContent = p.score;
       subEl.innerHTML = p.name + '<br>' + p.courseName;
-      commentEl.textContent = getComment(p.score);
+      commentEl.textContent = getComment(p.score, p.prevAvg);
       scoreEl.style.opacity = '1';
       subEl.style.opacity = '1';
       commentEl.style.opacity = '1';

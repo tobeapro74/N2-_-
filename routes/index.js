@@ -112,20 +112,38 @@ router.get('/', async (req, res) => {
 
   // 최근 라운딩 결과 (전체 참가자)
   const completedSchedules = schedules.filter(s => s.has_result && s.play_date <= today);
-  const latestSchedule = completedSchedules.sort((a, b) => b.play_date.localeCompare(a.play_date))[0];
+  const sortedCompleted = completedSchedules.sort((a, b) => b.play_date.localeCompare(a.play_date));
+  const latestSchedule = sortedCompleted[0];
+  const prevScheduleIds = new Set(sortedCompleted.slice(1).map(s => s.id));
+
   let recentRoundTop5 = [];
   let recentRoundAll = [];
   if (latestSchedule) {
     const latestCourse = golfCourses.find(gc => gc.id === latestSchedule.golf_course_id);
+
+    // 이전 경기 결과로 member별 평균 점수 계산
+    const prevResults = roundResults.filter(r => prevScheduleIds.has(r.schedule_id));
+    const prevAvgByMember = {};
+    prevResults.forEach(r => {
+      if (!prevAvgByMember[r.member_id]) prevAvgByMember[r.member_id] = [];
+      prevAvgByMember[r.member_id].push(r.score);
+    });
+    Object.keys(prevAvgByMember).forEach(mid => {
+      const scores = prevAvgByMember[mid];
+      prevAvgByMember[mid] = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
+    });
+
     const mapped = roundResults
       .filter(r => r.schedule_id === latestSchedule.id)
       .sort((a, b) => a.rank - b.rank)
       .map(r => {
         const member = allMembers.find(m => m.id === r.member_id);
+        const prevAvg = prevAvgByMember[r.member_id] || null;
         return {
           rank: r.rank,
           name: member ? member.name : '알 수 없음',
           score: r.score,
+          prevAvg,
           courseName: latestCourse ? latestCourse.name : '',
           playDate: latestSchedule.play_date
         };

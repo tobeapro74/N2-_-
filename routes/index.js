@@ -122,11 +122,12 @@ router.get('/', async (req, res) => {
     const latestCourse = golfCourses.find(gc => gc.id === latestSchedule.golf_course_id);
 
     // 이전 경기 결과로 member별 평균 점수 계산
-    const prevResults = roundResults.filter(r => prevScheduleIds.has(r.schedule_id));
+    const prevResults = roundResults.filter(r => prevScheduleIds.has(Number(r.schedule_id)));
     const prevAvgByMember = {};
     prevResults.forEach(r => {
-      if (!prevAvgByMember[r.member_id]) prevAvgByMember[r.member_id] = [];
-      prevAvgByMember[r.member_id].push(r.score);
+      const mid = Number(r.member_id);
+      if (!prevAvgByMember[mid]) prevAvgByMember[mid] = [];
+      prevAvgByMember[mid].push(r.score);
     });
     Object.keys(prevAvgByMember).forEach(mid => {
       const scores = prevAvgByMember[mid];
@@ -134,11 +135,11 @@ router.get('/', async (req, res) => {
     });
 
     const mapped = roundResults
-      .filter(r => r.schedule_id === latestSchedule.id)
+      .filter(r => Number(r.schedule_id) === Number(latestSchedule.id))
       .sort((a, b) => a.rank - b.rank)
       .map(r => {
-        const member = allMembers.find(m => m.id === r.member_id);
-        const prevAvg = prevAvgByMember[r.member_id] || null;
+        const member = allMembers.find(m => Number(m.id) === Number(r.member_id));
+        const prevAvg = prevAvgByMember[Number(r.member_id)] || null;
         return {
           rank: r.rank,
           name: member ? member.name : '알 수 없음',
@@ -166,58 +167,40 @@ router.get('/', async (req, res) => {
       };
     });
 
-  // 로그인한 사용자의 개인 통계
+  // 로그인한 사용자의 개인 통계 (My스코어와 완전히 동일한 로직)
   let userStats = null;
   if (req.session.user) {
     const userId = req.session.user.id;
-    const userMember = members.find(m => m.id === userId);
 
-    // 사용자의 예약 기록
-    const userReservations = reservations
-      .filter(r => r.member_id === userId && r.status === 'confirmed')
-      .sort((a, b) => {
-        const scheduleA = schedules.find(s => s.id === a.schedule_id);
-        const scheduleB = schedules.find(s => s.id === b.schedule_id);
-        const dateA = scheduleA ? scheduleA.play_date : '';
-        const dateB = scheduleB ? scheduleB.play_date : '';
-        return dateB.localeCompare(dateA);
+    const myReservations = reservations.filter(
+      r => r.member_id === userId && r.status === 'confirmed'
+    );
+    const myScheduleIds = new Set(myReservations.map(r => r.schedule_id));
+
+    const myRounds = schedules
+      .filter(s => s.has_result && s.play_date < today && myScheduleIds.has(s.id))
+      .sort((a, b) => b.play_date.localeCompare(a.play_date))
+      .map(s => {
+        const course = golfCourses.find(gc => gc.id === s.golf_course_id) || {};
+        const myResult = roundResults.find(r => r.schedule_id === s.id && r.member_id === userId);
+        return {
+          courseName: course.name || '-',
+          score: myResult ? myResult.score : null
+        };
       });
 
-    // 가장 최근 방문한 골프장
-    let recentCourse = '-';
-    if (userReservations.length > 0) {
-      const recentReservation = userReservations[0];
-      const recentSchedule = schedules.find(s => s.id === recentReservation.schedule_id);
-      if (recentSchedule) {
-        const course = golfCourses.find(gc => gc.id === recentSchedule.golf_course_id);
-        if (course) {
-          recentCourse = course.name.replace('CC', '');
-        }
-      }
-    }
-
-    // My스코어와 동일한 방식: reservations → schedules → round_results 조인
-    const myScheduleIds = new Set(
-      reservations
-        .filter(r => r.member_id === userId && r.status === 'confirmed')
-        .map(r => r.schedule_id)
-    );
-    const myCompletedRounds = schedules
-      .filter(s => s.has_result && s.play_date < today && myScheduleIds.has(s.id))
-      .sort((a, b) => b.play_date.localeCompare(a.play_date));
-    const myScoredRounds = myCompletedRounds
-      .map(s => roundResults.find(r => r.schedule_id === s.id && r.member_id === userId))
-      .filter(r => r && r.score != null);
-    const calcAvgScore = myScoredRounds.length > 0
-      ? Math.round(myScoredRounds.reduce((sum, r) => sum + r.score, 0) / myScoredRounds.length)
+    const scoredRounds = myRounds.filter(r => r.score !== null);
+    const avgScore = scoredRounds.length > 0
+      ? Math.round(scoredRounds.reduce((s, r) => s + r.score, 0) / scoredRounds.length)
       : null;
-    const calcRecentScore = myScoredRounds.length > 0 ? myScoredRounds[0].score : null;
+    const recentScore = scoredRounds.length > 0 ? scoredRounds[0].score : null;
+    const recentCourse = myRounds.length > 0 ? myRounds[0].courseName.replace('CC', '') : '-';
 
     userStats = {
-      recentScore: calcRecentScore,
-      avgScore: calcAvgScore,
-      recentCourse: recentCourse,
-      totalRounds: myCompletedRounds.length
+      recentScore,
+      avgScore,
+      recentCourse,
+      totalRounds: myRounds.length
     };
   }
 

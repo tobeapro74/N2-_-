@@ -196,17 +196,28 @@ router.get('/', async (req, res) => {
       }
     }
 
-    // 이미 지난 일정만 참가 횟수로 카운트
-    const pastRounds = userReservations.filter(r => {
-      const schedule = schedules.find(s => s.id === r.schedule_id);
-      return schedule && schedule.play_date < today;
-    }).length;
+    // My스코어와 동일한 방식: reservations → schedules → round_results 조인
+    const myScheduleIds = new Set(
+      reservations
+        .filter(r => r.member_id === userId && r.status === 'confirmed')
+        .map(r => r.schedule_id)
+    );
+    const myCompletedRounds = schedules
+      .filter(s => s.has_result && s.play_date < today && myScheduleIds.has(s.id))
+      .sort((a, b) => b.play_date.localeCompare(a.play_date));
+    const myScoredRounds = myCompletedRounds
+      .map(s => roundResults.find(r => r.schedule_id === s.id && r.member_id === userId))
+      .filter(r => r && r.score != null);
+    const calcAvgScore = myScoredRounds.length > 0
+      ? Math.round(myScoredRounds.reduce((sum, r) => sum + r.score, 0) / myScoredRounds.length)
+      : null;
+    const calcRecentScore = myScoredRounds.length > 0 ? myScoredRounds[0].score : null;
 
     userStats = {
-      recentScore: userMember?.recent_score || null,
-      avgScore: userMember?.avg_score || null,
+      recentScore: calcRecentScore,
+      avgScore: calcAvgScore,
       recentCourse: recentCourse,
-      totalRounds: pastRounds
+      totalRounds: myCompletedRounds.length
     };
   }
 

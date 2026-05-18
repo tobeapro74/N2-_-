@@ -140,6 +140,16 @@ npm run dev     # 개발 모드 실행 (nodemon)
 npm run init-db # 데이터베이스 초기화
 ```
 
+## 배포 및 모니터링
+
+### Vercel 배포
+
+이 애플리케이션은 Vercel에 최적화되어 있습니다. Git 리포지토리를 Vercel과 연결하면 `main` 브랜치의 변경사항이 자동으로 배포됩니다.
+
+### Web Analytics
+
+Vercel Web Analytics를 통해 사이트 방문자, 페이지뷰, 성능 메트릭 등을 추적할 수 있습니다. 자세한 설정 방법은 [Vercel Web Analytics 가이드](docs/VERCEL_ANALYTICS.md)를 참조하세요.
+
 ## 바탕화면 바로가기 추가
 
 ### PC (Chrome)
@@ -160,6 +170,7 @@ npm run init-db # 데이터베이스 초기화
 - **[ROADMAP.md](docs/ROADMAP.md)**: 프로젝트 로드맵, 개발 계획
 - **[ARCHITECTURE.md](docs/ARCHITECTURE.md)**: 시스템 아키텍처, 기술 스택 선택 배경
 - **[TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)**: 자주 발생하는 문제와 해결 방법
+- **[VERCEL_ANALYTICS.md](docs/VERCEL_ANALYTICS.md)**: Vercel Web Analytics 설정 및 사용 가이드
 
 ## 라이선스
 

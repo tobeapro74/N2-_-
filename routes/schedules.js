@@ -1399,12 +1399,30 @@ router.post('/:id/results', requireAuth, requireAdmin, async (req, res) => {
       savedCount++;
     }
 
-    // 일정에 결과 플래그 설정
-    await db.update('schedules', scheduleId, { has_result: true });
+    // 일정 상태 및 결과 플래그 설정
+    await db.update('schedules', scheduleId, { has_result: true, status: 'completed' });
+
+    // 참가자 예약 자동 동기화 (예약 없는 참가자도 confirmed로 생성)
+    const existingReservations = await db.getTableAsync('reservations');
+    for (const r of results) {
+      const member = members.find(m => m.name === r.member_name);
+      if (!member) continue;
+      const alreadyReserved = existingReservations.find(
+        rv => Number(rv.schedule_id) === scheduleId && Number(rv.member_id) === member.id
+      );
+      if (!alreadyReserved) {
+        await db.insert('reservations', {
+          schedule_id: scheduleId,
+          member_id: member.id,
+          status: 'confirmed'
+        });
+      }
+    }
 
     if (db.refreshCache) {
       await db.refreshCache('round_results');
       await db.refreshCache('schedules');
+      await db.refreshCache('reservations');
     }
 
     res.json({ success: true, message: `${savedCount}명의 라운딩 결과가 등록되었습니다.` });

@@ -1892,4 +1892,82 @@ await db.collection('schedules').updateOne(
 
 ---
 
-*마지막 업데이트: 2026-05-09*
+## 2026-05-26
+
+### 문제: 스코어 등록 후 회원정보 참가이력에 누락되는 선수 발생
+
+**증상**: 스코어는 등록됐는데 회원정보 > 참가이력 화면에 해당 라운딩이 표시되지 않음
+
+**원인**: 회원정보 참가이력은 `reservations(confirmed)` 기반으로 조회. 스코어 등록 시 예약 데이터가 없는 참가자는 이력 누락
+
+**해결**: `POST /:id/results` 핸들러에 예약 자동 동기화 추가
+```javascript
+// 결과 등록 후 예약 없는 참가자 자동 생성
+const existingReservations = await db.getTableAsync('reservations');
+for (const r of results) {
+  const member = members.find(m => m.name === r.member_name);
+  const alreadyReserved = existingReservations.find(
+    rv => Number(rv.schedule_id) === scheduleId && Number(rv.member_id) === member.id
+  );
+  if (!alreadyReserved) {
+    await db.insert('reservations', { schedule_id: scheduleId, member_id: member.id, status: 'confirmed' });
+  }
+}
+```
+
+---
+
+### 문제: 홈 라운드 카드에서 싱글 달성자에게 "싱글이 머지않았어요" 멘트 표시
+
+**증상**: 78타를 친 선수(이미 싱글)에게 "이 페이스면 싱글이 머지않았어요" 멘트 출력
+
+**원인**: `muchBetter`(5타 이상 감소) 조건을 먼저 체크하여 싱글 달성 여부를 고려하지 않음
+
+**해결**: `getComment()` / `getUniqueComment()` 함수에서 79타 이하 체크를 최우선 조건으로 추가
+```javascript
+function getComment(score, prevAvg, prevLast) {
+  if (score <= 79) return singleComments[...]; // 싱글 축하 우선
+  if (score >= 100) { /* 직전 라운딩 기준 특화 멘트 */ }
+  // ... 이하 평균 비교
+}
+```
+
+---
+
+### 문제: 예산관리 총지출 7,416,450 / 잔액 -3,358,752 오표시
+
+**증상**: 현재 통장 잔액 1,121,896원인데 예산관리 화면에 잔액 -3,358,752원 표시
+
+**원인**: 총지출이 `event_budgets.events[].spent` 합계를 사용 → 계획 예산 초과 시 마이너스 발생. 총예산도 계획값(4,057,698)으로 실제 수입과 다름
+
+**해결**: 실제 `incomes` / `expenses` DB 합계 + `current_balance` 기준으로 교체
+```javascript
+// routes/finance.js - /budget 라우터
+budgetSummary = {
+  totalIncome:  incomes DB 합계,   // 총 수입
+  totalExpense: expenses DB 합계,  // 총 지출
+  currentBalance: budget.current_balance  // 실제 통장 잔액
+};
+```
+
+---
+
+### 문제: 입금/출금 등록 후 예산관리 화면 잔액 미반영
+
+**원인**: 입금/출금 API가 `incomes`/`expenses`만 갱신하고 `event_budgets.current_balance`는 수동 관리
+
+**해결**: `syncBudgetBalance()` 함수 추가 후 6개 API(수입/지출 등록·수정·삭제) 모두에 자동 호출
+```javascript
+async function syncBudgetBalance() {
+  const totalIncome  = db.getTable('incomes').reduce((s, i) => s + i.amount, 0);
+  const totalExpense = db.getTable('expenses').reduce((s, e) => s + e.amount, 0);
+  const newBalance   = totalIncome - totalExpense;
+  for (const b of db.getTable('event_budgets')) {
+    await db.update('event_budgets', b.id, { current_balance: newBalance });
+  }
+}
+```
+
+---
+
+*마지막 업데이트: 2026-05-26*

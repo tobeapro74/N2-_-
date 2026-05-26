@@ -765,10 +765,27 @@ router.get('/budget', requireAuth, requireAdmin, async (req, res) => {
       }
     }
 
+    // 총 예산/지출/잔액: 실제 DB 기준으로 계산
+    let budgetSummary = null;
+    if (budget) {
+      const allIncomes  = db.getTable('incomes');
+      const allExpenses = db.getTable('expenses');
+      const halfStart = half === 'first' ? `${year}-01-01` : `${year}-07-01`;
+      const halfEnd   = half === 'first' ? `${year}-06-30` : `${year}-12-31`;
+      const totalIncome  = allIncomes.filter(i => i.income_date  >= halfStart && i.income_date  <= halfEnd).reduce((s, i) => s + i.amount, 0);
+      const totalExpense = allExpenses.filter(e => e.expense_date >= halfStart && e.expense_date <= halfEnd).reduce((s, e) => s + e.amount, 0);
+      budgetSummary = {
+        totalIncome,
+        totalExpense,
+        currentBalance: budget.current_balance || 0
+      };
+    }
+
     res.render('finance/budget', {
       title: '예산 관리',
       budget,
       cashFlow,
+      budgetSummary,
       year,
       half,
       years: Array.from({ length: 3 }, (_, i) => new Date().getFullYear() + 1 - i)

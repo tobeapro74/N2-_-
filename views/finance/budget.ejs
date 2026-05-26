@@ -107,13 +107,19 @@
   </div>
 </div>
 
-<!-- 예산 요약 -->
+<!-- 예산 요약 (실제 수입/지출 DB 기준) -->
+<%
+  const dispIncome  = budgetSummary ? budgetSummary.totalIncome  : 0;
+  const dispExpense = budgetSummary ? budgetSummary.totalExpense : 0;
+  const dispBalance = budgetSummary ? budgetSummary.currentBalance : 0;
+  const dispRate    = dispIncome > 0 ? Math.min(Math.round((dispExpense / dispIncome) * 100), 999) : 0;
+%>
 <div class="row g-2 mb-3">
   <div class="col-4">
     <div class="card border-0 shadow-sm bg-primary bg-opacity-10">
       <div class="card-body text-center py-2 px-1">
-        <small class="text-muted" style="font-size: 0.75rem;">총 예산</small>
-        <h6 class="mb-0 fw-bold text-primary" style="font-size: 0.85rem;" id="totalBudgetDisp"><%= totalBudget.toLocaleString() %></h6>
+        <small class="text-muted" style="font-size: 0.75rem;">총 수입</small>
+        <h6 class="mb-0 fw-bold text-primary" style="font-size: 0.85rem;" id="totalBudgetDisp"><%= dispIncome.toLocaleString() %></h6>
       </div>
     </div>
   </div>
@@ -121,15 +127,15 @@
     <div class="card border-0 shadow-sm bg-danger bg-opacity-10">
       <div class="card-body text-center py-2 px-1">
         <small class="text-muted" style="font-size: 0.75rem;">총 지출</small>
-        <h6 class="mb-0 fw-bold text-danger" style="font-size: 0.85rem;" id="totalSpentDisp"><%= totalSpent.toLocaleString() %></h6>
+        <h6 class="mb-0 fw-bold text-danger" style="font-size: 0.85rem;" id="totalSpentDisp"><%= dispExpense.toLocaleString() %></h6>
       </div>
     </div>
   </div>
   <div class="col-4">
     <div class="card border-0 shadow-sm bg-success bg-opacity-10">
       <div class="card-body text-center py-2 px-1">
-        <small class="text-muted" style="font-size: 0.75rem;">잔액</small>
-        <h6 class="mb-0 fw-bold text-success" style="font-size: 0.85rem;" id="totalRemainingDisp"><%= totalRemaining.toLocaleString() %></h6>
+        <small class="text-muted" style="font-size: 0.75rem;">현재 잔액</small>
+        <h6 class="mb-0 fw-bold <%= dispBalance < 0 ? 'text-danger' : 'text-success' %>" style="font-size: 0.85rem;" id="totalRemainingDisp"><%= dispBalance.toLocaleString() %></h6>
       </div>
     </div>
   </div>
@@ -139,11 +145,11 @@
 <div class="card border-0 shadow-sm mb-3">
   <div class="card-body py-2">
     <div class="d-flex justify-content-between mb-1">
-      <small class="text-muted" style="font-size: 0.8rem;">예산 집행률</small>
-      <small class="fw-bold" style="font-size: 0.8rem;"><%= spentRate %>%</small>
+      <small class="text-muted" style="font-size: 0.8rem;">예산 집행률 (지출/수입)</small>
+      <small class="fw-bold" style="font-size: 0.8rem;"><%= dispRate %>%</small>
     </div>
     <div class="progress" style="height: 8px;">
-      <div class="progress-bar <%= spentRate > 80 ? 'bg-danger' : spentRate > 50 ? 'bg-warning' : 'bg-success' %>" style="width: <%= spentRate %>%"></div>
+      <div class="progress-bar <%= dispRate > 90 ? 'bg-danger' : dispRate > 70 ? 'bg-warning' : 'bg-success' %>" style="width: <%= Math.min(dispRate, 100) %>%"></div>
     </div>
     <div class="d-flex justify-content-between mt-1">
       <small class="text-muted" style="font-size: 0.75rem;">가중치 합: <%= totalWeight %> | 가중치 1당: <%= perWeight.toLocaleString() %>원</small>

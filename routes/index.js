@@ -121,13 +121,23 @@ router.get('/', async (req, res) => {
   if (latestSchedule) {
     const latestCourse = golfCourses.find(gc => gc.id === latestSchedule.golf_course_id);
 
-    // 이전 경기 결과로 member별 평균 점수 계산
+    // 이전 경기 결과로 member별 평균 및 직전 라운딩 스코어 계산
     const prevResults = roundResults.filter(r => prevScheduleIds.has(Number(r.schedule_id)));
     const prevAvgByMember = {};
+    const prevLastByMember = {};  // 직전 라운딩 스코어 (날짜순 가장 최근 1개)
     prevResults.forEach(r => {
       const mid = Number(r.member_id);
       if (!prevAvgByMember[mid]) prevAvgByMember[mid] = [];
       prevAvgByMember[mid].push(r.score);
+    });
+    // 직전 라운딩: 최신 completed 스케줄 순으로 member별 가장 최근 1개
+    const sortedPrevSchedules = sortedCompleted.slice(1); // 최신 제외
+    sortedPrevSchedules.forEach(s => {
+      const res = roundResults.filter(r => Number(r.schedule_id) === Number(s.id));
+      res.forEach(r => {
+        const mid = Number(r.member_id);
+        if (prevLastByMember[mid] === undefined) prevLastByMember[mid] = r.score;
+      });
     });
     Object.keys(prevAvgByMember).forEach(mid => {
       const scores = prevAvgByMember[mid];
@@ -139,12 +149,15 @@ router.get('/', async (req, res) => {
       .sort((a, b) => a.rank - b.rank)
       .map(r => {
         const member = allMembers.find(m => Number(m.id) === Number(r.member_id));
-        const prevAvg = prevAvgByMember[Number(r.member_id)] || null;
+        const mid = Number(r.member_id);
+        const prevAvg = prevAvgByMember[mid] !== undefined ? prevAvgByMember[mid] : null;
+        const prevLast = prevLastByMember[mid] !== undefined ? prevLastByMember[mid] : null;
         return {
           rank: r.rank,
           name: member ? member.name : '알 수 없음',
           score: r.score,
           prevAvg,
+          prevLast,
           courseName: latestCourse ? latestCourse.name : '',
           playDate: latestSchedule.play_date
         };

@@ -1644,35 +1644,6 @@ document.addEventListener('DOMContentLoaded', function() {
     ]
   };
 
-  // 이전 기록 대비 비교 멘트 (prevAvg가 있을 때)
-  const compareComments = {
-    muchBetter: [  // 5타 이상 줄었다
-      '이전보다 확 줄었네요! 이 페이스면 싱글이 머지않았어요 🔥',
-      '와, 몰라보게 좋아졌어요! 연습의 결실이 느껴집니다 🏆',
-      '이전 평균보다 확실히 발전했어요! 다음 목표는 더 낮춰볼까요? 💪'
-    ],
-    better: [  // 2~4타 줄었다
-      '이전보다 좋아지고 있어요! 꾸준함이 빛을 발하네요 📈',
-      '조금씩 나아지는 게 보여요, 이 흐름 계속 유지해요! 😊',
-      '착실하게 발전 중! 다음 라운드도 기대됩니다 👍'
-    ],
-    similar: [  // ±1타
-      '안정적인 스코어! 일관성이야말로 진짜 실력이죠 💎',
-      '평균을 딱 지켜냈네요, 안정감 있는 플레이였어요 ⛳',
-      '흔들림 없는 스코어, 멘탈 관리도 훌륭해요! 👏'
-    ],
-    worse: [  // 2~4타 늘었다
-      '이번엔 살짝 아쉬웠지만 다음엔 꼭 만회할 거예요! 💚',
-      '오늘은 컨디션이 좋지 않았나요? 다음 라운드 기대할게요 🌱',
-      '누구나 기복이 있죠. 다음엔 이전 기록 훌쩍 넘어봐요! 😤'
-    ],
-    muchWorse: [  // 5타 이상 늘었다
-      '오늘은 좀 힘드셨죠? 이런 날도 있어요, 다음엔 꼭! 🔄',
-      '골프는 멘탈 스포츠! 털고 다음 라운드 화이팅이에요 💪',
-      '이런 경험이 밑거름이 됩니다. 다음엔 반드시 설욕해요! 🔥'
-    ]
-  };
-
   // 싱글(79타 이하) 달성 축하 멘트
   const singleComments = [
     '싱글 달성! 오늘 필드의 MVP는 바로 당신이에요 🏆',
@@ -1680,11 +1651,86 @@ document.addEventListener('DOMContentLoaded', function() {
     '이 스코어면 대회 나가셔도 됩니다! 완벽한 라운드 ✨'
   ];
 
-  function getComment(score, prevAvg) {
-    // 싱글 달성(79타 이하)이면 무조건 축하 멘트
+  // 평균 기준 비교 멘트 (80~99타)
+  const compareComments = {
+    muchBetter: [
+      '이전보다 확 줄었네요! 연습의 결실이 느껴집니다 🏆',
+      '와, 몰라보게 좋아졌어요! 이 흐름 계속 유지해요 🔥',
+      '이전 평균보다 확실히 발전! 다음 목표는 더 낮춰볼까요? 💪'
+    ],
+    better: [
+      '이전보다 좋아지고 있어요! 꾸준함이 빛을 발하네요 📈',
+      '조금씩 나아지는 게 보여요, 이 흐름 이어가요! 😊',
+      '착실하게 발전 중! 다음 라운드도 기대됩니다 👍'
+    ],
+    similar: [
+      '안정적인 스코어! 일관성이야말로 진짜 실력이죠 💎',
+      '평균을 딱 지켜냈네요, 안정감 있는 플레이였어요 ⛳',
+      '흔들림 없는 스코어, 멘탈 관리도 훌륭해요! 👏'
+    ],
+    worse: [
+      '이번엔 살짝 아쉬웠지만 다음엔 꼭 만회할 거예요! 💚',
+      '오늘은 컨디션이 좋지 않았나요? 다음 라운드 기대할게요 🌱',
+      '누구나 기복이 있죠. 다음엔 이전 기록 훌쩍 넘어봐요! 😤'
+    ],
+    muchWorse: [
+      '오늘은 좀 힘드셨죠? 이런 날도 있어요, 다음엔 꼭! 🔄',
+      '골프는 멘탈 스포츠! 털고 다음 라운드 화이팅이에요 💪',
+      '이런 경험이 밑거름이 됩니다. 다음엔 반드시 설욕해요! 🔥'
+    ]
+  };
+
+  // 100타 이상 — 직전 라운딩 대비 특화 멘트
+  const over100Comments = {
+    muchBetter: [  // 5타 이상 줄었다
+      '타수가 많이 줄었어요! 이 페이스면 곧 90대예요 🎉',
+      '확실히 좋아지고 있어요! 꾸준히 하면 반드시 늡니다 💪',
+      '이전보다 훨씬 잘 치셨어요! 다음 목표는 100타 돌파! 🔥'
+    ],
+    better: [  // 2~4타 줄었다
+      '조금씩 타수가 줄고 있어요! 좋은 흐름이에요 📈',
+      '발전하고 있는 게 느껴져요, 이 흐름 이어가요! 😊',
+      '한 타 한 타 줄이는 게 실력이에요, 잘 하셨어요 👍'
+    ],
+    similar: [  // ±1타
+      '안정적으로 치셨어요! 일관성이 곧 실력입니다 ⛳',
+      '비슷한 스코어지만 꾸준함이 중요해요, 화이팅! 💚',
+      '흔들리지 않는 플레이, 다음엔 한 발 더 나아가봐요 👏'
+    ],
+    worse: [  // 2~4타 늘었다
+      '오늘은 조금 아쉬웠지만 포기하지 마세요! 다음엔 꼭 💚',
+      '기복은 누구에게나 있어요. 다음 라운드 기대할게요 🌱',
+      '오늘 경험이 다음 라운드의 밑거름이 될 거예요 😊'
+    ],
+    muchWorse: [  // 5타 이상 늘었다
+      '오늘은 힘드셨죠? 이런 날도 있어요, 털고 다음에 화이팅! 🔄',
+      '골프는 멘탈 스포츠예요! 다음 라운드에서 꼭 설욕해요 💪',
+      '좋은 날도 나쁜 날도 있는 법, 다음엔 반드시 좋아질 거예요 🔥'
+    ]
+  };
+
+  function getComment(score, prevAvg, prevLast) {
+    // 1. 싱글 달성(79타 이하) — 무조건 축하
     if (score <= 79) {
       return singleComments[Math.floor(Math.random() * singleComments.length)];
     }
+
+    // 2. 100타 이상 — 직전 라운딩과 비교 우선, 없으면 평균 비교
+    if (score >= 100) {
+      const ref = prevLast !== null ? prevLast : prevAvg;
+      if (ref !== null) {
+        const diff = score - ref;
+        let pool;
+        if (diff <= -5) pool = over100Comments.muchBetter;
+        else if (diff <= -2) pool = over100Comments.better;
+        else if (diff <= 1) pool = over100Comments.similar;
+        else if (diff <= 4) pool = over100Comments.worse;
+        else pool = over100Comments.muchWorse;
+        return pool[Math.floor(Math.random() * pool.length)];
+      }
+    }
+
+    // 3. 80~99타 — 평균 기준 비교
     if (prevAvg !== null && prevAvg !== undefined) {
       const diff = score - prevAvg;
       let pool;
@@ -1695,6 +1741,8 @@ document.addEventListener('DOMContentLoaded', function() {
       else pool = compareComments.muchWorse;
       return pool[Math.floor(Math.random() * pool.length)];
     }
+
+    // 4. 이전 기록 없으면 점수대별 멘트
     const tier = score < 70 ? 60 : score < 80 ? 70 : score < 90 ? 80 : score < 100 ? 90 : score < 110 ? 100 : score < 120 ? 110 : 120;
     const pool = comments[tier];
     return pool[Math.floor(Math.random() * pool.length)];
@@ -1717,20 +1765,34 @@ document.addEventListener('DOMContentLoaded', function() {
     return players[idx];
   }
 
-  function getUniqueComment(score, prevAvg, playerKey) {
+  function getUniqueComment(score, prevAvg, prevLast, playerKey) {
     if (!usedComments[playerKey]) usedComments[playerKey] = [];
     const used = usedComments[playerKey];
 
-    // 후보 멘트 풀 구성 (이전 기록 있으면 비교 멘트, 없으면 점수대 멘트)
+    // getComment와 동일한 우선순위 로직으로 풀 결정
     let pool;
-    if (prevAvg !== null && prevAvg !== undefined) {
+    if (score <= 79) {
+      pool = singleComments;
+    } else if (score >= 100) {
+      const ref = prevLast !== null && prevLast !== undefined ? prevLast : prevAvg;
+      if (ref !== null && ref !== undefined) {
+        const diff = score - ref;
+        if (diff <= -5) pool = over100Comments.muchBetter;
+        else if (diff <= -2) pool = over100Comments.better;
+        else if (diff <= 1) pool = over100Comments.similar;
+        else if (diff <= 4) pool = over100Comments.worse;
+        else pool = over100Comments.muchWorse;
+      }
+    }
+    if (!pool && prevAvg !== null && prevAvg !== undefined) {
       const diff = score - prevAvg;
       if (diff <= -5) pool = compareComments.muchBetter;
       else if (diff <= -2) pool = compareComments.better;
       else if (diff <= 1) pool = compareComments.similar;
       else if (diff <= 4) pool = compareComments.worse;
       else pool = compareComments.muchWorse;
-    } else {
+    }
+    if (!pool) {
       const tier = score < 70 ? 60 : score < 80 ? 70 : score < 90 ? 80 : score < 100 ? 90 : score < 110 ? 100 : score < 120 ? 110 : 120;
       pool = comments[tier];
     }
@@ -1752,7 +1814,7 @@ document.addEventListener('DOMContentLoaded', function() {
     setTimeout(function() {
       scoreEl.textContent = p.score;
       subEl.innerHTML = p.name + '<br>' + p.courseName;
-      commentEl.textContent = getUniqueComment(p.score, p.prevAvg, p.name);
+      commentEl.textContent = getUniqueComment(p.score, p.prevAvg, p.prevLast, p.name);
       scoreEl.style.opacity = '1';
       subEl.style.opacity = '1';
       commentEl.style.opacity = '1';

@@ -1613,9 +1613,9 @@ document.addEventListener('DOMContentLoaded', function() {
       '이 스코어면 대회 나가셔도 됩니다! 대단해요 ✨'
     ],
     70: [
-      '환상적인 스코어! 오늘 완전 빛나셨어요 ⛳',
-      '70대는 아무나 치는 게 아니죠, 역시 실력자! 👏',
-      '꾸준한 연습의 결과가 필드에서 빛났네요 💫'
+      '싱글 달성! 오늘 필드의 MVP는 바로 당신이에요 🏆',
+      '79타 이하, 진짜 싱글 플레이어! 동호회의 자랑이에요 🥇',
+      '이 스코어면 대회 나가셔도 됩니다! 완벽한 라운드 ✨'
     ],
     80: [
       '훌륭한 라운드! 80대는 탄탄한 실력의 증거예요 👍',
@@ -1673,7 +1673,18 @@ document.addEventListener('DOMContentLoaded', function() {
     ]
   };
 
+  // 싱글(79타 이하) 달성 축하 멘트
+  const singleComments = [
+    '싱글 달성! 오늘 필드의 MVP는 바로 당신이에요 🏆',
+    '79타 이하, 진짜 싱글 플레이어! 동호회의 자랑이에요 🥇',
+    '이 스코어면 대회 나가셔도 됩니다! 완벽한 라운드 ✨'
+  ];
+
   function getComment(score, prevAvg) {
+    // 싱글 달성(79타 이하)이면 무조건 축하 멘트
+    if (score <= 79) {
+      return singleComments[Math.floor(Math.random() * singleComments.length)];
+    }
     if (prevAvg !== null && prevAvg !== undefined) {
       const diff = score - prevAvg;
       let pool;

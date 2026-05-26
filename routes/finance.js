@@ -6,6 +6,25 @@ const { requireAuth, requireAdmin } = require('../middleware/auth');
 const { validateId, validateAmount, validateDate, validateString } = require('../utils/validator');
 const { logger } = require('../utils/logger');
 
+// 입금/출금 변경 후 event_budgets.current_balance 자동 재계산
+async function syncBudgetBalance() {
+  try {
+    const allIncomes  = db.getTable('incomes');
+    const allExpenses = db.getTable('expenses');
+    const totalIncome  = allIncomes.reduce((s, i) => s + (i.amount || 0), 0);
+    const totalExpense = allExpenses.reduce((s, e) => s + (e.amount || 0), 0);
+    const newBalance   = totalIncome - totalExpense;
+
+    const budgets = db.getTable('event_budgets');
+    for (const b of budgets) {
+      await db.update('event_budgets', b.id, { current_balance: newBalance });
+    }
+    if (db.refreshCache) await db.refreshCache('event_budgets');
+  } catch (err) {
+    console.error('예산 잔액 동기화 오류:', err);
+  }
+}
+
 // 자금 현황 대시보드
 router.get('/', requireAuth, async (req, res) => {
   const { year, month } = req.query;
@@ -206,10 +225,9 @@ router.post('/income/new', requireAuth, requireAdmin, async (req, res) => {
       created_by: req.session.user.id
     });
 
-    // 캐시 새로고침
-    if (db.refreshCache) {
-      await db.refreshCache('incomes');
-    }
+    // 캐시 새로고침 + 예산 잔액 동기화
+    if (db.refreshCache) await db.refreshCache('incomes');
+    await syncBudgetBalance();
 
     logger.audit('입금 등록', req.session.user, { incomeId: newId, amount: amountResult.value });
 
@@ -284,10 +302,9 @@ router.post('/income/:id/edit', requireAuth, requireAdmin, async (req, res) => {
       income_date: dateResult.value
     });
 
-    // 캐시 새로고침
-    if (db.refreshCache) {
-      await db.refreshCache('incomes');
-    }
+    // 캐시 새로고침 + 예산 잔액 동기화
+    if (db.refreshCache) await db.refreshCache('incomes');
+    await syncBudgetBalance();
 
     logger.audit('입금 수정', req.session.user, { incomeId: idResult.value, amount: amountResult.value });
 
@@ -312,10 +329,9 @@ router.post('/income/:id/delete', requireAuth, requireAdmin, async (req, res) =>
     const income = db.findById('incomes', idResult.value);
     await db.delete('incomes', idResult.value);
 
-    // 캐시 새로고침
-    if (db.refreshCache) {
-      await db.refreshCache('incomes');
-    }
+    // 캐시 새로고침 + 예산 잔액 동기화
+    if (db.refreshCache) await db.refreshCache('incomes');
+    await syncBudgetBalance();
 
     logger.audit('입금 삭제', req.session.user, { incomeId: idResult.value, amount: income?.amount });
 
@@ -425,10 +441,9 @@ router.post('/expense/new', requireAuth, requireAdmin, async (req, res) => {
       created_by: req.session.user.id
     });
 
-    // 캐시 새로고침
-    if (db.refreshCache) {
-      await db.refreshCache('expenses');
-    }
+    // 캐시 새로고침 + 예산 잔액 동기화
+    if (db.refreshCache) await db.refreshCache('expenses');
+    await syncBudgetBalance();
 
     logger.audit('출금 등록', req.session.user, { expenseId: newId, amount: amountResult.value });
 
@@ -498,10 +513,9 @@ router.post('/expense/:id/edit', requireAuth, requireAdmin, async (req, res) => 
       expense_date: dateResult.value
     });
 
-    // 캐시 새로고침
-    if (db.refreshCache) {
-      await db.refreshCache('expenses');
-    }
+    // 캐시 새로고침 + 예산 잔액 동기화
+    if (db.refreshCache) await db.refreshCache('expenses');
+    await syncBudgetBalance();
 
     logger.audit('출금 수정', req.session.user, { expenseId: idResult.value, amount: amountResult.value });
 
@@ -526,10 +540,9 @@ router.post('/expense/:id/delete', requireAuth, requireAdmin, async (req, res) =
     const expense = db.findById('expenses', idResult.value);
     await db.delete('expenses', idResult.value);
 
-    // 캐시 새로고침
-    if (db.refreshCache) {
-      await db.refreshCache('expenses');
-    }
+    // 캐시 새로고침 + 예산 잔액 동기화
+    if (db.refreshCache) await db.refreshCache('expenses');
+    await syncBudgetBalance();
 
     logger.audit('출금 삭제', req.session.user, { expenseId: idResult.value, amount: expense?.amount });
 

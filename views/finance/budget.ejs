@@ -151,18 +151,13 @@
   </div>
 </div>
 
-<!-- 재원 흐름 -->
-<% if (budget) { %>
+<!-- 재원 흐름 (DB 기반 동적 계산) -->
+<% if (budget && cashFlow && cashFlow.length > 0) { %>
 <%
-  const cashFlow = [
-    { date: '현재',  label: '통장 잔액',       income: null,    expense: null,      balance: 1857698 },
-    { date: '5/9',   label: '양지파인 지출',    income: null,    expense: 1100000,   balance: 757698 },
-    { date: '5/20',  label: '5월 회비 입금',    income: 1100000, expense: null,      balance: 1857698 },
-    { date: '5/23',  label: '대영힐스 지출',    income: null,    expense: 900000,    balance: 957698 },
-    { date: '6/13',  label: '양지파인 지출',    income: null,    expense: 900000,    balance: 57698 },
-    { date: '6/20',  label: '6월 회비 입금',    income: 1100000, expense: null,      balance: 1157698 },
-    { date: '6/27',  label: '대영힐스 지출',    income: null,    expense: 900000,    balance: 257698 },
-  ];
+  const lastRow = cashFlow[cashFlow.length - 1];
+  const finalBalance = lastRow ? lastRow.balance : 0;
+  const totalBudgetForFlow = (budget.company_support - budget.used_support) + budget.carryover + (budget.monthly_fee * budget.fee_months);
+  const totalSpentForFlow = budget.events ? budget.events.reduce((s, e) => s + (e.spent || 0), 0) : 0;
 %>
 <div class="card border-0 shadow-sm mb-3">
   <div class="card-header bg-white py-2 px-3">
@@ -184,16 +179,19 @@
       </thead>
       <tbody>
         <% cashFlow.forEach((row, i) => { %>
-        <tr style="<%= i === 0 ? 'background:#fffbeb;' : '' %>">
+        <tr style="<%= row.current ? 'background:#fffbeb;' : row.planned ? 'background:#f8f9fa; opacity:0.8;' : '' %>">
           <td class="px-2 py-2 text-muted" style="font-size:0.76rem; white-space:nowrap;"><%= row.date %></td>
-          <td class="py-2" style="<%= i===0 ? 'font-weight:600;' : '' %>; white-space:nowrap;"><%= row.label %></td>
+          <td class="py-2" style="<%= row.current ? 'font-weight:600;' : '' %> white-space:nowrap;">
+            <%= row.label %>
+            <% if (row.planned) { %><span class="badge bg-secondary ms-1" style="font-size:0.65rem;">예정</span><% } %>
+          </td>
           <td class="text-end py-2" style="color:#198754; font-weight:600; white-space:nowrap;">
-            <% if (row.income) { %>+<%= (row.income/10000).toFixed(0) %>만<% } else { %><span class="text-muted">—</span><% } %>
+            <% if (row.income) { %>+<%= row.income >= 10000 ? (row.income/10000).toFixed(0)+'만' : row.income.toLocaleString() %><% } else { %><span class="text-muted">—</span><% } %>
           </td>
           <td class="text-end py-2" style="color:#dc3545; font-weight:600; white-space:nowrap;">
-            <% if (row.expense) { %>-<%= (row.expense/10000).toFixed(0) %>만<% } else { %><span class="text-muted">—</span><% } %>
+            <% if (row.expense) { %>-<%= row.expense >= 10000 ? (row.expense/10000).toFixed(0)+'만' : row.expense.toLocaleString() %><% } else { %><span class="text-muted">—</span><% } %>
           </td>
-          <td class="text-end px-2 py-2 fw-bold" style="white-space:nowrap; <%= row.balance < 200000 ? 'color:#dc3545;' : 'color:#212529;' %>">
+          <td class="text-end px-2 py-2 fw-bold" style="white-space:nowrap; <%= row.balance < 0 ? 'color:#dc3545;' : row.balance < 200000 ? 'color:#fd7e14;' : 'color:#212529;' %>">
             <%= row.balance.toLocaleString() %>
           </td>
         </tr>
@@ -202,10 +200,10 @@
       <tfoot>
         <tr style="background:#f0fdf4;">
           <td colspan="3" class="px-2 py-2" style="font-size:0.76rem; color:#166534; font-weight:600; white-space:nowrap;">
-            가용 4,057,698 − 지출 3,800,000
+            가용 <%= totalBudgetForFlow.toLocaleString() %> − 지출 <%= totalSpentForFlow.toLocaleString() %>
           </td>
-          <td colspan="2" class="text-end px-2 py-2" style="font-size:0.85rem; font-weight:700; color:#166534; white-space:nowrap;">
-            잔여 257,698원
+          <td colspan="2" class="text-end px-2 py-2" style="font-size:0.85rem; font-weight:700; color:<%= finalBalance < 0 ? '#dc3545' : '#166534' %>; white-space:nowrap;">
+            잔여 <%= finalBalance.toLocaleString() %>원
           </td>
         </tr>
       </tfoot>

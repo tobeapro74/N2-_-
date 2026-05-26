@@ -664,27 +664,118 @@ router.get('/budget', requireAuth, requireAdmin, async (req, res) => {
   try {
     if (db.refreshCache) {
       await db.refreshCache('event_budgets');
+      await db.refreshCache('incomes');
+      await db.refreshCache('expenses');
     }
 
     const budgets = db.getTable('event_budgets');
     const year = parseInt(req.query.year) || new Date().getFullYear();
     const half = req.query.half || 'first';
-
     const budget = budgets.find(b => b.year === year && b.half === half) || null;
+
+    // 재원 흐름: 실제 DB 수입/지출 기반으로 동적 계산
+    let cashFlow = [];
+    if (budget) {
+      const allIncomes  = db.getTable('incomes');
+      const allExpenses = db.getTable('expenses');
+      const halfStart = half === 'first' ? `${year}-01-01` : `${year}-07-01`;
+      const halfEnd   = half === 'first' ? `${year}-06-30` : `${year}-12-31`;
+
+      // 날짜별 집계
+      const byDate = {};
+      allIncomes
+        .filter(i => i.income_date >= halfStart && i.income_date <= halfEnd)
+        .forEach(i => {
+          if (!byDate[i.income_date]) byDate[i.income_date] = { income: 0, expense: 0 };
+          byDate[i.income_date].income += i.amount;
+        });
+      allExpenses
+        .filter(e => e.expense_date >= halfStart && e.expense_date <= halfEnd)
+        .forEach(e => {
+          if (!byDate[e.expense_date]) byDate[e.expense_date] = { income: 0, expense: 0 };
+          byDate[e.expense_date].expense += e.amount;
+        });
+
+      // 현재 잔액에서 역산하여 각 날짜의 이전 잔액 계산
+      const currentBalance = budget.current_balance || 0;
+      const sortedDates = Object.keys(byDate).sort();
+      let running = currentBalance;
+      const dateRows = [];
+      for (let i = sortedDates.length - 1; i >= 0; i--) {
+        const d = sortedDates[i];
+        const { income, expense } = byDate[d];
+        running = running - income + expense; // 역산
+        dateRows.unshift({ date: d, income, expense, balanceBefore: running });
+      }
+
+      // 현재 잔액 행
+      cashFlow.push({ date: '현재', label: '통장 잔액', income: null, expense: null, balance: currentBalance, current: true });
+
+      // 실제 거래 행 (날짜 오름차순 → 역순으로 표시: 현재가 맨 위이므로 오름차순)
+      let bal = currentBalance;
+      for (const row of dateRows) {
+        const mm = row.date.slice(5, 7).replace(/^0/, '');
+        const dd = row.date.slice(8, 10).replace(/^0/, '');
+        const label = row.income > 0 && row.expense > 0
+          ? `${mm}/${dd} 입출금`
+          : row.income > 0 ? '입금' : '지출';
+        bal = row.balanceBefore + row.income - row.expense;
+        cashFlow.push({
+          date: `${mm}/${dd}`,
+          label,
+          income:  row.income  > 0 ? row.income  : null,
+          expense: row.expense > 0 ? row.expense : null,
+          balance: bal
+        });
+      }
+
+      // 예정 행사 추가 (planned 상태, 날짜순)
+      const realDates = new Set(sortedDates);
+      const plannedEvents = (budget.events || [])
+        .filter(e => e.status === 'planned' && e.date >= halfStart && e.date <= halfEnd)
+        .sort((a, b) => a.date.localeCompare(b.date));
+
+      let lastBal = cashFlow.length > 0 ? cashFlow[cashFlow.length - 1].balance : currentBalance;
+      // 회비 예정 입금 (남은 달)
+      const today = new Date().toISOString().slice(0, 10);
+      const feeRows = [];
+      for (let m = 1; m <= (half === 'first' ? 6 : 12); m++) {
+        const feeDate = `${year}-${String(m).padStart(2,'0')}-20`;
+        if (feeDate > today && feeDate <= halfEnd && !realDates.has(feeDate)) {
+          feeRows.push({ date: feeDate, income: budget.monthly_fee, expense: null });
+        }
+      }
+
+      // 예정 행사 + 회비 합쳐서 날짜순
+      const futureRows = [
+        ...feeRows.map(r => ({ date: r.date, label: `${r.date.slice(5,7).replace(/^0/,'')}월 회비 입금 (예정)`, income: r.income, expense: null })),
+        ...plannedEvents.map(e => ({
+          date: e.date,
+          label: e.name + ' 지출 (예정)',
+          income: null,
+          expense: e.budget || 0
+        }))
+      ].sort((a, b) => a.date.localeCompare(b.date));
+
+      for (const fr of futureRows) {
+        const mm = fr.date.slice(5, 7).replace(/^0/, '');
+        const dd = fr.date.slice(8, 10).replace(/^0/, '');
+        lastBal = lastBal + (fr.income || 0) - (fr.expense || 0);
+        cashFlow.push({ date: `${mm}/${dd}`, label: fr.label, income: fr.income || null, expense: fr.expense || null, balance: lastBal, planned: true });
+      }
+    }
 
     res.render('finance/budget', {
       title: '예산 관리',
       budget,
+      cashFlow,
       year,
       half,
       years: Array.from({ length: 3 }, (_, i) => new Date().getFullYear() + 1 - i)
     });
   } catch (error) {
     console.error('예산관리 조회 오류:', error);
-    res.status(500).render('error', {
-      title: '오류',
-      message: '예산 관리 페이지를 불러오는 중 오류가 발생했습니다.'
-    });
+    res.status(500).render('error', { title: '오류', message: '예산 관리 페이지를 불러오는 중 오류가 발생했습니다.' });
   }
 });
 

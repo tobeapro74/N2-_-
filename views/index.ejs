@@ -74,6 +74,16 @@
     <div class="ss-hero-comment" id="roundComment"></div>
     <div class="ss-hero-btn">결과 보기</div>
   </a>
+  <% if (teamScheduleInfo && teamGroups.length > 0) { %>
+  <a href="#" class="ss-hero-card ss-hero-card--green" onclick="event.preventDefault(); document.getElementById('teamGroupModal').style.display='flex';">
+    <div class="ss-hero-badge">조편성</div>
+    <div class="ss-hero-icon"><i class="bi bi-people-fill"></i></div>
+    <div class="ss-hero-sub">
+      <%= teamScheduleInfo.course_name %><br><%= require('moment')(teamScheduleInfo.play_date).format('M/D (ddd)') %>
+    </div>
+    <div class="ss-hero-btn">조편성 보기</div>
+  </a>
+  <% } else { %>
   <a href="/reservations/available" class="ss-hero-card ss-hero-card--green">
     <div class="ss-hero-badge">예약하기</div>
     <div class="ss-hero-icon"><i class="bi bi-calendar-check-fill"></i></div>
@@ -86,6 +96,7 @@
     </div>
     <div class="ss-hero-btn">예약 신청</div>
   </a>
+  <% } %>
 </div>
 
 <!-- ③ 공지 배너 (다가오는 일정 + 날씨 문구) -->
@@ -164,7 +175,7 @@
       </div>
       <div class="course-row-info">
         <span class="course-row-name"><%= schedule.course_name %></span>
-        <span class="course-row-sub"><%= schedule.location %> · <%= schedule.reserved_count %>/<%= schedule.max_members %>명</span>
+        <span class="course-row-sub"><%= schedule.location %> · <%= schedule.max_members >= 999 ? schedule.reserved_count + '명' : schedule.reserved_count + '/' + schedule.max_members + '명' %></span>
       </div>
       <div class="d-flex flex-column align-items-end gap-1">
         <span class="upcoming-cta-dday <%= dday2 <= 7 ? 'upcoming-cta-dday--near' : '' %>"><%= ddayText2 %></span>
@@ -329,6 +340,47 @@
   </div>
 </div>
 
+<!-- 조편성 모달 -->
+<% if (teamScheduleInfo && teamGroups.length > 0) { %>
+<div id="teamGroupModal" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.55); align-items:center; justify-content:center; padding:1rem;">
+  <div style="background:#fff; border-radius:16px; width:100%; max-width:400px; max-height:85vh; overflow-y:auto; box-shadow:0 8px 32px rgba(0,0,0,0.25);">
+    <!-- 헤더 -->
+    <div style="background:#198754; color:#fff; padding:1rem 1.25rem; border-radius:16px 16px 0 0; display:flex; align-items:center; justify-content:space-between;">
+      <div>
+        <div style="font-size:0.78rem; opacity:0.85; margin-bottom:2px;"><i class="bi bi-people-fill"></i> 조편성</div>
+        <div style="font-weight:700; font-size:1.05rem;"><%= teamScheduleInfo.course_name %></div>
+        <div style="font-size:0.82rem; opacity:0.85;"><%= require('moment')(teamScheduleInfo.play_date).format('YYYY년 M월 D일 (ddd)') %></div>
+      </div>
+      <button onclick="document.getElementById('teamGroupModal').style.display='none'" style="background:none; border:none; color:#fff; font-size:1.4rem; line-height:1; cursor:pointer;">&times;</button>
+    </div>
+    <!-- 조 목록 -->
+    <div style="padding:1rem 1.25rem;">
+      <% teamGroups.forEach(function(group) { %>
+      <div style="border:1px solid #e9ecef; border-radius:10px; padding:0.75rem 1rem; margin-bottom:0.65rem;">
+        <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.45rem;">
+          <span style="background:#198754; color:#fff; border-radius:50%; width:26px; height:26px; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.82rem; flex-shrink:0;"><%= group.team_number %></span>
+          <span style="font-weight:600; color:#198754; font-size:0.9rem;"><%= group.team_number %>조</span>
+          <% if (group.tee_time) { %>
+          <span style="margin-left:auto; font-size:0.78rem; color:#6c757d; background:#f8f9fa; padding:2px 8px; border-radius:20px;"><i class="bi bi-clock"></i> <%= group.tee_time %></span>
+          <% } %>
+        </div>
+        <div style="display:flex; flex-wrap:wrap; gap:0.4rem;">
+          <% group.members.forEach(function(name) { %>
+          <span style="background:#f0faf4; color:#157347; border:1px solid #b7e4c7; border-radius:20px; padding:3px 12px; font-size:0.85rem; font-weight:500;"><%= name %></span>
+          <% }); %>
+        </div>
+      </div>
+      <% }); %>
+    </div>
+    <!-- 푸터 -->
+    <div style="padding:0 1.25rem 1rem; display:flex; gap:0.5rem;">
+      <button onclick="document.getElementById('teamGroupModal').style.display='none'" style="flex:1; padding:0.6rem; border:1px solid #dee2e6; background:#fff; border-radius:8px; font-size:0.9rem; cursor:pointer; color:#6c757d;">닫기</button>
+      <a href="/schedules/<%= teamScheduleInfo.id %>" style="flex:2; padding:0.6rem; background:#198754; color:#fff; border-radius:8px; font-size:0.9rem; font-weight:600; text-align:center; text-decoration:none; display:block;">일정 상세 보기 →</a>
+    </div>
+  </div>
+</div>
+<% } %>
+
 <!-- 골프장 가는길 안내 모달 -->
 <div class="modal fade" id="directionsModal" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered">
@@ -345,6 +397,17 @@
   </div>
 </div>
 
+<script>
+// 조편성 모달 바깥 클릭 시 닫기
+(function() {
+  var modal = document.getElementById('teamGroupModal');
+  if (modal) {
+    modal.addEventListener('click', function(e) {
+      if (e.target === modal) modal.style.display = 'none';
+    });
+  }
+})();
+</script>
 <script>
 // 로그인 상태 확인
 const isLoggedIn = <%= user ? 'true' : 'false' %>;

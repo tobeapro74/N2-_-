@@ -109,7 +109,7 @@
             <td class="py-2 hide-mobile"><small><%= schedule.tee_times || '-' %></small></td>
             <td class="py-2 text-center" data-value="<%= schedule.reserved_count %>">
               <span class="badge <%= schedule.reserved_count >= schedule.max_members ? 'bg-danger' : 'bg-success' %> bg-opacity-75" style="font-size: 0.85rem;">
-                <%= schedule.reserved_count %>/<%= schedule.max_members %>
+                <%= schedule.max_members >= 999 ? schedule.reserved_count + '명' : schedule.reserved_count + '/' + schedule.max_members %>
               </span>
             </td>
             <td class="py-2 text-center">

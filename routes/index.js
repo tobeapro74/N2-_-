@@ -166,6 +166,37 @@ router.get('/', async (req, res) => {
     recentRoundAll = mapped;
   }
 
+  // 조편성 데이터 (가장 가까운 closed 일정 기준)
+  const closedSchedules = schedules
+    .filter(s => s.status === 'closed' && s.play_date >= today)
+    .sort((a, b) => a.play_date.localeCompare(b.play_date));
+  const teamSchedule = closedSchedules[0] || null;
+
+  let teamGroups = [];
+  let teamScheduleInfo = null;
+  if (teamSchedule) {
+    const teamCourse = golfCourses.find(gc => gc.id === teamSchedule.golf_course_id) || {};
+    teamScheduleInfo = {
+      id: teamSchedule.id,
+      play_date: teamSchedule.play_date,
+      course_name: teamCourse.name || '',
+      location: teamCourse.location || ''
+    };
+
+    const teamReservations = reservations.filter(
+      r => r.schedule_id === teamSchedule.id && ['pending', 'confirmed'].includes(r.status) && r.team_number
+    ).sort((a, b) => (a.team_number - b.team_number) || (a.tee_time || '').localeCompare(b.tee_time || ''));
+
+    const groupMap = {};
+    teamReservations.forEach(r => {
+      const key = r.team_number;
+      if (!groupMap[key]) groupMap[key] = { team_number: r.team_number, tee_time: r.tee_time || '', members: [] };
+      const member = allMembers.find(m => Number(m.id) === Number(r.member_id));
+      if (member) groupMap[key].members.push(member.name);
+    });
+    teamGroups = Object.values(groupMap).sort((a, b) => a.team_number - b.team_number);
+  }
+
   // 일상톡톡 최신 게시글 (최근 5개)
   const recentCommunityPosts = communityPosts
     .sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''))
@@ -235,7 +266,9 @@ router.get('/', async (req, res) => {
       recentRoundTop5,
       recentRoundAll,
       recentRoundScheduleId: latestSchedule ? latestSchedule.id : null,
-      completedSchedulesCount: completedSchedules.length
+      completedSchedulesCount: completedSchedules.length,
+      teamScheduleInfo,
+      teamGroups
     });
   } catch (error) {
     console.error('대시보드 로드 오류:', error);

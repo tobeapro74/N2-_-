@@ -72,7 +72,7 @@
                        style="width: <%= (schedule.reserved_count / schedule.max_members) * 100 %>%"></div>
                 </div>
                 <small class="text-nowrap <%= schedule.reserved_count >= schedule.max_members ? 'text-danger fw-bold' : '' %>">
-                  <%= schedule.reserved_count %>/<%= schedule.max_members %>
+                  <%= schedule.max_members >= 999 ? schedule.reserved_count + '명' : schedule.reserved_count + '/' + schedule.max_members %>
                 </small>
               </div>
             </td>
@@ -124,7 +124,7 @@
                    style="width: <%= (schedule.reserved_count / schedule.max_members) * 100 %>%"></div>
             </div>
             <small class="<%= schedule.reserved_count >= schedule.max_members ? 'text-danger fw-bold' : '' %>">
-              <%= schedule.reserved_count %>/<%= schedule.max_members %>
+              <%= schedule.max_members >= 999 ? schedule.reserved_count + '명' : schedule.reserved_count + '/' + schedule.max_members %>
             </small>
           </div>
           <% if (user && user.is_admin) { %>
@@ -189,7 +189,7 @@
                        style="width: <%= (schedule.reserved_count / schedule.max_members) * 100 %>%"></div>
                 </div>
                 <small class="text-nowrap <%= schedule.reserved_count >= schedule.max_members ? 'text-danger fw-bold' : '' %>">
-                  <%= schedule.reserved_count %>/<%= schedule.max_members %>
+                  <%= schedule.max_members >= 999 ? schedule.reserved_count + '명' : schedule.reserved_count + '/' + schedule.max_members %>
                 </small>
               </div>
             </td>
@@ -240,7 +240,7 @@
                    style="width: <%= (schedule.reserved_count / schedule.max_members) * 100 %>%"></div>
             </div>
             <small class="<%= schedule.reserved_count >= schedule.max_members ? 'text-danger fw-bold' : '' %>">
-              <%= schedule.reserved_count %>/<%= schedule.max_members %>
+              <%= schedule.max_members >= 999 ? schedule.reserved_count + '명' : schedule.reserved_count + '/' + schedule.max_members %>
             </small>
           </div>
           <% if (user && user.is_admin) { %>

@@ -2791,4 +2791,134 @@ a:active .card {
   border-top-right-radius: 1rem !important;
 }
 
+/* =====================================================
+   인터랙티브 탭 효과 — 모든 버튼 눌림 피드백
+   ===================================================== */
 
+/* 1. more-menu-item (더보기 오프캔버스 아이콘 버튼) */
+.more-menu-item {
+  transition: transform 0.1s ease, opacity 0.1s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.more-menu-item:active {
+  transform: scale(0.92);
+  opacity: 0.7;
+}
+
+/* 2. btn-outline-* 계열 */
+.btn-outline-primary:active,
+.btn-outline-success:active,
+.btn-outline-danger:active,
+.btn-outline-secondary:active,
+.btn-outline-warning:active,
+.btn-outline-info:active,
+.btn-outline-dark:active,
+.btn-outline-light:active {
+  transform: scale(0.96);
+  opacity: 0.85;
+  transition: transform 0.08s ease, opacity 0.08s ease;
+}
+
+/* 3. btn-secondary */
+.btn-secondary:active {
+  transform: scale(0.96);
+  opacity: 0.85;
+  transition: transform 0.08s ease, opacity 0.08s ease;
+}
+
+/* 4. btn-link (좋아요·댓글·수정·삭제 인라인 버튼) */
+.btn-link:active {
+  transform: scale(0.88);
+  opacity: 0.6;
+  transition: transform 0.08s ease, opacity 0.08s ease;
+}
+
+/* 5. btn-light */
+.btn-light:active {
+  transform: scale(0.96);
+  opacity: 0.8;
+  transition: transform 0.08s ease, opacity 0.08s ease;
+}
+
+/* 6 & 7. 조편성 모달 탭·버튼 (인라인 style 요소 대응) */
+#teamGroupModal button,
+#teamGroupModal a {
+  transition: transform 0.08s ease, opacity 0.1s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+#teamGroupModal button:active,
+#teamGroupModal a:active {
+  transform: scale(0.95);
+  opacity: 0.75;
+}
+
+/* 8. info-dropdown-btn */
+.info-dropdown-btn {
+  transition: background 0.15s ease, transform 0.08s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.info-dropdown-btn:active {
+  transform: scale(0.95);
+  background: #dee2e6 !important;
+}
+
+/* 9. info-refresh-btn */
+.info-refresh-btn {
+  transition: color 0.15s ease, transform 0.08s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.info-refresh-btn:active {
+  transform: scale(0.88);
+  opacity: 0.7;
+}
+
+/* 10. input[type="submit"], input[type="button"] */
+input[type="submit"],
+input[type="button"] {
+  transition: transform 0.08s ease, opacity 0.08s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+input[type="submit"]:active,
+input[type="button"]:active {
+  transform: scale(0.96);
+  opacity: 0.85;
+}
+
+/* 11. sortable 테이블 헤더 */
+.sortable-table th.sortable {
+  transition: background 0.12s ease, transform 0.08s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.sortable-table th.sortable:active {
+  transform: scale(0.97);
+  background: #d0e8ff;
+}
+
+/* 12. 페이지네이션 */
+.page-link {
+  transition: transform 0.08s ease, background 0.12s ease, opacity 0.08s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.page-link:active {
+  transform: scale(0.93);
+  opacity: 0.75;
+}
+
+/* 13. 아코디언 버튼 */
+.accordion-button {
+  transition: background 0.15s ease, transform 0.08s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.accordion-button:active {
+  transform: scale(0.99);
+  background: #e9ecef !important;
+}
+
+/* 공통: 모든 버튼 -webkit-tap 하이라이트 제거 */
+button,
+[role="button"],
+a[href],
+input[type="submit"],
+input[type="button"] {
+  -webkit-tap-highlight-color: transparent;
+}

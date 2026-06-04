@@ -360,6 +360,9 @@
         <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.45rem;">
           <span style="background:#198754; color:#fff; border-radius:50%; width:26px; height:26px; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.82rem; flex-shrink:0;"><%= group.team_number %></span>
           <span style="font-weight:600; color:#198754; font-size:0.9rem;"><%= group.team_number %>조</span>
+          <% if (group.course) { %>
+          <span style="font-size:0.75rem; color:#0d6efd; background:#e8f0fe; padding:2px 8px; border-radius:20px; font-weight:500;"><%= group.course %></span>
+          <% } %>
           <% if (group.tee_time) { %>
           <span style="margin-left:auto; font-size:0.78rem; color:#6c757d; background:#f8f9fa; padding:2px 8px; border-radius:20px;"><i class="bi bi-clock"></i> <%= group.tee_time %></span>
           <% } %>

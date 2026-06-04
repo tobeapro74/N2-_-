@@ -199,10 +199,19 @@ router.get('/', async (req, res) => {
       r => r.schedule_id === teamSchedule.id && ['pending', 'confirmed'].includes(r.status) && r.team_number
     ).sort((a, b) => (a.team_number - b.team_number) || (a.tee_time || '').localeCompare(b.tee_time || ''));
 
+    // 조번호별 코스 매핑 (예약 데이터의 course 필드 우선, 없으면 team_number 기반 추론)
+    const courseByTeam = {};
+    teamReservations.forEach(r => {
+      if (r.course && !courseByTeam[r.team_number]) courseByTeam[r.team_number] = r.course;
+    });
+
     const groupMap = {};
     teamReservations.forEach(r => {
       const key = r.team_number;
-      if (!groupMap[key]) groupMap[key] = { team_number: r.team_number, tee_time: r.tee_time || '', members: [] };
+      if (!groupMap[key]) {
+        // course 필드 없으면 tee_time으로 코스 구분 (같은 티타임 내 조번호 순)
+        groupMap[key] = { team_number: r.team_number, tee_time: r.tee_time || '', course: courseByTeam[key] || '', members: [] };
+      }
       const member = allMembers.find(m => Number(m.id) === Number(r.member_id));
       if (member) groupMap[key].members.push(member.name);
     });

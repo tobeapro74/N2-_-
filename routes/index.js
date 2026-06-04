@@ -1,8 +1,17 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../models/database');
-const moment = require('moment');
 const { getSeoulYearMonth, getSeoulDateString } = require('../utils/koreaDate');
+
+const DAYS_KO = ['일', '월', '화', '수', '목', '금', '토'];
+function formatDateShort(dateStr) {
+  const d = new Date(dateStr + 'T00:00:00+09:00');
+  return `${d.getMonth() + 1}/${d.getDate()} (${DAYS_KO[d.getDay()]})`;
+}
+function formatDateLong(dateStr) {
+  const d = new Date(dateStr + 'T00:00:00+09:00');
+  return `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일 (${DAYS_KO[d.getDay()]})`;
+}
 
 // 코스 홀 정보 (정적 데이터 - JS 모듈로 관리)
 const courseHolesData = require('../data/courseHoles');
@@ -180,8 +189,8 @@ router.get('/', async (req, res) => {
     teamScheduleInfo = {
       id: teamSchedule.id,
       play_date: teamSchedule.play_date,
-      play_date_short: moment(teamSchedule.play_date).format('M/D (ddd)'),
-      play_date_long: moment(teamSchedule.play_date).format('YYYY년 M월 D일 (ddd)'),
+      play_date_short: formatDateShort(teamSchedule.play_date),
+      play_date_long: formatDateLong(teamSchedule.play_date),
       course_name: teamCourse.name || '',
       location: teamCourse.location || ''
     };

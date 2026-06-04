@@ -79,7 +79,7 @@
     <div class="ss-hero-badge">조편성</div>
     <div class="ss-hero-icon"><i class="bi bi-people-fill"></i></div>
     <div class="ss-hero-sub">
-      <%= teamScheduleInfo.course_name %><br><%= require('moment')(teamScheduleInfo.play_date).format('M/D (ddd)') %>
+      <%= teamScheduleInfo.course_name %><br><%= teamScheduleInfo.play_date_short %>
     </div>
     <div class="ss-hero-btn">조편성 보기</div>
   </a>
@@ -349,7 +349,7 @@
       <div>
         <div style="font-size:0.78rem; opacity:0.85; margin-bottom:2px;"><i class="bi bi-people-fill"></i> 조편성</div>
         <div style="font-weight:700; font-size:1.05rem;"><%= teamScheduleInfo.course_name %></div>
-        <div style="font-size:0.82rem; opacity:0.85;"><%= require('moment')(teamScheduleInfo.play_date).format('YYYY년 M월 D일 (ddd)') %></div>
+        <div style="font-size:0.82rem; opacity:0.85;"><%= teamScheduleInfo.play_date_long %></div>
       </div>
       <button onclick="document.getElementById('teamGroupModal').style.display='none'" style="background:none; border:none; color:#fff; font-size:1.4rem; line-height:1; cursor:pointer;">&times;</button>
     </div>

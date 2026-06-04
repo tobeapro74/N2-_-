@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../models/database');
+const moment = require('moment');
 const { getSeoulYearMonth, getSeoulDateString } = require('../utils/koreaDate');
 
 // 코스 홀 정보 (정적 데이터 - JS 모듈로 관리)
@@ -179,6 +180,8 @@ router.get('/', async (req, res) => {
     teamScheduleInfo = {
       id: teamSchedule.id,
       play_date: teamSchedule.play_date,
+      play_date_short: moment(teamSchedule.play_date).format('M/D (ddd)'),
+      play_date_long: moment(teamSchedule.play_date).format('YYYY년 M월 D일 (ddd)'),
       course_name: teamCourse.name || '',
       location: teamCourse.location || ''
     };

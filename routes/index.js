@@ -176,17 +176,15 @@ router.get('/', async (req, res) => {
     recentRoundAll = mapped;
   }
 
-  // 조편성 데이터 (가장 가까운 closed 일정 기준)
+  // 조편성 데이터 (closed 상태 미래 일정 전체, 최대 3개)
   const closedSchedules = schedules
     .filter(s => s.status === 'closed' && s.play_date >= today)
-    .sort((a, b) => a.play_date.localeCompare(b.play_date));
-  const teamSchedule = closedSchedules[0] || null;
+    .sort((a, b) => a.play_date.localeCompare(b.play_date))
+    .slice(0, 3);
 
-  let teamGroups = [];
-  let teamScheduleInfo = null;
-  if (teamSchedule) {
+  const teamScheduleList = closedSchedules.map(teamSchedule => {
     const teamCourse = golfCourses.find(gc => gc.id === teamSchedule.golf_course_id) || {};
-    teamScheduleInfo = {
+    const info = {
       id: teamSchedule.id,
       play_date: teamSchedule.play_date,
       play_date_short: formatDateShort(teamSchedule.play_date),
@@ -199,7 +197,6 @@ router.get('/', async (req, res) => {
       r => r.schedule_id === teamSchedule.id && ['pending', 'confirmed'].includes(r.status) && r.team_number
     ).sort((a, b) => (a.team_number - b.team_number) || (a.tee_time || '').localeCompare(b.tee_time || ''));
 
-    // 조번호별 코스 매핑 (예약 데이터의 course 필드 우선, 없으면 team_number 기반 추론)
     const courseByTeam = {};
     teamReservations.forEach(r => {
       if (r.course && !courseByTeam[r.team_number]) courseByTeam[r.team_number] = r.course;
@@ -208,15 +205,17 @@ router.get('/', async (req, res) => {
     const groupMap = {};
     teamReservations.forEach(r => {
       const key = r.team_number;
-      if (!groupMap[key]) {
-        // course 필드 없으면 tee_time으로 코스 구분 (같은 티타임 내 조번호 순)
-        groupMap[key] = { team_number: r.team_number, tee_time: r.tee_time || '', course: courseByTeam[key] || '', members: [] };
-      }
+      if (!groupMap[key]) groupMap[key] = { team_number: r.team_number, tee_time: r.tee_time || '', course: courseByTeam[key] || '', members: [] };
       const member = allMembers.find(m => Number(m.id) === Number(r.member_id));
       if (member) groupMap[key].members.push(member.name);
     });
-    teamGroups = Object.values(groupMap).sort((a, b) => a.team_number - b.team_number);
-  }
+    const groups = Object.values(groupMap).sort((a, b) => a.team_number - b.team_number);
+    return { info, groups };
+  }).filter(s => s.groups.length > 0);
+
+  // 하위호환 (기존 단일 변수 — 뷰에서 teamScheduleInfo/teamGroups 제거 예정)
+  const teamScheduleInfo = teamScheduleList[0]?.info || null;
+  const teamGroups = teamScheduleList[0]?.groups || [];
 
   // 일상톡톡 최신 게시글 (최근 5개)
   const recentCommunityPosts = communityPosts
@@ -289,7 +288,8 @@ router.get('/', async (req, res) => {
       recentRoundScheduleId: latestSchedule ? latestSchedule.id : null,
       completedSchedulesCount: completedSchedules.length,
       teamScheduleInfo,
-      teamGroups
+      teamGroups,
+      teamScheduleList
     });
   } catch (error) {
     console.error('대시보드 로드 오류:', error);

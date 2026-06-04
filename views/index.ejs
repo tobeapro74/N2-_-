@@ -74,12 +74,14 @@
     <div class="ss-hero-comment" id="roundComment"></div>
     <div class="ss-hero-btn">결과 보기</div>
   </a>
-  <% if (teamScheduleInfo && teamGroups.length > 0) { %>
-  <a href="#" class="ss-hero-card ss-hero-card--green" onclick="event.preventDefault(); document.getElementById('teamGroupModal').style.display='flex';">
+  <% if (teamScheduleList && teamScheduleList.length > 0) { %>
+  <a href="#" class="ss-hero-card ss-hero-card--green" onclick="event.preventDefault(); showTeamModal(0);">
     <div class="ss-hero-badge">조편성</div>
     <div class="ss-hero-icon"><i class="bi bi-people-fill"></i></div>
-    <div class="ss-hero-sub">
-      <%= teamScheduleInfo.course_name %><br><%= teamScheduleInfo.play_date_short %>
+    <div class="ss-hero-sub" style="font-size:0.82rem;">
+      <% teamScheduleList.forEach(function(s, i) { %>
+      <span style="display:block; <%= i === 0 ? 'font-weight:700;' : 'opacity:0.75;' %>"><%= s.info.play_date_short %> <%= s.info.course_name %></span>
+      <% }); %>
     </div>
     <div class="ss-hero-btn">조편성 보기</div>
   </a>
@@ -341,47 +343,90 @@
 </div>
 
 <!-- 조편성 모달 -->
-<% if (teamScheduleInfo && teamGroups.length > 0) { %>
+<% if (teamScheduleList && teamScheduleList.length > 0) { %>
 <div id="teamGroupModal" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.55); align-items:center; justify-content:center; padding:1rem;">
-  <div style="background:#fff; border-radius:16px; width:100%; max-width:400px; max-height:85vh; overflow-y:auto; box-shadow:0 8px 32px rgba(0,0,0,0.25);">
+  <div style="background:#fff; border-radius:16px; width:100%; max-width:420px; max-height:88vh; display:flex; flex-direction:column; box-shadow:0 8px 32px rgba(0,0,0,0.25);">
     <!-- 헤더 -->
-    <div style="background:#198754; color:#fff; padding:1rem 1.25rem; border-radius:16px 16px 0 0; display:flex; align-items:center; justify-content:space-between;">
+    <div style="background:#198754; color:#fff; padding:1rem 1.25rem; border-radius:16px 16px 0 0; display:flex; align-items:center; justify-content:space-between; flex-shrink:0;">
       <div>
         <div style="font-size:0.78rem; opacity:0.85; margin-bottom:2px;"><i class="bi bi-people-fill"></i> 조편성</div>
-        <div style="font-weight:700; font-size:1.05rem;"><%= teamScheduleInfo.course_name %></div>
-        <div style="font-size:0.82rem; opacity:0.85;"><%= teamScheduleInfo.play_date_long %></div>
+        <div id="tmCourseName" style="font-weight:700; font-size:1.05rem;"></div>
+        <div id="tmDateLong" style="font-size:0.82rem; opacity:0.85;"></div>
       </div>
       <button onclick="document.getElementById('teamGroupModal').style.display='none'" style="background:none; border:none; color:#fff; font-size:1.4rem; line-height:1; cursor:pointer;">&times;</button>
     </div>
-    <!-- 조 목록 -->
-    <div style="padding:1rem 1.25rem;">
-      <% teamGroups.forEach(function(group) { %>
-      <div style="border:1px solid #e9ecef; border-radius:10px; padding:0.75rem 1rem; margin-bottom:0.65rem;">
-        <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.45rem;">
-          <span style="background:#198754; color:#fff; border-radius:50%; width:26px; height:26px; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.82rem; flex-shrink:0;"><%= group.team_number %></span>
-          <span style="font-weight:600; color:#198754; font-size:0.9rem;"><%= group.team_number %>조</span>
-          <% if (group.course) { %>
-          <span style="font-size:0.75rem; color:#0d6efd; background:#e8f0fe; padding:2px 8px; border-radius:20px; font-weight:500;"><%= group.course %></span>
-          <% } %>
-          <% if (group.tee_time) { %>
-          <span style="margin-left:auto; font-size:0.78rem; color:#6c757d; background:#f8f9fa; padding:2px 8px; border-radius:20px;"><i class="bi bi-clock"></i> <%= group.tee_time %></span>
-          <% } %>
-        </div>
-        <div style="display:flex; flex-wrap:wrap; gap:0.4rem;">
-          <% group.members.forEach(function(name) { %>
-          <span style="background:#f0faf4; color:#157347; border:1px solid #b7e4c7; border-radius:20px; padding:3px 12px; font-size:0.85rem; font-weight:500;"><%= name %></span>
-          <% }); %>
-        </div>
-      </div>
+    <!-- 탭 -->
+    <div style="display:flex; border-bottom:1px solid #dee2e6; background:#f8f9fa; flex-shrink:0;">
+      <% teamScheduleList.forEach(function(s, i) { %>
+      <button id="tmTab<%= i %>" onclick="showTeamModal(<%= i %>)"
+        style="flex:1; padding:0.6rem 0.25rem; border:none; background:none; font-size:0.82rem; font-weight:600; color:#6c757d; border-bottom:2px solid transparent; cursor:pointer;">
+        <%= s.info.play_date_short %>
+      </button>
       <% }); %>
     </div>
+    <!-- 조 목록 (스크롤) -->
+    <div id="tmGroupList" style="padding:1rem 1.25rem; overflow-y:auto; flex:1;"></div>
     <!-- 푸터 -->
-    <div style="padding:0 1.25rem 1rem; display:flex; gap:0.5rem;">
+    <div style="padding:0 1.25rem 1rem; display:flex; gap:0.5rem; flex-shrink:0;">
       <button onclick="document.getElementById('teamGroupModal').style.display='none'" style="flex:1; padding:0.6rem; border:1px solid #dee2e6; background:#fff; border-radius:8px; font-size:0.9rem; cursor:pointer; color:#6c757d;">닫기</button>
-      <a href="/schedules/<%= teamScheduleInfo.id %>" style="flex:2; padding:0.6rem; background:#198754; color:#fff; border-radius:8px; font-size:0.9rem; font-weight:600; text-align:center; text-decoration:none; display:block;">일정 상세 보기 →</a>
+      <a id="tmDetailLink" href="#" style="flex:2; padding:0.6rem; background:#198754; color:#fff; border-radius:8px; font-size:0.9rem; font-weight:600; text-align:center; text-decoration:none; display:block;">일정 상세 보기 →</a>
     </div>
   </div>
 </div>
+
+<script>
+var _teamData = <%- JSON.stringify(teamScheduleList) %>;
+var _tmActive = 0;
+
+function showTeamModal(idx) {
+  _tmActive = idx || 0;
+  document.getElementById('teamGroupModal').style.display = 'flex';
+  renderTeamModal();
+}
+
+function renderTeamModal() {
+  var d = _teamData[_tmActive];
+  if (!d) return;
+
+  // 헤더
+  document.getElementById('tmCourseName').textContent = d.info.course_name;
+  document.getElementById('tmDateLong').textContent = d.info.play_date_long;
+  document.getElementById('tmDetailLink').href = '/schedules/' + d.info.id;
+
+  // 탭 활성화
+  _teamData.forEach(function(_, i) {
+    var tab = document.getElementById('tmTab' + i);
+    if (tab) {
+      tab.style.color = i === _tmActive ? '#198754' : '#6c757d';
+      tab.style.borderBottomColor = i === _tmActive ? '#198754' : 'transparent';
+      tab.style.background = i === _tmActive ? '#fff' : 'none';
+    }
+  });
+
+  // 조 목록 렌더링
+  var html = '';
+  d.groups.forEach(function(g) {
+    html += '<div style="border:1px solid #e9ecef; border-radius:10px; padding:0.75rem 1rem; margin-bottom:0.65rem;">';
+    html += '<div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.45rem;">';
+    html += '<span style="background:#198754; color:#fff; border-radius:50%; width:26px; height:26px; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.82rem; flex-shrink:0;">' + g.team_number + '</span>';
+    html += '<span style="font-weight:600; color:#198754; font-size:0.9rem;">' + g.team_number + '조</span>';
+    if (g.course) html += '<span style="font-size:0.75rem; color:#0d6efd; background:#e8f0fe; padding:2px 8px; border-radius:20px; font-weight:500;">' + g.course + '</span>';
+    if (g.tee_time) html += '<span style="margin-left:auto; font-size:0.78rem; color:#6c757d; background:#f8f9fa; padding:2px 8px; border-radius:20px;"><i class="bi bi-clock"></i> ' + g.tee_time + '</span>';
+    html += '</div>';
+    html += '<div style="display:flex; flex-wrap:wrap; gap:0.4rem;">';
+    g.members.forEach(function(name) {
+      html += '<span style="background:#f0faf4; color:#157347; border:1px solid #b7e4c7; border-radius:20px; padding:3px 12px; font-size:0.85rem; font-weight:500;">' + name + '</span>';
+    });
+    html += '</div></div>';
+  });
+  document.getElementById('tmGroupList').innerHTML = html;
+}
+
+// 바깥 클릭 시 닫기
+document.getElementById('teamGroupModal').addEventListener('click', function(e) {
+  if (e.target === this) this.style.display = 'none';
+});
+</script>
 <% } %>
 
 <!-- 골프장 가는길 안내 모달 -->
@@ -400,17 +445,6 @@
   </div>
 </div>
 
-<script>
-// 조편성 모달 바깥 클릭 시 닫기
-(function() {
-  var modal = document.getElementById('teamGroupModal');
-  if (modal) {
-    modal.addEventListener('click', function(e) {
-      if (e.target === modal) modal.style.display = 'none';
-    });
-  }
-})();
-</script>
 <script>
 // 로그인 상태 확인
 const isLoggedIn = <%= user ? 'true' : 'false' %>;

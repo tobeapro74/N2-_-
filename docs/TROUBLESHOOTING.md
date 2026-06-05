@@ -1970,4 +1970,58 @@ async function syncBudgetBalance() {
 
 ---
 
-*마지막 업데이트: 2026-05-26*
+---
+
+### 문제: 홈 조편성 배너 EJS에서 require('moment') 오류
+
+**증상**: Vercel 배포 후 홈화면 500 에러 — `Cannot find module 'moment'`
+
+**원인**: EJS 템플릿 내부에서 `require('moment')`를 직접 호출 → Vercel 서버리스 환경에서 모듈 로드 실패
+
+**해결**: 날짜 포맷을 라우터(`routes/index.js`)에서 미리 계산하여 `play_date_short`, `play_date_long`으로 뷰에 전달
+```javascript
+// routes/index.js
+teamScheduleInfo = {
+  play_date_short: formatDateShort(teamSchedule.play_date),
+  play_date_long:  formatDateLong(teamSchedule.play_date),
+  ...
+};
+```
+
+---
+
+### 문제: 조편성 배너 날짜가 하루 빠지게 표시 (6/13 → 6/12)
+
+**증상**: 로컬에서는 정상, Vercel 배포 후 날짜가 하루 빠짐
+
+**원인**: `new Date('2026-06-13T00:00:00+09:00')`을 UTC 서버에서 파싱하면 `2026-06-12T15:00:00Z`가 되어 `getDate()`가 12 반환
+
+**해결**: `'YYYY-MM-DD'` 문자열을 직접 파싱하여 `new Date(y, m-1, d)` 로컬 생성자 사용
+```javascript
+function formatDateShort(dateStr) {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const day = new Date(y, m - 1, d).getDay();
+  return `${m}/${d} (${DAYS_KO[day]})`;
+}
+```
+
+---
+
+### 문제: 조편성 모달 '일정 상세 보기' 클릭 시 탭 효과 미표시
+
+**증상**: 버튼을 눌러도 눌림 애니메이션 없이 바로 페이지 이동
+
+**원인**: `<a href>` 태그는 클릭 즉시 페이지 이동 → CSS transition 효과가 보이기 전에 화면 전환
+
+**해결**: `<a>` → `<button>`으로 교체 + `ontouchstart/ontouchend` 인라인 처리 + `setTimeout(120ms)` 후 이동
+```javascript
+function tmGoDetail() {
+  if (_tmDetailUrl) {
+    setTimeout(function() { location.href = _tmDetailUrl; }, 120);
+  }
+}
+```
+
+---
+
+*마지막 업데이트: 2026-06-05*

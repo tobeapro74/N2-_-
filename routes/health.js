@@ -1,14 +1,14 @@
 const express = require('express');
 const router = express.Router();
 
-router.get('/', async (req, res) => {
+router.get('/', async (_req, res) => {
   const checks = { server: 'ok' };
   let monthlyBookings;
 
   try {
     const db = require('../models/database');
-    const all = await db.getAll('reservations');
     const now = new Date();
+    const all = await db.getTableAsync('reservations');
     monthlyBookings = all.filter((r) => {
       const d = new Date(r.created_at || r.date || '');
       return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();

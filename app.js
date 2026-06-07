@@ -239,6 +239,7 @@ const communityRouter = require('./routes/community');
 const pushRouter = require('./routes/push');
 const notificationsRouter = require('./routes/notifications');
 const myScoreRouter = require('./routes/myScore');
+const healthRouter = require('./routes/health');
 
 app.use('/', indexRouter);
 app.use('/auth', authRouter);
@@ -253,6 +254,7 @@ app.use('/community', communityRouter);
 app.use('/api/push', pushRouter);
 app.use('/notifications', notificationsRouter);
 app.use('/my-score', myScoreRouter);
+app.use('/api/health', healthRouter);
 
 // 404 에러 처리
 app.use((req, res) => {

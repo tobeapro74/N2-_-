@@ -58,6 +58,13 @@ router.post('/login', requireGuest, async (req, res) => {
       is_admin: member.is_admin
     };
 
+    // DAU 집계를 위해 마지막 로그인 시각 업데이트
+    try {
+      await db.update('members', member.id, { last_login: new Date().toISOString() });
+    } catch (e) {
+      console.error('last_login 업데이트 오류:', e.message);
+    }
+
     logger.audit('로그인 성공', req.session.user, { ip: req.ip });
 
     // 원래 요청 URL로 리다이렉트

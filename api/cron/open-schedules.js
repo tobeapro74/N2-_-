@@ -131,6 +131,18 @@ module.exports = async function handler(req, res) {
       console.log(`스케줄 오픈 완료: ${openedSchedules.map(s => s.play_date).join(', ')}`);
     }
 
+    // 마지막 크론 실행 시각 기록 (health 체크용)
+    try {
+      const db = client.db(DB_NAME);
+      await db.collection('agent_snapshots').updateOne(
+        { key: 'cron_last_run' },
+        { $set: { key: 'cron_last_run', executedAt: now.toISOString(), openedCount } },
+        { upsert: true }
+      );
+    } catch (snapErr) {
+      console.error('스냅샷 저장 오류:', snapErr.message);
+    }
+
     return res.status(200).json({
       success: true,
       message: `${openedCount}개 스케줄 오픈 처리 완료`,

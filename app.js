@@ -201,6 +201,9 @@ app.use((req, res, next) => {
   } else if (p.match(/^\/schedules\/\d+$/)) {
     // 일정 상세 페이지는 예약/상태 변경 실시간 반영
     res.setHeader('Vercel-CDN-Cache-Control', 's-maxage=0');
+  } else if (p.match(/^\/schedules\/\d+\//)) {
+    // 일정 하위 페이지(results 등)도 캐시 없음
+    res.setHeader('Vercel-CDN-Cache-Control', 's-maxage=0');
   } else if (p.startsWith('/schedules/community')) {
     res.setHeader('Vercel-CDN-Cache-Control', 's-maxage=120, stale-while-revalidate=30');
   } else if (p.startsWith('/schedules')) {

@@ -1446,6 +1446,21 @@ router.post('/:id/results/ocr', requireAuth, requireAdmin, upload.array('images'
       return res.status(500).json({ error: 'ANTHROPIC_API_KEY가 설정되지 않았습니다.' });
     }
 
+    // 서버에서 이미지 리사이즈 (Vercel 4.5MB body 한도 + Claude API 5MB 제한 대응)
+    const sharp = require('sharp');
+    const resizedFiles = await Promise.all(files.map(async (file) => {
+      try {
+        const resizedBuffer = await sharp(file.buffer)
+          .resize(1200, 1200, { fit: 'inside', withoutEnlargement: true })
+          .jpeg({ quality: 80 })
+          .toBuffer();
+        return { ...file, buffer: resizedBuffer, mimetype: 'image/jpeg' };
+      } catch (e) {
+        console.error('[OCR] 리사이즈 실패, 원본 사용:', e.message);
+        return file;
+      }
+    }));
+
     const Anthropic = require('@anthropic-ai/sdk');
     const client = new Anthropic({ apiKey: ANTHROPIC_API_KEY });
 
@@ -1482,9 +1497,9 @@ JSON 형식 (다른 텍스트 없이 JSON만 반환):
 }`;
 
     // 모든 이미지를 병렬로 동시에 분석 (순차 → 병렬로 변경하여 타임아웃 방지)
-    console.log(`[OCR] ${files.length}장 병렬 분석 시작`);
+    console.log(`[OCR] ${resizedFiles.length}장 병렬 분석 시작`);
     const results = await Promise.allSettled(
-      files.map((file, idx) => {
+      resizedFiles.map((file, idx) => {
         console.log(`[OCR] 장 ${idx + 1} API 호출 시작`);
         return client.messages.create({
           model: 'claude-haiku-4-5',

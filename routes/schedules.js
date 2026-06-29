@@ -1484,7 +1484,7 @@ JSON 형식 (다른 텍스트 없이 JSON만 반환):
     const allOcrData = [];
     for (const file of files) {
       const message = await client.messages.create({
-        model: 'claude-sonnet-4-5-20251001',
+        model: 'claude-sonnet-4-5',
         max_tokens: 4096,
         messages: [{
           role: 'user',

@@ -610,9 +610,7 @@ async function extractFromScorecard(imageUrl) {
     const imgRes = await fetch(imageUrl);
     const blob = await imgRes.blob();
 
-    // 리사이즈
-    let file = new File([blob], 'scorecard.jpg', { type: blob.type });
-    file = await resizeImage(file);
+    const file = new File([blob], 'scorecard.jpg', { type: blob.type });
 
     const formData = new FormData();
     formData.append('images', file);

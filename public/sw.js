@@ -1,4 +1,4 @@
-const CACHE_NAME = 'n2golf-v42';
+const CACHE_NAME = 'n2golf-v43';
 
 // 초기 캐시할 정적 파일
 const STATIC_ASSETS = [

@@ -1451,6 +1451,7 @@ router.post('/:id/results/ocr', requireAuth, requireAdmin, upload.array('images'
     const resizedFiles = await Promise.all(files.map(async (file) => {
       try {
         const resizedBuffer = await sharp(file.buffer)
+          .rotate()  // EXIF orientation 자동 보정 (90도 회전 사진 등)
           .resize(1200, 1200, { fit: 'inside', withoutEnlargement: true })
           .jpeg({ quality: 80 })
           .toBuffer();

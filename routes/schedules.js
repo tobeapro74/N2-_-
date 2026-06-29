@@ -49,7 +49,8 @@ const upload = multer({
   storage: storage,
   fileFilter: fileFilter,
   limits: {
-    fileSize: 10 * 1024 * 1024 // 10MB 제한
+    fileSize: 4 * 1024 * 1024,  // Vercel body 한도(4.5MB) 고려해 파일당 4MB 제한
+    files: 3
   }
 });
 

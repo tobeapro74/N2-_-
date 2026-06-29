@@ -99,8 +99,12 @@
       <div class="upload-zone" id="uploadZone" onclick="document.getElementById('ocrFileInput').click()">
         <i class="bi bi-cloud-upload"></i>
         <p class="mt-2 mb-1 text-muted">결과표 사진을 클릭하거나 드래그하여 업로드</p>
-        <small class="text-muted">사진을 업로드하면 AI가 자동으로 결과를 인식합니다</small>
-        <input type="file" id="ocrFileInput" accept="image/*" class="d-none">
+        <small class="text-muted">최대 3장까지 선택 가능 · AI가 자동으로 결과를 인식합니다</small>
+        <input type="file" id="ocrFileInput" accept="image/*" class="d-none" multiple>
+      </div>
+      <!-- 선택된 파일 미리보기 -->
+      <div id="ocrFilePreview" class="d-none mt-2">
+        <div class="d-flex flex-wrap gap-2" id="ocrFileList"></div>
       </div>
 
       <!-- OCR 진행 상태 -->
@@ -427,13 +431,28 @@ if (uploadZone) {
     uploadZone.addEventListener(e, (evt) => { evt.preventDefault(); uploadZone.classList.remove('drag-over'); });
   });
   uploadZone.addEventListener('drop', (evt) => {
-    const files = evt.dataTransfer.files;
-    if (files.length > 0) processOcrFile(files[0]);
+    const files = Array.from(evt.dataTransfer.files).filter(f => f.type.startsWith('image/')).slice(0, 3);
+    if (files.length > 0) { showFilePreview(files); processOcrFiles(files); }
   });
 
   ocrFileInput.addEventListener('change', () => {
-    if (ocrFileInput.files.length > 0) processOcrFile(ocrFileInput.files[0]);
+    const files = Array.from(ocrFileInput.files).slice(0, 3);
+    if (files.length > 0) { showFilePreview(files); processOcrFiles(files); }
   });
+}
+
+function showFilePreview(files) {
+  const preview = document.getElementById('ocrFilePreview');
+  const list = document.getElementById('ocrFileList');
+  list.innerHTML = '';
+  files.forEach((f, i) => {
+    const url = URL.createObjectURL(f);
+    list.innerHTML += `<div class="text-center" style="width:80px">
+      <img src="${url}" style="width:80px;height:60px;object-fit:cover;border-radius:6px;border:1px solid #dee2e6">
+      <small class="d-block text-muted mt-1" style="font-size:0.7rem">${i+1}/${files.length}장</small>
+    </div>`;
+  });
+  preview.classList.remove('d-none');
 }
 
 // 이미지 리사이즈 (Claude API 5MB 제한 대응)
@@ -459,29 +478,21 @@ function resizeImage(file, maxWidth = 1600, maxHeight = 1600, quality = 0.85) {
   });
 }
 
-async function processOcrFile(file) {
-  if (!file.type.startsWith('image/')) {
-    alert('이미지 파일만 업로드 가능합니다.');
-    return;
-  }
-
+async function processOcrFiles(files) {
   // 진행 상태 표시
   document.getElementById('ocrProgress').classList.remove('d-none');
-  document.getElementById('ocrPreview').classList.remove('d-none');
   document.getElementById('ocrPreview').classList.add('d-none');
-  document.getElementById('ocrStatusText').textContent = '이미지 처리 중...';
-
-  // 이미지 리사이즈 (5MB 초과 방지)
-  let processedFile = file;
-  if (file.size > 3 * 1024 * 1024) {
-    processedFile = await resizeImage(file);
-  }
-
-  document.getElementById('ocrStatusText').textContent = 'AI가 결과표를 분석 중입니다... (10~20초 소요)';
+  document.getElementById('ocrStatusText').textContent = `이미지 ${files.length}장 처리 중...`;
 
   const formData = new FormData();
-  formData.append('image', processedFile);
+  for (const file of files) {
+    // 이미지 리사이즈 (5MB 초과 방지)
+    const processedFile = file.size > 3 * 1024 * 1024 ? await resizeImage(file) : file;
+    formData.append('images', processedFile);
+  }
   formData.append('_csrf', csrfToken);
+
+  document.getElementById('ocrStatusText').textContent = `AI가 결과표 ${files.length}장을 분석 중입니다... (10~30초 소요)`;
 
   try {
     const res = await fetch(`/schedules/${scheduleId}/results/ocr`, {
@@ -490,8 +501,8 @@ async function processOcrFile(file) {
       body: formData
     });
 
-    const text = await res.text();
     document.getElementById('ocrProgress').classList.add('d-none');
+    const text = await res.text();
 
     let data;
     try {
@@ -560,6 +571,8 @@ function clearOcrResults() {
   ocrMergedResults = [];
   document.getElementById('ocrPreview').classList.add('d-none');
   document.getElementById('ocrResultsBody').innerHTML = '';
+  document.getElementById('ocrFilePreview').classList.add('d-none');
+  document.getElementById('ocrFileList').innerHTML = '';
   ocrFileInput.value = '';
 }
 
@@ -623,7 +636,7 @@ async function extractFromScorecard(imageUrl) {
     }
 
     const formData = new FormData();
-    formData.append('image', file);
+    formData.append('images', file);
     formData.append('_csrf', csrfToken);
 
     const res = await fetch(`/schedules/${scheduleId}/results/ocr`, {
@@ -632,8 +645,8 @@ async function extractFromScorecard(imageUrl) {
       body: formData
     });
 
-    const text = await res.text();
     document.getElementById('ocrProgress').classList.add('d-none');
+    const text = await res.text();
 
     let data;
     try {

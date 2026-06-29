@@ -319,7 +319,7 @@
                     <option value="revert">원복</option>
                     <% } %>
                     <option value="">-</option>
-                    <% for (let t = 1; t <= 4; t++) { %>
+                    <% for (let t = 1; t <= 10; t++) { %>
                     <option value="<%= t %>" <%= r.team_number === t ? 'selected' : '' %>><%= t %>팀</option>
                     <% } %>
                   </select>

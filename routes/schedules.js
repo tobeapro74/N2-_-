@@ -1433,9 +1433,10 @@ router.post('/:id/results', requireAuth, requireAdmin, async (req, res) => {
 });
 
 // 결과표 사진 OCR (Claude Vision API)
-router.post('/:id/results/ocr', requireAuth, requireAdmin, upload.single('image'), async (req, res) => {
+router.post('/:id/results/ocr', requireAuth, requireAdmin, upload.array('images', 3), async (req, res) => {
   try {
-    if (!req.file) {
+    const files = req.files && req.files.length > 0 ? req.files : (req.file ? [req.file] : []);
+    if (files.length === 0) {
       return res.status(400).json({ error: '이미지 파일이 없습니다.' });
     }
 
@@ -1454,23 +1455,22 @@ router.post('/:id/results/ocr', requireAuth, requireAdmin, upload.single('image'
       .map(m => m.name)
       .join(', ');
 
-    // 이미지를 base64로 변환
-    const base64Image = req.file.buffer.toString('base64');
-    const mediaType = req.file.mimetype;
+    // 여러 이미지를 content 배열로 구성 (최대 3장)
+    const imageContents = files.map(file => ({
+      type: 'image',
+      source: { type: 'base64', media_type: file.mimetype, data: file.buffer.toString('base64') }
+    }));
 
     const message = await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-4-5-20251001',
       max_tokens: 4096,
       messages: [{
         role: 'user',
         content: [
-          {
-            type: 'image',
-            source: { type: 'base64', media_type: mediaType, data: base64Image }
-          },
+          ...imageContents,
           {
             type: 'text',
-            text: `이 골프 라운딩 결과표 사진을 분석해서 JSON 형식으로 반환해주세요.
+            text: `이 골프 라운딩 결과표 사진(${files.length}장)을 분석해서 JSON 형식으로 반환해주세요. 여러 장인 경우 모든 사진의 데이터를 합쳐서 하나의 JSON으로 반환하세요.
 
 중요: 이름은 반드시 아래 회원 목록에서 가장 유사한 이름으로 매칭해주세요.
 회원 목록: ${memberNames}

@@ -1455,22 +1455,8 @@ router.post('/:id/results/ocr', requireAuth, requireAdmin, upload.array('images'
       .map(m => m.name)
       .join(', ');
 
-    // 여러 이미지를 content 배열로 구성 (최대 3장)
-    const imageContents = files.map(file => ({
-      type: 'image',
-      source: { type: 'base64', media_type: file.mimetype, data: file.buffer.toString('base64') }
-    }));
-
-    const message = await client.messages.create({
-      model: 'claude-sonnet-4-5-20251001',
-      max_tokens: 4096,
-      messages: [{
-        role: 'user',
-        content: [
-          ...imageContents,
-          {
-            type: 'text',
-            text: `이 골프 라운딩 결과표 사진(${files.length}장)을 분석해서 JSON 형식으로 반환해주세요. 여러 장인 경우 모든 사진의 데이터를 합쳐서 하나의 JSON으로 반환하세요.
+    // 이미지 1장씩 순차 분석 후 병합 (타임아웃 방지)
+    const ocrPrompt = `이 골프 라운딩 결과표 사진을 분석해서 JSON 형식으로 반환해주세요.
 
 중요: 이름은 반드시 아래 회원 목록에서 가장 유사한 이름으로 매칭해주세요.
 회원 목록: ${memberNames}
@@ -1492,30 +1478,48 @@ JSON 형식 (다른 텍스트 없이 JSON만 반환):
   "pars": [{"name": "홍길동", "count": 7}, ...],
   "bogeys": [{"name": "홍길동", "count": 11}, ...],
   "doubles": [{"name": "홍길동", "count": 9}, ...]
-}`
-          }
-        ]
-      }]
-    });
+}`;
 
-    // Claude 응답에서 JSON 추출
-    let responseText = message.content[0].text;
+    // 각 이미지를 개별 분석
+    const allOcrData = [];
+    for (const file of files) {
+      const message = await client.messages.create({
+        model: 'claude-sonnet-4-5-20251001',
+        max_tokens: 4096,
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'image', source: { type: 'base64', media_type: file.mimetype, data: file.buffer.toString('base64') } },
+            { type: 'text', text: ocrPrompt }
+          ]
+        }]
+      });
 
-    // JSON 블록 추출 (```json ... ``` 형식 대응)
-    const jsonMatch = responseText.match(/```(?:json)?\s*([\s\S]*?)```/);
-    if (jsonMatch) {
-      responseText = jsonMatch[1].trim();
+      let responseText = message.content[0].text;
+      const jsonMatch = responseText.match(/```(?:json)?\s*([\s\S]*?)```/);
+      if (jsonMatch) responseText = jsonMatch[1].trim();
+
+      try {
+        allOcrData.push(JSON.parse(responseText));
+      } catch (parseError) {
+        console.error('OCR JSON 파싱 오류 (장 무시):', responseText.substring(0, 200));
+      }
     }
 
-    let ocrData;
-    try {
-      ocrData = JSON.parse(responseText);
-    } catch (parseError) {
-      console.error('OCR JSON 파싱 오류:', responseText);
-      return res.status(400).json({
-        error: 'OCR 결과를 파싱할 수 없습니다. 다시 시도해주세요.',
-        raw: responseText
-      });
+    if (allOcrData.length === 0) {
+      return res.status(400).json({ error: 'OCR 결과를 파싱할 수 없습니다. 다시 시도해주세요.' });
+    }
+
+    // 여러 장 결과 병합 (중복 이름 제거, 나중 장이 앞 장을 덮어쓰지 않고 누락 항목만 추가)
+    const ocrData = { ranking: [], peoria: [], birdies: [], pars: [], bogeys: [], doubles: [] };
+    for (const data of allOcrData) {
+      for (const key of Object.keys(ocrData)) {
+        if (!data[key]) continue;
+        for (const item of data[key]) {
+          const exists = ocrData[key].some(e => e.name === item.name);
+          if (!exists) ocrData[key].push(item);
+        }
+      }
     }
 
     // 이름 유사도 매칭 (레벤슈타인 거리 기반)

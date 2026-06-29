@@ -1481,31 +1481,38 @@ JSON 형식 (다른 텍스트 없이 JSON만 반환):
   "doubles": [{"name": "홍길동", "count": 9}, ...]
 }`;
 
-    // 각 이미지를 개별 분석
-    const allOcrData = [];
-    for (const file of files) {
-      const message = await client.messages.create({
-        model: 'claude-sonnet-4-5',
-        max_tokens: 4096,
-        messages: [{
-          role: 'user',
-          content: [
-            { type: 'image', source: { type: 'base64', media_type: file.mimetype, data: file.buffer.toString('base64') } },
-            { type: 'text', text: ocrPrompt }
-          ]
-        }]
-      });
+    // 모든 이미지를 병렬로 동시에 분석 (순차 → 병렬로 변경하여 타임아웃 방지)
+    console.log(`[OCR] ${files.length}장 병렬 분석 시작`);
+    const results = await Promise.allSettled(
+      files.map((file, idx) => {
+        console.log(`[OCR] 장 ${idx + 1} API 호출 시작`);
+        return client.messages.create({
+          model: 'claude-haiku-4-5',
+          max_tokens: 2048,
+          messages: [{
+            role: 'user',
+            content: [
+              { type: 'image', source: { type: 'base64', media_type: file.mimetype, data: file.buffer.toString('base64') } },
+              { type: 'text', text: ocrPrompt }
+            ]
+          }]
+        }).then(message => {
+          console.log(`[OCR] 장 ${idx + 1} API 응답 완료`);
+          let responseText = message.content[0].text;
+          const jsonMatch = responseText.match(/```(?:json)?\s*([\s\S]*?)```/);
+          if (jsonMatch) responseText = jsonMatch[1].trim();
+          return JSON.parse(responseText);
+        });
+      })
+    );
 
-      let responseText = message.content[0].text;
-      const jsonMatch = responseText.match(/```(?:json)?\s*([\s\S]*?)```/);
-      if (jsonMatch) responseText = jsonMatch[1].trim();
+    const allOcrData = results
+      .filter(r => r.status === 'fulfilled')
+      .map(r => r.value);
 
-      try {
-        allOcrData.push(JSON.parse(responseText));
-      } catch (parseError) {
-        console.error('OCR JSON 파싱 오류 (장 무시):', responseText.substring(0, 200));
-      }
-    }
+    results.filter(r => r.status === 'rejected').forEach((r, i) => {
+      console.error(`[OCR] 장 ${i + 1} 실패:`, r.reason?.message || r.reason);
+    });
 
     if (allOcrData.length === 0) {
       return res.status(400).json({ error: 'OCR 결과를 파싱할 수 없습니다. 다시 시도해주세요.' });

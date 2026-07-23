@@ -113,7 +113,20 @@
         </div>
 
         <!-- 예약 버튼 -->
-        <% if (schedule.status === 'pending') { %>
+        <% if (schedule.status === 'confirmed') { %>
+        <hr>
+        <% if (user && user.is_admin) { %>
+        <div class="alert alert-success mb-0 text-center">
+          <i class="bi bi-check-circle"></i> 조편성이 확정된 일정입니다.<br>
+          <small class="text-muted">관리자 메뉴에서 직접 수정하세요.</small>
+        </div>
+        <% } else { %>
+        <div class="alert alert-secondary mb-0 text-center">
+          <i class="bi bi-lock"></i> 조편성이 확정된 일정입니다.<br>
+          <small class="text-muted">예약 신청은 관리자만 가능합니다.</small>
+        </div>
+        <% } %>
+        <% } else if (schedule.status === 'pending') { %>
         <hr>
         <% if (user && user.is_admin) { %>
         <div class="alert alert-info mb-0 text-center">

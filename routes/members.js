@@ -296,6 +296,12 @@ router.get('/:id', requireAuth, async (req, res) => {
   const golfCourses = db.getTable('golf_courses');
   const roundResults = db.getTable('round_results');
 
+  // 전체 라운딩 수: 과거 날짜 기준 completed/confirmed/closed 스케줄
+  const today = new Date().toISOString().slice(0, 10);
+  const totalScheduleCount = schedules.filter(s =>
+    s.play_date <= today && ['completed', 'confirmed', 'closed'].includes(s.status)
+  ).length;
+
   const participations = reservations
     .map(r => {
       const schedule = schedules.find(s => s.id === r.schedule_id) || {};
@@ -324,7 +330,8 @@ router.get('/:id', requireAuth, async (req, res) => {
     title: `회원 정보 - ${member.name}`,
     member,
     participations,
-    avgScore
+    avgScore,
+    totalScheduleCount
   });
 });
 

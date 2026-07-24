@@ -86,7 +86,7 @@
   <div class="col-md-8">
     <div class="card border-0 shadow-sm">
       <div class="card-header bg-white py-2 d-flex justify-content-between align-items-center">
-        <h6 class="mb-0 fw-bold" style="font-size: 0.9rem;"><i class="bi bi-calendar-check text-primary me-2"></i>참가 이력 <small class="text-muted fw-normal">총 <%= participations.filter(p => ['confirmed','pending','waitlist'].includes(p.status)).length %>회</small></h6>
+        <h6 class="mb-0 fw-bold" style="font-size: 0.9rem;"><i class="bi bi-calendar-check text-primary me-2"></i>참가 이력 <small class="text-muted fw-normal"><%= participations.filter(p => ['confirmed','pending','waitlist'].includes(p.status)).length %>회 / 전체 <%= totalScheduleCount %>회</small></h6>
         <% if (avgScore) { %>
         <span class="badge bg-primary" style="font-size: 0.85rem;">평균 <%= avgScore %>타</span>
         <% } %>

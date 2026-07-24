@@ -202,7 +202,7 @@
 
         <% if (user && user.is_admin && reservations.length > 0) { %>
         <hr>
-        <button type="button" class="btn btn-primary w-100" onclick="assignTeams(<%= schedule.id %>)">
+        <button type="button" class="btn btn-primary w-100" onclick="showTeamModal()">
           <i class="bi bi-people"></i> 팀 배정
         </button>
         <% } %>
@@ -453,18 +453,7 @@ function cancelReservation(reservationId) {
 }
 
 function assignTeams(scheduleId) {
-  if (!confirm('팀 배정을 진행하시겠습니까?')) return;
-
-  fetch(`/schedules/${scheduleId}/assign-teams`, { method: 'POST' })
-    .then(res => res.json())
-    .then(data => {
-      if (data.success) {
-        alert(data.message);
-        location.reload();
-      } else {
-        alert(data.error || '오류가 발생했습니다.');
-      }
-    });
+  showTeamModal();
 }
 
 function deleteReservation(reservationId, memberName) {
@@ -973,6 +962,116 @@ document.querySelectorAll('.status-select').forEach(select => {
     bootstrap.Modal.getInstance(document.getElementById('scheduleNoticeModal')).hide();
   });
 })();
+</script>
+
+<!-- 조편성표 모달 -->
+<% if (user && user.is_admin) { %>
+<%
+  // 팀별 그룹핑
+  const confirmedReservations = reservations.filter(r => !['cancelled','deleted'].includes(r.status));
+  const teamMap = {};
+  confirmedReservations.forEach(r => {
+    if (!r.team_number) return;
+    const key = r.team_number;
+    if (!teamMap[key]) teamMap[key] = { team: r.team_number, course: r.course || '', teeTime: r.tee_time || '', members: [] };
+    teamMap[key].members.push(r.member_name);
+  });
+  const teamList = Object.values(teamMap).sort((a, b) => a.team - b.team);
+%>
+<div class="modal fade" id="teamAssignModal" tabindex="-1" aria-labelledby="teamAssignModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header" style="background: linear-gradient(135deg, #1a5c2a, #2d8a44); color: white;">
+        <h5 class="modal-title fw-bold" id="teamAssignModalLabel">
+          <i class="bi bi-people-fill me-2"></i>
+          조편성표 — <%= schedule.course_name %> (<%= moment(schedule.play_date).format('M월 D일') %>)
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-3" style="background: #fffde7;">
+        <% if (teamList.length === 0) { %>
+        <p class="text-center text-muted py-4">팀 배정 정보가 없습니다.</p>
+        <% } else { %>
+        <div class="table-responsive">
+          <table class="table table-bordered align-middle mb-0" style="border-color: #c8a800; font-size: 0.92rem;">
+            <thead>
+              <tr style="background: #f5c800; color: #333;">
+                <th class="text-center" style="width: 60px;">조</th>
+                <th class="text-center" style="width: 90px;">코스</th>
+                <th class="text-center" style="width: 75px;">티타임</th>
+                <th class="text-center">성명1</th>
+                <th class="text-center">성명2</th>
+                <th class="text-center">성명3</th>
+                <th class="text-center">성명4</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% teamList.forEach((team, idx) => { %>
+              <tr style="background: <%= idx % 2 === 0 ? '#fffde7' : '#fff9c4' %>;">
+                <td class="text-center fw-bold"><%= team.team %>조</td>
+                <td class="text-center">
+                  <% if (team.course) { %>
+                  <span class="badge" style="background: <%= team.course.includes('청') || team.course === 'IN' ? '#2196f3' : team.course.includes('미') || team.course === 'OUT' ? '#9c27b0' : '#666' %>; font-size: 0.85rem; padding: 4px 8px;">
+                    <%= team.course %>코스
+                  </span>
+                  <% } else { %>
+                  <span class="text-muted">-</span>
+                  <% } %>
+                </td>
+                <td class="text-center fw-bold"><%= team.teeTime || '-' %></td>
+                <% for (let i = 0; i < 4; i++) { %>
+                <td class="text-center">
+                  <% if (team.members[i]) { %>
+                  <strong><%= team.members[i] %></strong>
+                  <% } else { %>
+                  <span class="text-muted" style="font-size: 0.8rem;">-</span>
+                  <% } %>
+                </td>
+                <% } %>
+              </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+        <div class="text-end mt-2">
+          <small class="text-muted">총 <%= confirmedReservations.filter(r => r.team_number).length %>명 배정</small>
+        </div>
+        <% } %>
+      </div>
+      <div class="modal-footer" style="background: #fff9c4;">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
+        <% if (teamList.length === 0) { %>
+        <button type="button" class="btn btn-primary" onclick="runAssignTeams(<%= schedule.id %>)">
+          <i class="bi bi-shuffle"></i> 자동 팀 배정
+        </button>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</div>
+<% } %>
+
+<script>
+function showTeamModal() {
+  const modal = new bootstrap.Modal(document.getElementById('teamAssignModal'));
+  modal.show();
+}
+
+function runAssignTeams(scheduleId) {
+  if (!confirm('자동 팀 배정을 진행하시겠습니까?')) return;
+  bootstrap.Modal.getInstance(document.getElementById('teamAssignModal')).hide();
+
+  fetch(`/schedules/${scheduleId}/assign-teams`, { method: 'POST' })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        alert(data.message);
+        location.reload();
+      } else {
+        alert(data.error || '오류가 발생했습니다.');
+      }
+    });
+}
 </script>
 
 <%- include('../partials/footer') %>

@@ -119,7 +119,7 @@
               <span class="badge bg-warning text-dark" style="font-size: 0.85rem;">대기접수중</span>
               <% } else if (schedule.status === 'open') { %>
               <span class="badge bg-success bg-opacity-75" style="font-size: 0.85rem;">예약가능</span>
-              <% } else if (schedule.status === 'closed') { %>
+              <% } else if (schedule.status === 'closed' || schedule.status === 'confirmed') { %>
               <span class="badge bg-secondary" style="font-size: 0.85rem;">마감</span>
               <% } else if (schedule.status === 'completed') { %>
               <span class="badge bg-secondary" style="font-size: 0.85rem;">완료</span>

@@ -88,7 +88,7 @@
               <span class="badge bg-info">오픈전</span>
               <% } else if (schedule.status === 'open') { %>
               <span class="badge bg-success">예약가능</span>
-              <% } else if (schedule.status === 'closed') { %>
+              <% } else if (schedule.status === 'closed' || schedule.status === 'confirmed') { %>
               <span class="badge bg-warning">마감</span>
               <% } else if (schedule.status === 'completed') { %>
               <span class="badge bg-secondary">완료</span>

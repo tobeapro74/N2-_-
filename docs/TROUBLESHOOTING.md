@@ -22,6 +22,8 @@
 17. [회원 비밀번호 미설정 (로그인 불가)](#17-회원-비밀번호-미설정-로그인-불가)
 18. [일상톡톡 동영상 업로드 오류 (Safari / Vercel 본문 한도)](#18-일상톡톡-동영상-업로드-오류-safari--vercel-본문-한도)
 19. [홈 총잔액·이번 달 지출이 JSON과 다름 / 이번 달 지출 0원](#19-홈-총잔액이번-달-지출이-datajson과-다름--이번-달-지출-0원)
+20. [일정 상태 confirmed가 목록에서 '취소'로 표시](#20-일정-상태-confirmed가-목록에서-취소로-표시)
+21. [MongoDB 직접 수정 후 Vercel 캐시 불일치](#21-mongodb-직접-수정-후-vercel-캐시-불일치)
 
 ---
 
@@ -2024,4 +2026,35 @@ function tmGoDetail() {
 
 ---
 
-*마지막 업데이트: 2026-06-05*
+---
+
+### 문제: 일정 상태 confirmed가 목록에서 '취소'로 표시 {#20-일정-상태-confirmed가-목록에서-취소로-표시}
+
+**증상**: 관리자가 직접 등록한 조편성 확정 일정(status=confirmed)이 일정 목록·상세 화면에서 빨간 '취소' 배지로 표시
+
+**원인**: `list.ejs`, `detail.ejs`의 상태 표시 분기에 `confirmed` 케이스가 없어 `else`(취소)로 fall-through
+
+**해결**: `closed` 조건에 `confirmed` 추가
+```ejs
+<%  } else if (schedule.status === 'closed' || schedule.status === 'confirmed') { %>
+<span class="badge bg-secondary">마감</span>
+```
+
+---
+
+### 문제: MongoDB 직접 수정 후 Vercel 캐시 불일치 {#21-mongodb-직접-수정-후-vercel-캐시-불일치}
+
+**증상**: Node.js 스크립트로 MongoDB를 직접 수정했을 때 Vercel 앱에서 이전 데이터가 계속 노출
+
+**원인**: `models/database.js`의 `mongoCache`가 앱 시작 시(`cacheLoaded=true`) 한번만 로드됨. 동일 인스턴스 재사용 중에는 캐시 갱신 없이 메모리 데이터 반환
+
+**해결 방법**:
+1. `getTableAsync()`는 매 요청마다 MongoDB 직접 조회 → 목록 라우트가 이를 사용하면 자동 최신화
+2. 앱 내부 `db.update()` / `db.refreshCache()` 경유 수정만 캐시 자동 갱신 보장
+3. 외부 스크립트로 직접 수정 시: 앱 재배포 또는 `db.refreshCache()` 엔드포인트 호출 필요
+
+**근본 대응**: 관리자 조편성 등록은 반드시 앱의 edit API(`POST /schedules/:id/edit`) 경유 또는 MongoDB 수정 후 더미 배포(git push)로 캐시 강제 초기화
+
+---
+
+*마지막 업데이트: 2026-07-24*

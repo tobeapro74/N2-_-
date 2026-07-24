@@ -12,6 +12,7 @@
 9. [전역 로딩 인디케이터](#9-전역-로딩-인디케이터)
 10. [Pull-to-Refresh (당겨서 새로고침)](#10-pull-to-refresh-당겨서-새로고침)
 11. [커뮤니티 리액션 시각화](#11-커뮤니티-리액션-시각화)
+12. [조편성 관리 시스템](#12-조편성-관리-시스템)
 
 ---
 
@@ -1394,3 +1395,63 @@ END:VCARD
 - **현재**: `n2golf.vercel.app` (2026-05-06 변경)
 - **이전**: `my-first-app-nine-alpha.vercel.app`
 - Vercel 프로젝트명: `n2golf`
+
+---
+
+## 12. 조편성 관리 시스템
+
+### 개요
+실물 명단표(사진) → OCR 텍스트 추출 → MongoDB 직접 등록 → 앱 화면 표시 워크플로우
+
+### 일정(schedule) 상태 정의
+
+| status | 의미 | 예약 신청 | 표시 배지 |
+|--------|------|-----------|-----------|
+| `pending` | 오픈 전 | 불가 | 오픈전 |
+| `open` | 예약 가능 | 가능 | 예약가능 |
+| `closed` | 마감 | 불가 | 마감 |
+| `confirmed` | 관리자 확정 조편성 | 불가 | 마감 |
+| `completed` | 라운딩 완료 | 불가 | 완료 |
+
+- `confirmed`: 관리자가 실물 명단 기준으로 직접 등록한 확정 조편성. `closed`와 동일하게 마감 표시.
+
+### 예약(reservation) 데이터 구조 (조편성 등록 시)
+
+```json
+{
+  "id": 305,
+  "schedule_id": 18,
+  "member_id": 20,
+  "status": "confirmed",
+  "team_number": 1,
+  "tee_time": "05:51",
+  "course": "IN",
+  "priority": 0,
+  "applied_at": "2026-07-24T..."
+}
+```
+
+- `course`: 코스 구분 (IN/OUT 또는 청/미 등 골프장별 표기)
+- `team_number`: 조 번호 (1~6)
+- `tee_time`: 해당 조 티오프 시간
+
+### 조편성표 모달 (`views/schedules/detail.ejs`)
+
+팀 배정 버튼 클릭 → Bootstrap 모달 표시
+- 서버사이드 EJS에서 `reservations`를 `team_number`별로 그룹핑
+- 황색(#fffde7) 배경 테마로 실물 명단표와 유사한 디자인
+- 코스별 색상 뱃지 (청코스: 파랑, 미코스: 보라, IN: 파랑, OUT: 보라)
+- 팀 미배정 시 자동 팀 배정 버튼 노출
+
+### 조편성 등록 워크플로우
+
+```
+1. 실물 명단 사진 → Claude에 텍스트 추출 요청
+2. 미등록 회원 확인 → MongoDB members 컬렉션에 추가
+3. schedule 업데이트: status=confirmed, tee_times, max_members=24
+4. 기존 reservations 물리 삭제 (유니크 인덱스 idx_schedule_member 충돌 방지)
+5. 6조×4명 reservations 신규 삽입 (team_number, tee_time, course 포함)
+```
+
+> **주의**: `reservations` 컬렉션에 `idx_schedule_member (schedule_id, member_id)` 유니크 인덱스 존재.
+> 기존 예약을 cancelled로만 처리하면 재삽입 시 E11000 duplicate key 오류 발생 → 물리 삭제 필요.

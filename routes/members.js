@@ -10,14 +10,15 @@ const { logger } = require('../utils/logger');
 // 회원 목록
 router.get('/', requireAuth, async (req, res) => {
   const { search } = req.query;
-  // 기본 필터: active + ob 포함, 'all'이면 전체, 특정 status 선택 시 해당 값만
-  const status = req.query.status || 'active';
+  // 기본 필터: active_only(활동만), 'all'이면 전체, 'active'이면 활동+OB
+  const status = req.query.status || 'active_only';
 
   const allMembers = await db.getTableAsync('members');
   let members = allMembers.filter(m => !m.is_admin);
 
-  if (status === 'active') {
-    // 기본: 활동(active) + OB 모두 표시
+  if (status === 'active_only') {
+    members = members.filter(m => m.status === 'active');
+  } else if (status === 'active') {
     members = members.filter(m => m.status === 'active' || m.status === 'ob');
   } else if (status !== 'all') {
     members = members.filter(m => m.status === status);

@@ -23,8 +23,9 @@
         <label for="status-filter" class="form-label mb-1" style="font-size: 0.85rem; color: #6c757d;">상태</label>
         <select name="status" id="status-filter" class="form-select form-select-sm" style="font-size: 0.85rem;">
           <option value="all" <%= filters.status === 'all' ? 'selected' : '' %>>전체</option>
+          <option value="active_only" <%= filters.status === 'active_only' ? 'selected' : '' %>>활동</option>
           <option value="active" <%= filters.status === 'active' ? 'selected' : '' %>>활동+OB</option>
-          <option value="ob" <%= filters.status === 'ob' ? 'selected' : '' %>>OB만</option>
+          <option value="ob" <%= filters.status === 'ob' ? 'selected' : '' %>>OB</option>
           <option value="inactive" <%= filters.status === 'inactive' ? 'selected' : '' %>>탈퇴</option>
           <option value="pending" <%= filters.status === 'pending' ? 'selected' : '' %>>대기</option>
         </select>
@@ -80,7 +81,11 @@
           <tr data-href="/members/<%= member.id %>" tabindex="0" role="button" aria-label="<%= member.name %> 회원 상세 보기">
             <td class="py-2 ps-3">
               <strong><%= member.name %></strong>
-              <% if (member.role) { %><span class="badge bg-primary ms-1" style="font-size: 0.85rem;"><%= member.role %></span><% } %>
+              <% if (member.status === 'ob') { %>
+              <span class="badge bg-warning text-dark ms-1" style="font-size: 0.85rem;">OB</span>
+              <% } else if (member.role) { %>
+              <span class="badge bg-primary ms-1" style="font-size: 0.85rem;"><%= member.role %></span>
+              <% } %>
             </td>
             <td class="py-2"><%= member.internal_phone || '-' %></td>
             <td class="py-2"><small><% if (member.mobile) { %><a href="tel:<%= member.mobile %>" class="text-decoration-none text-dark"><%= member.mobile %></a> <a href="/members/<%= member.id %>/vcard" class="text-muted ms-1" title="연락처 저장"><i class="bi bi-person-plus"></i></a><% } else { %>-<% } %></small></td>
@@ -129,7 +134,11 @@
         <div class="item-header">
           <div class="item-title">
             <%= member.name %>
-            <% if (member.role) { %><span class="badge bg-primary ms-1" style="font-size:0.75rem;"><%= member.role %></span><% } %>
+            <% if (member.status === 'ob') { %>
+            <span class="badge bg-warning text-dark ms-1" style="font-size:0.75rem;">OB</span>
+            <% } else if (member.role) { %>
+            <span class="badge bg-primary ms-1" style="font-size:0.75rem;"><%= member.role %></span>
+            <% } %>
           </div>
           <div class="d-flex align-items-center gap-2">
             <% if (member.status === 'active') { %>

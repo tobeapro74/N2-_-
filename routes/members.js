@@ -400,7 +400,7 @@ router.post('/:id/edit', requireAuth, requireAdmin, async (req, res) => {
     });
   }
 
-  const statusResult = validateEnum(status, ['active', 'inactive', 'pending'], { fieldName: '상태' });
+  const statusResult = validateEnum(status, ['active', 'ob', 'inactive', 'pending'], { fieldName: '상태' });
   if (!statusResult.valid) {
     return res.render('members/form', {
       title: '회원 정보 수정',

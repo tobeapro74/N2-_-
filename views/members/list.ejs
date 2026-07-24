@@ -24,6 +24,7 @@
         <select name="status" id="status-filter" class="form-select form-select-sm" style="font-size: 0.85rem;">
           <option value="all" <%= filters.status === 'all' ? 'selected' : '' %>>전체</option>
           <option value="active" <%= filters.status === 'active' ? 'selected' : '' %>>활동</option>
+          <option value="ob" <%= filters.status === 'ob' ? 'selected' : '' %>>OB</option>
           <option value="inactive" <%= filters.status === 'inactive' ? 'selected' : '' %>>탈퇴</option>
           <option value="pending" <%= filters.status === 'pending' ? 'selected' : '' %>>대기</option>
         </select>
@@ -98,6 +99,8 @@
             <td class="py-2 text-center">
               <% if (member.status === 'active') { %>
               <span class="badge bg-success" style="font-size: 0.85rem;">활동</span>
+              <% } else if (member.status === 'ob') { %>
+              <span class="badge bg-warning text-dark" style="font-size: 0.85rem;">OB</span>
               <% } else if (member.status === 'inactive') { %>
               <span class="badge bg-secondary" style="font-size: 0.85rem;">탈퇴</span>
               <% } else { %>
@@ -131,6 +134,8 @@
           <div class="d-flex align-items-center gap-2">
             <% if (member.status === 'active') { %>
             <span class="badge bg-success">활동</span>
+            <% } else if (member.status === 'ob') { %>
+            <span class="badge bg-warning text-dark">OB</span>
             <% } else if (member.status === 'inactive') { %>
             <span class="badge bg-secondary">탈퇴</span>
             <% } else { %>

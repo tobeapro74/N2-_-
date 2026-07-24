@@ -86,7 +86,7 @@
   <div class="col-md-8">
     <div class="card border-0 shadow-sm">
       <div class="card-header bg-white py-2 d-flex justify-content-between align-items-center">
-        <h6 class="mb-0 fw-bold" style="font-size: 0.9rem;"><i class="bi bi-calendar-check text-primary me-2"></i>참가 이력 <small class="text-muted fw-normal">총 <%= participations.filter(p => p.status === 'confirmed').length %>회</small></h6>
+        <h6 class="mb-0 fw-bold" style="font-size: 0.9rem;"><i class="bi bi-calendar-check text-primary me-2"></i>참가 이력 <small class="text-muted fw-normal">총 <%= participations.filter(p => ['confirmed','pending','waitlist'].includes(p.status)).length %>회</small></h6>
         <% if (avgScore) { %>
         <span class="badge bg-primary" style="font-size: 0.85rem;">평균 <%= avgScore %>타</span>
         <% } %>
@@ -105,7 +105,6 @@
                 <th class="py-2 ps-3">일자</th>
                 <th class="py-2">골프장</th>
                 <th class="py-2 text-center">상태</th>
-                <th class="py-2 text-center">팀</th>
                 <th class="py-2 text-center">타수</th>
                 <% if (user && user.is_admin) { %>
                 <th class="py-2 pe-3 text-center">관리</th>
@@ -118,17 +117,12 @@
                 <td class="py-2 ps-3"><%= moment(p.play_date).format('MM/DD') %> <span class="badge bg-light text-dark" style="font-size: 0.85rem;"><%= moment(p.play_date).format('ddd') %></span></td>
                 <td class="py-2"><%= p.course_name %></td>
                 <td class="py-2 text-center">
-                  <% if (p.status === 'confirmed') { %>
-                  <span class="badge bg-success bg-opacity-75" style="font-size: 0.85rem;">확정</span>
-                  <% } else if (p.status === 'pending') { %>
-                  <span class="badge bg-warning text-dark" style="font-size: 0.85rem;">대기</span>
-                  <% } else if (p.status === 'waitlist') { %>
-                  <span class="badge bg-info" style="font-size: 0.85rem;">대기자</span>
+                  <% if (['confirmed','pending','waitlist'].includes(p.status)) { %>
+                  <span class="badge bg-success bg-opacity-75" style="font-size: 0.85rem;">참석</span>
                   <% } else { %>
-                  <span class="badge bg-secondary" style="font-size: 0.85rem;">취소</span>
+                  <span class="badge bg-secondary" style="font-size: 0.85rem;">미참석</span>
                   <% } %>
                 </td>
-                <td class="py-2 text-center"><small><%= p.team_number ? p.team_number + '팀' : '-' %></small></td>
                 <td class="py-2 text-center">
                   <% if (p.score) { %>
                   <span class="badge bg-primary bg-opacity-75" style="font-size: 0.85rem;"><%= p.score %></span>

@@ -296,10 +296,13 @@ router.get('/:id', requireAuth, async (req, res) => {
   const golfCourses = db.getTable('golf_courses');
   const roundResults = db.getTable('round_results');
 
-  // 전체 라운딩 수: 과거 날짜 기준 completed/confirmed/closed 스케줄
-  const today = new Date().toISOString().slice(0, 10);
+  // KST 오늘 날짜 (Vercel UTC 환경 대응)
+  const nowKST = new Date(Date.now() + 9 * 60 * 60 * 1000);
+  const today = nowKST.toISOString().slice(0, 10);
+
+  // 전체 라운딩 수: 오늘 이전 완료된 스케줄 (completed/confirmed/closed)
   const totalScheduleCount = schedules.filter(s =>
-    s.play_date <= today && ['completed', 'confirmed', 'closed'].includes(s.status)
+    s.play_date < today && ['completed', 'confirmed', 'closed'].includes(s.status)
   ).length;
 
   const participations = reservations
@@ -307,12 +310,14 @@ router.get('/:id', requireAuth, async (req, res) => {
       const schedule = schedules.find(s => s.id === r.schedule_id) || {};
       const course = golfCourses.find(gc => gc.id === schedule.golf_course_id) || {};
       const result = roundResults.find(rr => rr.schedule_id === r.schedule_id && rr.member_id === r.member_id);
+      const isPast = schedule.play_date < today;
       return {
         ...r,
         play_date: schedule.play_date,
         course_name: course.name,
         score: result ? result.score : null,
-        rank: result ? result.rank : null
+        rank: result ? result.rank : null,
+        isPast  // 과거 여부: 상태 표시 분기용
       };
     })
     .sort((a, b) => (b.play_date || '').localeCompare(a.play_date || ''))

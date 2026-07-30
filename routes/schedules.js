@@ -334,7 +334,8 @@ router.get('/:id', requireAuth, async (req, res) => {
         course_max: golfCourse.max_members
       },
       reservations,
-      myReservation
+      myReservation,
+      user: req.session.user || null
     });
   } catch (error) {
     console.error('일정 상세 조회 오류:', error);
@@ -511,6 +512,7 @@ router.get('/:id/community', requireAuth, async (req, res) => {
         course_name: golfCourse.name,
         location: golfCourse.location
       },
+      user: req.session.user || null,
       cloudinaryCloudName: process.env.CLOUDINARY_CLOUD_NAME || ''
     });
   } catch (error) {
@@ -1328,6 +1330,7 @@ router.get('/:id/results', requireAuth, async (req, res) => {
         course_name: golfCourse.name,
         location: golfCourse.location
       },
+      user: req.session.user || null,
       results
     });
   } catch (error) {

@@ -63,7 +63,7 @@ router.get('/', async (req, res) => {
   const today = getSeoulDateString();
 
   const upcomingSchedules = schedules
-    .filter(s => s.play_date >= today && ['open', 'pending', 'closed'].includes(s.status))
+    .filter(s => s.play_date >= today && ['open', 'pending', 'closed', 'confirmed'].includes(s.status))
     .sort((a, b) => a.play_date.localeCompare(b.play_date))
     .slice(0, 5)
     .map(s => {

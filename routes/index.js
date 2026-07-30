@@ -179,9 +179,9 @@ router.get('/', async (req, res) => {
     recentRoundAll = mapped;
   }
 
-  // 조편성 데이터 (closed 상태 미래 일정 전체, 최대 3개)
+  // 조편성 데이터 (closed/confirmed 상태 미래 일정 전체, 최대 3개)
   const closedSchedules = schedules
-    .filter(s => s.status === 'closed' && s.play_date >= today)
+    .filter(s => ['closed', 'confirmed'].includes(s.status) && s.play_date >= today)
     .sort((a, b) => a.play_date.localeCompare(b.play_date))
     .slice(0, 3);
 

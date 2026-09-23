@@ -462,6 +462,7 @@
 | ---- | ------------- |
 | - | 9/19 대영힐스CC 스코어 이미지 업로드 → schedules 신규 등록(id=20) + round_results 12명 등록(순위/점수/신페리오 HD·점수·순위 포함) + reservations 12건 자동 생성, MongoDB(운영 DB) 직접 반영 |
 | - | 홈 상단 배너 "라운드 기록" 자동 최신화 확인 (routes/index.js가 getTableAsync로 매 요청 최신 schedule을 집계하므로 별도 코드 수정 불필요, 로컬 서버 기동 후 렌더링 검증) |
+| - | 향후 일정 3건 신규 등록: 10/10(토) 양지파인CC(9명), 10/24(토) 대영힐스CC(7명), 10/31(토)~11/1(일) 한탄강CC 1박2일(38명). golf_courses에 한탄강CC 신규 추가(id=6). 각 일정 notes에 "참가 신청은 반드시 회사 IG 게시판에서만 가능" 안내 포함, 신청자는 reservations status='pending'으로 등록 |
 
 ---
 

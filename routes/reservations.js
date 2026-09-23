@@ -944,13 +944,13 @@ router.get('/available', requireAuth, async (req, res) => {
           r => r.schedule_id === s.id && ['pending', 'confirmed'].includes(r.status)
         ).length;
         const myReservation = reservations.find(
-          r => r.schedule_id === s.id && r.member_id === memberId
+          r => r.schedule_id === s.id && r.member_id === memberId && ['pending', 'confirmed'].includes(r.status)
         );
         return {
           ...s,
           course_name: course.name,
           location: course.location,
-          max_members: course.max_members || 12,
+          max_members: s.max_members || course.max_members || 12,
           reserved_count,
           my_reservation_id: myReservation ? myReservation.id : null,
           is_screen: course.is_screen || false
@@ -959,7 +959,7 @@ router.get('/available', requireAuth, async (req, res) => {
       .sort((a, b) => a.play_date.localeCompare(b.play_date));
 
     res.render('reservations/available', {
-      title: '예약 신청',
+      title: '예약현황',
       currentPage: 'reservations',
       schedules
     });

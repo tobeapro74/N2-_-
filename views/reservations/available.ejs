@@ -6,7 +6,7 @@
     <a href="/" class="back-link" aria-label="대시보드로 이동">
       <i class="bi bi-chevron-left" aria-hidden="true"></i>홈
     </a>
-    <h5 class="mb-0 fw-bold"><i class="bi bi-calendar-check text-success me-2" aria-hidden="true"></i>예약 신청</h5>
+    <h5 class="mb-0 fw-bold"><i class="bi bi-calendar-check text-success me-2" aria-hidden="true"></i>예약현황</h5>
   </div>
 </div>
 
@@ -15,13 +15,6 @@
   const golfSchedules = schedules.filter(s => !s.is_screen);
   const screenSchedules = schedules.filter(s => s.is_screen);
 %>
-
-<% if (user && user.is_admin) { %>
-<div class="alert alert-warning py-2">
-  <i class="bi bi-exclamation-triangle me-1"></i>
-  <strong>관리자 계정</strong>은 예약 신청이 불가능합니다. 일정 현황만 확인할 수 있습니다.
-</div>
-<% } %>
 
 <% if (schedules.length === 0) { %>
 <div class="card border-0 shadow-sm">
@@ -50,7 +43,7 @@
             <th style="width: 20%;" data-sort="string">위치</th>
             <th style="width: 12%;">티타임</th>
             <th style="width: 15%;" data-sort="number">현황</th>
-            <th style="width: 20%;" class="text-center">예약</th>
+            <th style="width: 20%;" class="text-center">상태</th>
           </tr>
         </thead>
         <tbody>
@@ -69,7 +62,7 @@
               <div class="d-flex align-items-center">
                 <div class="progress flex-grow-1 me-2" style="height: 8px; min-width: 60px;">
                   <div class="progress-bar <%= schedule.reserved_count >= schedule.max_members ? 'bg-danger' : 'bg-success' %>"
-                       style="width: <%= (schedule.reserved_count / schedule.max_members) * 100 %>%"></div>
+                       style="width: <%= Math.min((schedule.reserved_count / schedule.max_members) * 100, 100) %>%"></div>
                 </div>
                 <small class="text-nowrap <%= schedule.reserved_count >= schedule.max_members ? 'text-danger fw-bold' : '' %>">
                   <%= schedule.max_members >= 999 ? schedule.reserved_count + '명' : schedule.reserved_count + '/' + schedule.max_members %>
@@ -77,22 +70,10 @@
               </div>
             </td>
             <td class="text-center">
-              <% if (user && user.is_admin) { %>
-              <span class="badge bg-light text-muted">-</span>
-              <% } else if (schedule.my_reservation_id) { %>
-              <div class="d-flex align-items-center justify-content-center gap-2">
-                <span class="badge bg-success"><i class="bi bi-check-circle"></i> 예약완료</span>
-                <button type="button" class="btn btn-outline-danger btn-sm py-0 px-2"
-                        onclick="cancelReservation(<%= schedule.my_reservation_id %>)">
-                  <i class="bi bi-x"></i>
-                </button>
-              </div>
+              <% if (schedule.my_reservation_id) { %>
+              <span class="badge bg-success"><i class="bi bi-check-circle"></i> 예약 중</span>
               <% } else { %>
-              <button type="button" class="btn <%= schedule.reserved_count >= schedule.max_members ? 'btn-outline-warning' : 'btn-success' %> btn-sm"
-                      onclick="applyReservation(<%= schedule.id %>)">
-                <i class="bi bi-check-circle"></i>
-                <%= schedule.reserved_count >= schedule.max_members ? '대기신청' : '예약신청' %>
-              </button>
+              <span class="badge bg-light text-muted">-</span>
               <% } %>
             </td>
           </tr>
@@ -121,27 +102,16 @@
           <div class="d-flex align-items-center" style="flex: 1; max-width: 120px;">
             <div class="progress flex-grow-1 me-2" style="height: 6px;">
               <div class="progress-bar <%= schedule.reserved_count >= schedule.max_members ? 'bg-danger' : 'bg-success' %>"
-                   style="width: <%= (schedule.reserved_count / schedule.max_members) * 100 %>%"></div>
+                   style="width: <%= Math.min((schedule.reserved_count / schedule.max_members) * 100, 100) %>%"></div>
             </div>
             <small class="<%= schedule.reserved_count >= schedule.max_members ? 'text-danger fw-bold' : '' %>">
               <%= schedule.max_members >= 999 ? schedule.reserved_count + '명' : schedule.reserved_count + '/' + schedule.max_members %>
             </small>
           </div>
-          <% if (user && user.is_admin) { %>
-          <span class="badge bg-light text-muted">-</span>
-          <% } else if (schedule.my_reservation_id) { %>
-          <div class="d-flex align-items-center gap-2">
-            <span class="badge bg-success"><i class="bi bi-check-circle"></i> 예약완료</span>
-            <button type="button" class="btn btn-outline-danger btn-sm py-0 px-2"
-                    onclick="cancelReservation(<%= schedule.my_reservation_id %>)">
-              <i class="bi bi-x"></i>
-            </button>
-          </div>
+          <% if (schedule.my_reservation_id) { %>
+          <span class="badge bg-success"><i class="bi bi-check-circle"></i> 예약 중</span>
           <% } else { %>
-          <button type="button" class="btn <%= schedule.reserved_count >= schedule.max_members ? 'btn-outline-warning' : 'btn-success' %> btn-sm"
-                  onclick="applyReservation(<%= schedule.id %>)">
-            <%= schedule.reserved_count >= schedule.max_members ? '대기신청' : '예약신청' %>
-          </button>
+          <span class="badge bg-light text-muted">-</span>
           <% } %>
         </div>
       </div>
@@ -168,7 +138,7 @@
             <th style="width: 15%;" data-sort="date">날짜</th>
             <th style="width: 25%;" data-sort="string">위치</th>
             <th style="width: 18%;" data-sort="number">현황</th>
-            <th style="width: 20%;" class="text-center">예약</th>
+            <th style="width: 20%;" class="text-center">상태</th>
           </tr>
         </thead>
         <tbody>
@@ -186,7 +156,7 @@
               <div class="d-flex align-items-center">
                 <div class="progress flex-grow-1 me-2" style="height: 8px; min-width: 60px;">
                   <div class="progress-bar <%= schedule.reserved_count >= schedule.max_members ? 'bg-danger' : 'bg-info' %>"
-                       style="width: <%= (schedule.reserved_count / schedule.max_members) * 100 %>%"></div>
+                       style="width: <%= Math.min((schedule.reserved_count / schedule.max_members) * 100, 100) %>%"></div>
                 </div>
                 <small class="text-nowrap <%= schedule.reserved_count >= schedule.max_members ? 'text-danger fw-bold' : '' %>">
                   <%= schedule.max_members >= 999 ? schedule.reserved_count + '명' : schedule.reserved_count + '/' + schedule.max_members %>
@@ -194,22 +164,10 @@
               </div>
             </td>
             <td class="text-center">
-              <% if (user && user.is_admin) { %>
-              <span class="badge bg-light text-muted">-</span>
-              <% } else if (schedule.my_reservation_id) { %>
-              <div class="d-flex align-items-center justify-content-center gap-2">
-                <span class="badge bg-success"><i class="bi bi-check-circle"></i> 예약완료</span>
-                <button type="button" class="btn btn-outline-danger btn-sm py-0 px-2"
-                        onclick="cancelReservation(<%= schedule.my_reservation_id %>)">
-                  <i class="bi bi-x"></i>
-                </button>
-              </div>
+              <% if (schedule.my_reservation_id) { %>
+              <span class="badge bg-success"><i class="bi bi-check-circle"></i> 예약 중</span>
               <% } else { %>
-              <button type="button" class="btn <%= schedule.reserved_count >= schedule.max_members ? 'btn-outline-warning' : 'btn-secondary' %> btn-sm"
-                      onclick="applyReservation(<%= schedule.id %>)">
-                <i class="bi bi-check-circle"></i>
-                <%= schedule.reserved_count >= schedule.max_members ? '대기신청' : '예약신청' %>
-              </button>
+              <span class="badge bg-light text-muted">-</span>
               <% } %>
             </td>
           </tr>
@@ -237,27 +195,16 @@
           <div class="d-flex align-items-center" style="flex: 1; max-width: 120px;">
             <div class="progress flex-grow-1 me-2" style="height: 6px;">
               <div class="progress-bar <%= schedule.reserved_count >= schedule.max_members ? 'bg-danger' : 'bg-info' %>"
-                   style="width: <%= (schedule.reserved_count / schedule.max_members) * 100 %>%"></div>
+                   style="width: <%= Math.min((schedule.reserved_count / schedule.max_members) * 100, 100) %>%"></div>
             </div>
             <small class="<%= schedule.reserved_count >= schedule.max_members ? 'text-danger fw-bold' : '' %>">
               <%= schedule.max_members >= 999 ? schedule.reserved_count + '명' : schedule.reserved_count + '/' + schedule.max_members %>
             </small>
           </div>
-          <% if (user && user.is_admin) { %>
-          <span class="badge bg-light text-muted">-</span>
-          <% } else if (schedule.my_reservation_id) { %>
-          <div class="d-flex align-items-center gap-2">
-            <span class="badge bg-success"><i class="bi bi-check-circle"></i> 예약완료</span>
-            <button type="button" class="btn btn-outline-danger btn-sm py-0 px-2"
-                    onclick="cancelReservation(<%= schedule.my_reservation_id %>)">
-              <i class="bi bi-x"></i>
-            </button>
-          </div>
+          <% if (schedule.my_reservation_id) { %>
+          <span class="badge bg-success"><i class="bi bi-check-circle"></i> 예약 중</span>
           <% } else { %>
-          <button type="button" class="btn <%= schedule.reserved_count >= schedule.max_members ? 'btn-outline-warning' : 'btn-secondary' %> btn-sm"
-                  onclick="applyReservation(<%= schedule.id %>)">
-            <%= schedule.reserved_count >= schedule.max_members ? '대기신청' : '예약신청' %>
-          </button>
+          <span class="badge bg-light text-muted">-</span>
           <% } %>
         </div>
       </div>
@@ -272,74 +219,7 @@
 <!-- 안내 문구 -->
 <div class="alert alert-light border mt-3 py-2" style="font-size: 0.85rem;">
   <i class="bi bi-info-circle text-primary me-1"></i>
-  <strong>예약 안내:</strong> 선착순 예약이며, 정원 초과 시 대기자로 등록됩니다. 연속 참가자는 후순위로 적용됩니다.
+  <strong>예약 안내:</strong> 예약은 IG 홈페이지 &gt; 게시판에서 해당 날짜의 모집 게시물에서 직접 하셔야 합니다.
 </div>
-
-<script>
-// CSRF 토큰 가져오기
-function getCsrfToken() {
-  return document.querySelector('meta[name="csrf-token"]')?.content || '';
-}
-
-function applyReservation(scheduleId) {
-  fetch('/reservations/apply', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-CSRF-Token': getCsrfToken()
-    },
-    body: JSON.stringify({ schedule_id: scheduleId })
-  })
-  .then(res => {
-    if (!res.ok) {
-      return res.json().then(data => { throw new Error(data.error || '요청 처리 중 오류가 발생했습니다.'); });
-    }
-    return res.json();
-  })
-  .then(data => {
-    if (data.success) {
-      alert(data.message + (data.isWaitlist ? ' (대기자 명단)' : ''));
-      location.reload();
-    } else {
-      alert(data.error || '오류가 발생했습니다.');
-    }
-  })
-  .catch(err => {
-    console.error('예약 신청 오류:', err);
-    alert(err.message || '예약 신청 중 오류가 발생했습니다.');
-  });
-}
-
-function cancelReservation(reservationId) {
-  if (!confirm('예약을 취소하시겠습니까?')) return;
-
-  fetch('/reservations/cancel', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-CSRF-Token': getCsrfToken()
-    },
-    body: JSON.stringify({ reservation_id: reservationId })
-  })
-  .then(res => {
-    if (!res.ok) {
-      return res.json().then(data => { throw new Error(data.error || '요청 처리 중 오류가 발생했습니다.'); });
-    }
-    return res.json();
-  })
-  .then(data => {
-    if (data.success) {
-      alert(data.message);
-      location.reload();
-    } else {
-      alert(data.error || '오류가 발생했습니다.');
-    }
-  })
-  .catch(err => {
-    console.error('예약 취소 오류:', err);
-    alert(err.message || '예약 취소 중 오류가 발생했습니다.');
-  });
-}
-</script>
 
 <%- include('../partials/footer') %>

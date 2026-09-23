@@ -87,16 +87,16 @@
   </a>
   <% } else { %>
   <a href="/reservations/available" class="ss-hero-card ss-hero-card--green">
-    <div class="ss-hero-badge">예약하기</div>
+    <div class="ss-hero-badge">예약현황</div>
     <div class="ss-hero-icon"><i class="bi bi-calendar-check-fill"></i></div>
     <div class="ss-hero-sub">
       <% if (nextSchedule) { %>
       <%= nextSchedule.course_name %><br><%= bannerDate %>
       <% } else { %>
-      다음 라운드를<br>예약해보세요
+      다음 라운드를<br>확인해보세요
       <% } %>
     </div>
-    <div class="ss-hero-btn">예약 신청</div>
+    <div class="ss-hero-btn">예약현황 보러 가기</div>
   </a>
   <% } %>
 </div>

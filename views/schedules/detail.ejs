@@ -122,8 +122,7 @@
         </div>
         <% } else { %>
         <div class="alert alert-secondary mb-0 text-center">
-          <i class="bi bi-lock"></i> 조편성이 확정된 일정입니다.<br>
-          <small class="text-muted">예약 신청은 관리자만 가능합니다.</small>
+          <i class="bi bi-lock"></i> 조편성이 확정된 일정입니다.
         </div>
         <% } %>
         <% } else if (schedule.status === 'pending') { %>
@@ -147,56 +146,18 @@
         <% } %>
         <% } else if (schedule.status === 'open') { %>
         <hr>
-        <% if (myReservation && !user.is_admin) { %>
-          <% if (myReservation.status !== 'cancelled') { %>
-          <div class="alert alert-success mb-2 text-center">
-            <i class="bi bi-check-circle"></i> 예약 신청 완료
+        <% if (myReservation && !user.is_admin && myReservation.status !== 'cancelled') { %>
+          <div class="alert alert-success mb-0 text-center">
+            <i class="bi bi-check-circle"></i> 예약 중
             <% if (myReservation.status === 'waitlist') { %>
             <span class="badge bg-warning">대기자</span>
             <% } %>
           </div>
-          <button type="button" class="btn btn-outline-danger w-100" onclick="cancelReservation(<%= myReservation.id %>)">
-            <i class="bi bi-x-circle"></i> 예약 취소
-          </button>
-          <% } else { %>
-          <% const teeTimesReapply = schedule.tee_times ? schedule.tee_times.split(',').map(t => t.trim()) : []; %>
-          <% if (teeTimesReapply.length > 0) { %>
-          <div class="mb-2">
-            <label class="form-label small text-muted">희망 티타임 선택</label>
-            <select id="teeTimeSelect" class="form-select">
-              <% teeTimesReapply.forEach((time, idx) => { %>
-              <option value="<%= time %>"><%= time %> (<%= idx + 1 %>팀)</option>
-              <% }) %>
-            </select>
-          </div>
-          <% } %>
-          <button type="button" class="btn btn-success w-100" onclick="applyReservation(<%= schedule.id %>)">
-            <i class="bi bi-check-circle"></i> 다시 신청
-          </button>
-          <% } %>
-        <% } else if (user && !user.is_admin) { %>
-        <% const teeTimes = schedule.tee_times ? schedule.tee_times.split(',').map(t => t.trim()) : []; %>
-        <% if (teeTimes.length > 0) { %>
-        <div class="mb-2">
-          <label class="form-label small text-muted">희망 티타임 선택</label>
-          <select id="teeTimeSelect" class="form-select">
-            <% teeTimes.forEach((time, idx) => { %>
-            <option value="<%= time %>"><%= time %> (<%= idx + 1 %>팀)</option>
-            <% }) %>
-          </select>
-        </div>
-        <% } %>
-        <button type="button" class="btn btn-success w-100" onclick="applyReservation(<%= schedule.id %>)">
-          <i class="bi bi-check-circle"></i> 예약 신청
-        </button>
-        <% } else if (user && user.is_admin) { %>
-        <div class="alert alert-secondary mb-0 text-center">
-          <i class="bi bi-info-circle"></i> 관리자는 예약 신청이 불가능합니다.
-        </div>
         <% } else { %>
-        <a href="/auth/login" class="btn btn-outline-success w-100">
-          로그인 후 예약
-        </a>
+        <div class="alert alert-light border mb-0 text-center">
+          <i class="bi bi-info-circle text-primary"></i>
+          예약은 IG 홈페이지 &gt; 게시판에서 해당 날짜의 모집 게시물에서 직접 하셔야 합니다.
+        </div>
         <% } %>
         <% } %>
 
@@ -384,73 +345,6 @@
 // CSRF 토큰
 const csrfToken = '<%= csrfToken %>';
 const scheduleId = <%= schedule.id %>;
-const teeTimes = '<%= schedule.tee_times || "" %>'.split(',').map(t => t.trim()).filter(t => t);
-
-function applyReservation(scheduleId) {
-  <% if (user && user.is_admin) { %>
-  alert('관리자는 예약 신청이 불가능합니다.');
-  return;
-  <% } %>
-
-  const teeTimeSelect = document.getElementById('teeTimeSelect');
-  const preferredTeeTime = teeTimeSelect ? teeTimeSelect.value : null;
-
-  fetch('/reservations/apply', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-CSRF-Token': csrfToken
-    },
-    body: JSON.stringify({
-      schedule_id: scheduleId,
-      preferred_tee_time: preferredTeeTime,
-      _csrf: csrfToken
-    })
-  })
-  .then(res => {
-    if (!res.ok && res.status === 403) {
-      alert('세션이 만료되었습니다. 페이지를 새로고침합니다.');
-      location.reload();
-      return null;
-    }
-    return res.json();
-  })
-  .then(data => {
-    if (!data) return;
-    if (data.success) {
-      alert(data.message + (data.isWaitlist ? ' (대기자 명단)' : ''));
-      location.reload();
-    } else {
-      alert(data.error || '오류가 발생했습니다.');
-    }
-  })
-  .catch(err => {
-    console.error('예약 신청 에러:', err);
-    alert('네트워크 오류가 발생했습니다. 페이지를 새로고침 후 다시 시도해주세요.');
-  });
-}
-
-function cancelReservation(reservationId) {
-  if (!confirm('예약을 취소하시겠습니까?')) return;
-
-  fetch('/reservations/cancel', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-CSRF-Token': csrfToken
-    },
-    body: JSON.stringify({ reservation_id: reservationId, _csrf: csrfToken })
-  })
-  .then(res => res.json())
-  .then(data => {
-    if (data.success) {
-      alert(data.message);
-      location.reload();
-    } else {
-      alert(data.error || '오류가 발생했습니다.');
-    }
-  });
-}
 
 function assignTeams(scheduleId) {
   showTeamModal();

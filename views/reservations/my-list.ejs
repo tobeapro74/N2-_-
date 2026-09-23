@@ -9,7 +9,7 @@
     <h5 class="mb-0 fw-bold"><i class="bi bi-calendar-check text-success me-2" aria-hidden="true"></i>내 예약</h5>
   </div>
   <a href="/reservations/available" class="btn btn-success btn-sm py-1 px-3 d-flex align-items-center gap-1" style="font-size: 0.85rem;">
-    <i class="bi bi-calendar-plus"></i> 예약신청
+    <i class="bi bi-calendar-plus"></i> 예약현황
   </a>
 </div>
 
@@ -24,7 +24,7 @@
       <i class="bi bi-calendar-x text-muted" style="font-size: 3rem;"></i>
       <h5 class="mt-3 text-muted">예약 내역이 없습니다.</h5>
       <a href="/reservations/available" class="btn btn-success btn-sm mt-3">
-        <i class="bi bi-calendar-plus"></i> 예약하기
+        <i class="bi bi-calendar-plus"></i> 예약현황 보기
       </a>
     </div>
     <% } else { %>
@@ -64,11 +64,6 @@
             <td class="py-2 hide-mobile text-center"><small><%= r.team_number ? r.team_number + '팀' : '-' %></small></td>
             <td class="py-2 hide-mobile"><small><%= r.tee_time || '-' %></small></td>
             <td class="py-2 pe-3 text-end">
-              <% if (r.status !== 'cancelled' && new Date(r.play_date) >= new Date() && r.schedule_status === 'open') { %>
-              <button type="button" class="btn btn-outline-danger btn-sm py-0 px-1" style="font-size: 0.85rem;" onclick="cancelReservation(<%= r.id %>)">
-                취소
-              </button>
-              <% } %>
               <a href="/schedules/<%= r.schedule_id %>" class="text-muted ms-1">
                 <i class="bi bi-chevron-right"></i>
               </a>
@@ -81,43 +76,5 @@
     <% } %>
   </div>
 </div>
-
-<script>
-// CSRF 토큰 가져오기
-function getCsrfToken() {
-  return document.querySelector('meta[name="csrf-token"]')?.content || '';
-}
-
-function cancelReservation(reservationId) {
-  if (!confirm('예약을 취소하시겠습니까?')) return;
-
-  fetch('/reservations/cancel', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-CSRF-Token': getCsrfToken()
-    },
-    body: JSON.stringify({ reservation_id: reservationId })
-  })
-  .then(res => {
-    if (!res.ok) {
-      return res.json().then(data => { throw new Error(data.error || '요청 처리 중 오류가 발생했습니다.'); });
-    }
-    return res.json();
-  })
-  .then(data => {
-    if (data.success) {
-      alert(data.message);
-      location.reload();
-    } else {
-      alert(data.error || '오류가 발생했습니다.');
-    }
-  })
-  .catch(err => {
-    console.error('예약 취소 오류:', err);
-    alert(err.message || '예약 취소 중 오류가 발생했습니다.');
-  });
-}
-</script>
 
 <%- include('../partials/footer') %>
